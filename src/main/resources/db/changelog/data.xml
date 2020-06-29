@@ -1,0 +1,393 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="data.xml">
+
+
+    <property name="nowDateTime" value="now()" dbms="postgresql"/>
+
+    <changeSet id="addUsers" author="mikael">
+        <insert tableName="users">
+            <column name="id" value="1"/>
+            <column name="username" value="admin"/>
+            <column name="password" value="$2a$10$kRkmkSNT1poQE8tbcywxFe3sAMMEmygdMV9Yv6R4Bwnz1aHXya14u"/>
+            <column name="firstname" value="D"/>
+            <column name="lastname" value="Time"/>
+            <column name="email" value="admin@dtime.se"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="userrole" value="ADMIN"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addSystemUser" author="mikael">
+        <insert tableName="users">
+            <column name="id" value="0"/>
+            <column name="username" value="system"/>
+            <column name="password" value="$2a$10$kRkmkSNT1poQE8tbcywxFe3sAMMEmygdMV9Yv6R4Bwnz1aHXya14u"/>
+            <column name="firstname" value="System"/>
+            <column name="lastname" value="System"/>
+            <column name="email" value="system@dtime.se"/>
+            <column name="status" value="INACTIVE"/>
+            <column name="userrole" value="NONE"/>
+            <column name="category" value="NONE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addComapnies" author="mikael">
+        <insert tableName="company">
+            <column name="id" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="name" value="Test company"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addProjects" author="mikael">
+        <insert tableName="project">
+            <column name="id" value="1"/>
+            <column name="name" value="Semester"/>
+            <column name="provision" value="1"/>
+            <column name="id_company" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="project">
+            <column name="id" value="2"/>
+            <column name="name" value="Konference"/>
+            <column name="provision" value="1"/>
+            <column name="id_company" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="project">
+            <column name="id" value="3"/>
+            <column name="name" value="Godkänd utbildning"/>
+            <column name="id_company" value="1"/>
+            <column name="provision" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="project">
+            <column name="id" value="4"/>
+            <column name="name" value="Sjuk"/>
+            <column name="provision" value="0"/>
+            <column name="id_company" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="project">
+            <column name="id" value="5"/>
+            <column name="name" value="Obelagd"/>
+            <column name="provision" value="0"/>
+            <column name="id_company" value="1"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addPublicholiday" author="mikael">
+        <insert tableName="publicholiday">
+            <column name="id" value="1"/>
+            <column name="name" value="Nyårsdagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="2"/>
+            <column name="name" value="Trettondagsafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="3"/>
+            <column name="name" value="Trettondedag jul"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="4"/>
+            <column name="name" value="Skärtorsdagen"/>
+            <column name="workday" value="1"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="5"/>
+            <column name="name" value="Långfredagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="6"/>
+            <column name="name" value="Påskafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="7"/>
+            <column name="name" value="Påskdagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="8"/>
+            <column name="name" value="Annandag påsk"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="9"/>
+            <column name="name" value="Valborgsmässoafton"/>
+            <column name="workday" value="1"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="10"/>
+            <column name="name" value="Första maj"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="11"/>
+            <column name="name" value="Kristi himmelfärdsdag"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="12"/>
+            <column name="name" value="Pingstafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="13"/>
+            <column name="name" value="Pingstdagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="14"/>
+            <column name="name" value="Nationaldagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="15"/>
+            <column name="name" value="Midsommarafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="16"/>
+            <column name="name" value="Midsommardagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="17"/>
+            <column name="name" value="Allahelgonsafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="18"/>
+            <column name="name" value="Allahelgonsdagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="19"/>
+            <column name="name" value="Julafton"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="20"/>
+            <column name="name" value="Juldagen"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="21"/>
+            <column name="name" value="Annandag jul"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+        <insert tableName="publicholiday">
+            <column name="id" value="22"/>
+            <column name="name" value="Nyår"/>
+            <column name="workday" value="0"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addSystemproperty" author="mikael">
+        <insert tableName="systemproperty">
+            <column name="id" value="1"/>
+            <column name="name" value="Provision"/>
+            <column name="value" value="0.9"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="updateSystemproperty-1" author="mikael">
+        <update tableName="systemproperty">
+            <column name="type" value="FLOAT"/>
+            <column name="description" value="[Greater than 0 and less than 1]"/>
+            <where>id = 1</where>
+        </update>
+    </changeSet>
+
+    <changeSet id="addSystemproperty-2" author="mikael">
+        <insert tableName="systemproperty">
+            <column name="id" value="2"/>
+            <column name="name" value="Email reminder"/>
+            <column name="type" value="BOOL"/>
+            <column name="description" value="[true,false]"/>
+            <column name="value" value="true"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="deleteSystemproperty" author="mikael">
+        <delete tableName="systemproperty">
+            <where>id = 1</where>
+        </delete>
+    </changeSet>
+
+    <changeSet id="addSystemproperty-3" author="mikael">
+        <insert tableName="systemproperty">
+            <column name="id" value="1"/>
+            <column name="name" value="Dispatch on call emails"/>
+            <column name="type" value="BOOL"/>
+            <column name="description" value="[true,false]"/>
+            <column name="value" value="true"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="addSystemproperty-5" author="mikael">
+        <insert tableName="systemproperty">
+            <column name="id" value="4"/>
+            <column name="name" value="Number of activity votes per user"/>
+            <column name="type" value="INT"/>
+            <column name="description" value="[1,2,3,...]"/>
+            <column name="value" value="5"/>
+            <column name="createdatetime" value="${nowDateTime}"/>
+            <column name="updatedatetime" value="${nowDateTime}"/>
+            <column name="createdby" value="1"/>
+            <column name="updatedby" value="1"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="updatePublicholiday" author="mikael">
+        <update tableName="publicholiday">
+            <column name="workday" value="1"/>
+            <where>id = 17</where>
+        </update>
+    </changeSet>
+</databaseChangeLog>

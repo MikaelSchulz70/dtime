@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"
+      xmlns:th="http://www.thymeleaf.org">
+
+<head th:fragment="header">
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <meta content="ie=edge" http-equiv="x-ua-compatible"/>
+    <title>Dtime</title>
+
+    <link rel="icon" href="favicon.ico">
+    <link rel="stylesheet" type="text/css" href="/pub/bootstrap-4.1.0/css/bootstrap.min.css"/>
+    <script type="text/javascript" src="/pub/js/jquery-3.3.1.min.js"></script>
+    <script type="text/javascript" src="/pub/bootstrap-4.1.0/js/bootstrap.min.js"></script>
+
+    <meta name="_csrf" th:if="${_csrf}" th:content="${_csrf.token}"/>
+    <meta name="_csrf_header" th:if="${_csrf}" th:content="${_csrf.headerName}"/>
+</head>
+
+<body>
+<div class="row justify-content-md-left ml-1">
+    <img src="/internal/images/dtime.png" alt="Dtime" class="logo" style="width: 25%; height: 25%"/>
+</div>
+<main class='container-fluid'>
+    <div id='root'></div>
+</main>
+<script type="text/javascript" src="/internal/js/bundle.js"></script>
+</body>
+</html>

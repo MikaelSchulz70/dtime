@@ -1,0 +1,133 @@
+package se.dtime.dbmodel;
+
+import se.dtime.model.ActivationStatus;
+import se.dtime.model.UserCategory;
+import se.dtime.model.UserRole;
+
+import javax.persistence.*;
+
+@Entity(name = "User")
+@Table(name = "users")
+@NamedQueries({
+        @NamedQuery(name = "User.findByActivationStatusOrderByFirstNameAsc", query = "SELECT u FROM User u WHERE u.activationStatus=:acticationStatus ORDER BY u.firstName, u.lastName")
+})
+public class UserPO extends BasePO {
+    private Long id;
+    private String userName;
+    private String password;
+    private String firstName;
+    private String lastName;
+    private String email;
+    private String mobileNumber;
+    private UserRole userRole;
+    private UserCategory userCategory;
+    private ActivationStatus activationStatus;
+
+    public UserPO() {
+    }
+
+    public UserPO(Long id) {
+        this.id = id;
+    }
+
+    @Id
+    @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_users")
+    @SequenceGenerator(name = "seq_users", sequenceName = "seq_users", allocationSize = 1)
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+
+    @Column(name = "username", unique = true, nullable = false, length = 20)
+    public String getUserName() {
+        return userName;
+    }
+
+    public void setUserName(String userName) {
+        this.userName = userName;
+    }
+
+    @Column(name = "password", unique = false, nullable = false, updatable = true, length = 80)
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
+    @Column(name = "firstname", unique = false, nullable = false, length = 30)
+    public String getFirstName() {
+        return firstName;
+    }
+
+    public void setFirstName(String firstName) {
+        this.firstName = firstName;
+    }
+
+    @Column(name = "lastname", unique = false, nullable = false, length = 30)
+    public String getLastName() {
+        return lastName;
+    }
+
+    public void setLastName(String lastName) {
+        this.lastName = lastName;
+    }
+
+    @Column(name = "email", unique = true, nullable = false, length = 60)
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
+    }
+
+    @Column(name = "mobilenumber", unique = true, nullable = false, length = 20)
+    public String getMobileNumber() {
+        return mobileNumber;
+    }
+
+    public void setMobileNumber(String mobileNumber) {
+        this.mobileNumber = mobileNumber;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "userrole", unique = false, nullable = false, length = 20)
+    public UserRole getUserRole() {
+        return userRole;
+    }
+
+    public void setUserRole(UserRole userRole) {
+        this.userRole = userRole;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", unique = false, nullable = false, length = 20)
+    public ActivationStatus getActivationStatus() {
+        return activationStatus;
+    }
+
+    public void setActivationStatus(ActivationStatus activationStatus) {
+        this.activationStatus = activationStatus;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "category", unique = false, nullable = false, length = 20)
+    public UserCategory getUserCategory() {
+        return userCategory;
+    }
+
+    public void setUserCategory(UserCategory userCategory) {
+        this.userCategory = userCategory;
+    }
+
+    @Transient
+    public String getFullName() {
+        return firstName + " " + lastName;
+    }
+}
