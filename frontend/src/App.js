@@ -12,7 +12,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 // Components
 import NavigationMenu from './containers/menu/menu';
-import Times from './containers/timeentry/time';
+import Times from './containers/timereport/time';
 import Users from './containers/user/users';
 import UserDetails from './containers/user/userdetails';
 import Account from './containers/account/account';

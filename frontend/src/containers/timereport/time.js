@@ -65,8 +65,8 @@ class TimeReportTableEntry extends React.Component {
         var timeChanged = this.timeChanged;
         var timeReportDay = this.state.timeReportDay;
 
-
-        TimeService.updateTime(this.state.timeReportDay)
+        const timeService = new TimeService();
+        timeService.updateTime(this.state.timeReportDay)
             .then(response => {
                 timeChanged(timeReportDay, response.data);
             })
@@ -141,7 +141,7 @@ class TimeReportTableRow extends React.Component {
     constructor(props) {
         super(props);
         this.timeChanged = this.timeChanged.bind(this);
-        this.state = { timeReporttask: this.props.timeReporttask, totaltaskTime: this.props.totaltaskTime };
+        this.state = { timeReportTask: this.props.timeReportTask, totalTaskTime: this.props.totalTaskTime };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -157,13 +157,13 @@ class TimeReportTableRow extends React.Component {
     render() {
         if (this.state == null) return null;
 
-        var keyBase = this.state.timeReporttask.task.id;
+        var keyBase = this.state.timeReportTask.task.id;
 
         var timeChanged = this.timeChanged;
         var entries = [];
-        if (this.state.timeReporttask != null) {
+        if (this.state.timeReportTask != null) {
             var i = 3;
-            this.state.timeReporttask.timeReportDays.forEach(function (timeReportDay) {
+            this.state.timeReportTask.timeEntries.forEach(function (timeReportDay) {
                 var key = keyBase + '-' + i;
                 entries.push(
                     <TimeReportTableEntry key={key} timeReportDay={timeReportDay} timeChanged={timeChanged} />);
@@ -171,16 +171,16 @@ class TimeReportTableRow extends React.Component {
             });
         }
 
-        var accountName = this.state.timeReporttask.task.account.name;
+        var accountName = this.state.timeReportTask.task.account.name;
         var accountShortName = accountName.substring(0, Math.min(10, accountName.length));
-        var taskName = this.state.timeReporttask.task.name;
+        var taskName = this.state.timeReportTask.task.name;
         var taskShortName = taskName.substring(0, Math.min(10, taskName.length));
 
         return (
             <tr key={keyBase}>
                 <th key={keyBase + '-0'} className="text-nowrap" title={accountName}>{accountShortName}</th>
                 <th key={keyBase + '-1'} className="text-nowrap" title={taskName}>{taskShortName}</th>
-                <th key={keyBase + '-2  '}><input className="time" style={{ width: "65px" }} readOnly={true} name={this.state.timeReporttask.task.name} type="text" value={this.state.totaltaskTime} /></th>
+                <th key={keyBase + '-2  '}><input className="time" style={{ width: "65px" }} readOnly={true} name={this.state.timeReportTask.task.name} type="text" value={this.state.totalTaskTime} /></th>
                 {entries}
             </tr>
         );
@@ -286,22 +286,22 @@ class TimeReportTable extends React.Component {
         }
     }
 
-    updateTime(timeReportDayUpdated, timeReporttasks) {
-        for (var timeReporttaskKey in timeReporttasks) {
-            var timeReporttask = timeReporttasks[timeReporttaskKey];
-            for (var timeReportDayKey in timeReporttask.timeReportDays) {
-                var timeReportDay = timeReporttask.timeReportDays[timeReportDayKey];
-                if (timeReportDay.idtaskcontributor === timeReportDayUpdated.idtaskcontributor &&
-                    timeReportDay.day.date === timeReportDayUpdated.day.date) {
-                    timeReportDay.time = timeReportDayUpdated.time;
+    updateTime(timeReportDayUpdated, timeReportTasks) {
+        console.log(timeReportTasks);
+        for (var timeReportTaskKey in timeReportTasks) {
+            var timeReportTask = timeReportTasks[timeReportTaskKey];
+            for (var timeReportEntryKey in timeReportTask.timeEntries) {
+                var timeReportEntry = timeReportTask.timeEntries[timeReportEntryKey];
+                if (timeReportEntry.taskContributorId === timeReportDayUpdated.taskContributorId &&
+                    timeReportEntry.day.date === timeReportDayUpdated.day.date) {
+                    timeReportEntry.time = timeReportDayUpdated.time;
                 }
             }
         }
     }
 
     timeChanged(timeReportDayUpdated) {
-        this.updateTime(timeReportDayUpdated, this.state.timeReport.timeReporttasksInternal);
-        this.updateTime(timeReportDayUpdated, this.state.timeReport.timeReporttasksExternal);
+        this.updateTime(timeReportDayUpdated, this.state.timeReport.timeReportTasks);
         this.setState({ timeReport: this.state.timeReport });
     }
 
@@ -312,68 +312,29 @@ class TimeReportTable extends React.Component {
 
         var rows = [];
         var timeChanged = this.timeChanged;
-        var totalTimeProvision = 0;
-        var totalTimeNoProvision = 0;
+        var totalTime = 0;
 
-        if (this.state.timeReport.timeReporttasksExternal != null) {
-            this.state.timeReport.timeReporttasksExternal.forEach(function (timeReporttask) {
-                var totaltaskTime = 0;
-                var reporttask = timeReporttask;
-                timeReporttask.timeReportDays.forEach(function (timeReportDay) {
+        if (this.state.timeReport.timeReportTasks != null) {
+            this.state.timeReport.timeReportTasks.forEach(function (timeReportTask) {
+                var totalTaskTime = 0;
+                timeReportTask.timeEntries.forEach(function (timeReportDay) {
                     if (timeReportDay.time != null) {
                         var time = parseFloat(timeReportDay.time);
                         if (!isNaN(time)) {
-                            totaltaskTime += time;
-
-                            if (reporttask.task.provision) {
-                                totalTimeProvision += time;
-                            } else {
-                                totalTimeNoProvision += time;
-                            }
+                            totalTaskTime += time;
                         }
                     }
                 });
 
-                rows.push(
-                    <TimeReportTableRow key={timeReporttask.task.id} timeReporttask={timeReporttask} totaltaskTime={totaltaskTime} timeChanged={timeChanged} />);
-            });
-        }
-
-        if (this.state.timeReport.timeReporttasksInternal != null) {
-            this.state.timeReport.timeReporttasksInternal.forEach(function (timeReporttask) {
-                var totaltaskTime = 0;
-                var reporttask = timeReporttask;
-                timeReporttask.timeReportDays.forEach(function (timeReportDay) {
-                    if (timeReportDay.time != null) {
-                        var time = parseFloat(timeReportDay.time);
-                        if (!isNaN(time)) {
-                            totaltaskTime += time;
-                            if (reporttask.task.provision) {
-                                totalTimeProvision += time;
-                            } else {
-                                totalTimeNoProvision += time;
-                            }
-                        }
-                    }
-                });
+                totalTime += totalTaskTime;
 
                 rows.push(
-                    <TimeReportTableRow key={timeReporttask.task.id} timeReporttask={timeReporttask} totaltaskTime={totaltaskTime} timeChanged={timeChanged} />);
+                    <TimeReportTableRow key={timeReportTask.task.id} timeReportTask={timeReportTask} totalTaskTime={totalTaskTime} timeChanged={timeChanged} />);
             });
         }
-
-        var totalTime = totalTimeProvision + totalTimeNoProvision;
 
         rows.push(<TimeReportTableFooterRow key="footer3" days={this.state.timeReport.days} time={totalTime} label='Sum total' />);
         rows.push(<TimeReportTableFooterRow key="footer4" days={this.state.timeReport.days} time={this.state.timeReport.workableHours} label='Workable hours' />);
-
-        if (this.state.reportView === Constants.MONTH_VIEW) {
-            var provisionTime = Math.ceil(totalTimeProvision - this.state.timeReport.workableHours * 0.9);
-            if (provisionTime < 0) {
-                provisionTime = 0;
-            }
-            rows.push(<TimeReportTableFooterRow key="footer5" days={this.state.timeReport.days} time={provisionTime} label='Provision hours' />);
-        }
 
         return (
             <table className="table-sm">
@@ -408,7 +369,8 @@ export default class Times extends React.Component {
 
     loadCurrentTimes(view) {
         var self = this;
-        TimeService.getTimes(view)
+        var timeService = new TimeService();
+        timeService.getTimes(view)
             .then(response => {
                 self.setState({ timeReport: response.data, reportView: view });
             })
@@ -421,7 +383,8 @@ export default class Times extends React.Component {
         const date = event.target.name;
         var self = this;
 
-        TimeService.getPreviousTimes(this.state.reportView, date)
+        const timeService = new TimeService();
+        timeService.getPreviousTimes(this.state.reportView, date)
             .then(response => {
                 self.setState({ timeReport: response.data, reportView: self.state.reportView });
             })
@@ -434,7 +397,8 @@ export default class Times extends React.Component {
         const date = event.target.name;
         var self = this;
 
-        TimeService.getNextTimes(this.state.reportView, date)
+        const timeService = new TimeService();
+        timeService.getNextTimes(this.state.reportView, date)
             .then(response => {
                 self.setState({ timeReport: response.data, reportView: self.state.reportView });
             })

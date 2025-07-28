@@ -6,22 +6,22 @@ const BASE_URL = "/api/timereport";
 
 export default class TimeService {
 
-    static updateTime(time) {
+    updateTime(time) {
         var payLoad = JSON.stringify(time);
         return axios.post(BASE_URL,
             payLoad,
             Headers());
     };
 
-    static getTimes(view) {
+    getTimes(view) {
         return axios.get(BASE_URL + '?view=' + view);
     }
 
-    static getPreviousTimes(view, date) {
+    getPreviousTimes(view, date) {
         return axios.get(BASE_URL + '/previous?view=' + view + '&date=' + date);
     }
 
-    static getNextTimes(view, date) {
+    getNextTimes(view, date) {
         return axios.get(BASE_URL + '/next?view=' + view + '&date=' + date);
     }
 
@@ -29,15 +29,15 @@ export default class TimeService {
         return axios.get(BASE_URL + '/user?view=MONTH&userId=' + userId + '&date=' + fromDate);
     }
 
-    static getVacations() {
+    getVacations() {
         return axios.get(BASE_URL + '/vacations');
     }
 
-    static getPreviousVacations(date) {
+    getPreviousVacations(date) {
         return axios.get(BASE_URL + '/vacations/previous?date=' + date);
     }
 
-    static getNextVacations(date) {
+    getNextVacations(date) {
         return axios.get(BASE_URL + '/vacations/next?date=' + date);
     }
 }
