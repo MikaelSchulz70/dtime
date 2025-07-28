@@ -1,0 +1,36 @@
+spring:
+  devtools:
+    add-properties: true
+  # Mail Configuration (disabled for development)
+  mail:
+    host: localhost
+    port: 587
+    debug: false
+    properties:
+      mail:
+        smtp:
+          auth: false
+          starttls:
+            enable: false
+
+# Server Configuration for IntelliJ
+server:
+  port: 8080
+  address: localhost
+
+# Security Configuration (disabled for development)
+security:
+  enable-csrf: false
+
+# Email Reminder Configuration (disabled for development)
+reminder:
+  mail:
+    username: dev@example.com
+    password: dev-password
+
+# Logging Configuration
+logging:
+  file:
+    name: ./logs/server.log
+  level:
+    org.springframework.security: DEBUG

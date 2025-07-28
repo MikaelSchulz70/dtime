@@ -1,0 +1,46 @@
+version: '3.8'
+
+# Simplified Docker Compose for database only
+# Use this for development when you want to run backend/frontend locally
+# but use a containerized database
+
+services:
+  dtime-db:
+    build: 
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: dtime-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dtime
+      POSTGRES_USER: dtime
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-dtime_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+      # Initialization scripts
+      - ./database/scripts:/docker-entrypoint-initdb.d:ro
+      # Backup directory
+      - ./database/backups:/backups
+      # Logs
+      - ./database/logs:/var/log/postgresql
+    networks:
+      - dtime-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtime -d dtime"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dtime-network:
+    driver: bridge
+    name: dtime-network

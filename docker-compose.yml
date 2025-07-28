@@ -1,0 +1,95 @@
+version: '3.8'
+
+services:
+  # PostgreSQL Database
+  dtime-db:
+    build: 
+      context: ./database
+      dockerfile: Dockerfile
+    container_name: dtime-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: dtime
+      POSTGRES_USER: dtime
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-dtime_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+      - ./database/scripts:/docker-entrypoint-initdb.d:ro
+      - ./database/backups:/backups
+    networks:
+      - dtime-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U dtime -d dtime"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  # Spring Boot Backend (optional - for full stack development)
+  dtime-backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: dtime-backend
+    restart: unless-stopped
+    environment:
+      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
+      DATABASE_URL: jdbc:postgresql://dtime-db:5432/dtime
+      DATABASE_USERNAME: dtime
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD:-dtime_dev_password}
+      MAIL_USERNAME: ${MAIL_USERNAME}
+      MAIL_PASSWORD: ${MAIL_PASSWORD}
+      SECURITY_CSRF_ENABLED: ${SECURITY_CSRF_ENABLED:-false}
+    ports:
+      - "8080:8080"
+    depends_on:
+      dtime-db:
+        condition: service_healthy
+    networks:
+      - dtime-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 90s
+    profiles:
+      - full-stack
+
+  # Frontend Development Server (optional)
+  dtime-frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.dev
+    container_name: dtime-frontend
+    restart: unless-stopped
+    environment:
+      NODE_ENV: development
+      REACT_APP_API_URL: http://localhost:8080
+    ports:
+      - "3000:3000"
+    volumes:
+      - ./frontend/src:/app/src:ro
+      - ./frontend/public:/app/public:ro
+    depends_on:
+      - dtime-backend
+    networks:
+      - dtime-network
+    profiles:
+      - full-stack
+
+volumes:
+  postgres_data:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: ${PWD}/database/data
+
+networks:
+  dtime-network:
+    driver: bridge
+    name: dtime-network

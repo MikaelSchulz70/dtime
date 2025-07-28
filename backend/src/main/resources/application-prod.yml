@@ -1,0 +1,22 @@
+spring:
+  devtools:
+    add-properties: false
+
+# Server Configuration (HTTPS for production)
+server:
+  port: 8443
+  ssl:
+    key-store-type: PKCS12
+    key-store: classpath:keystore/dtime.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:dt2020}
+    key-alias: dtime
+
+# Security Configuration
+security:
+  enable-csrf: true
+  require-ssl: true
+
+# Logging Configuration
+logging:
+  file:
+    name: /home/dkrafttime/logs/server.log

@@ -1,0 +1,48 @@
+{
+  "name": "client",
+  "version": "0.1.0",
+  "private": true,
+  "dependencies": {
+    "@babel/core": "7.9.0",
+    "@babel/preset-env": "7.9.0",
+    "@babel/preset-react": "7.9.0",
+    "axios": "^1.7.9",
+    "babel-loader": "^8.1.0",
+    "core-js": "^3.44.0",
+    "jquery": "^3.7.1",
+    "moment-range": "^4.0.2",
+    "react": "^18.3.1",
+    "react-bootstrap": "^2.10.6",
+    "react-bootstrap-modal": "^4.2.0",
+    "react-datepicker": "^7.6.0",
+    "react-dom": "^18.3.1",
+    "react-modal": "^3.16.1",
+    "react-router-bootstrap": "^0.25.0",
+    "react-router-dom": "^5.3.4",
+    "react-scripts": "^3.0.1"
+  },
+  "scripts": {
+    "dev": "webpack --mode development",
+    "prod": "webpack --mode production",
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development",
+    "build": "webpack --mode production"
+  },
+  "eslintConfig": {
+    "extends": "react-app"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ],
+  "devDependencies": {
+    "@babel/plugin-transform-runtime": "^7.26.0",
+    "css-loader": "^7.1.2",
+    "html-webpack-plugin": "^5.6.3",
+    "style-loader": "^4.0.0",
+    "webpack": "^5.97.1",
+    "webpack-cli": "^5.1.4",
+    "webpack-dev-server": "^5.1.0"
+  }
+}

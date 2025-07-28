@@ -1,0 +1,47 @@
+version: '3.8'
+
+# Docker Compose for DTime PostgreSQL Database
+# Run from the database directory: docker-compose up -d
+
+services:
+  postgres:
+    build: 
+      context: .
+      dockerfile: Dockerfile
+    container_name: dtime-postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${POSTGRES_DB:-dtime}
+      POSTGRES_USER: ${POSTGRES_USER:-dtime}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-dtime_dev_password}
+      PGDATA: /var/lib/postgresql/data/pgdata
+    ports:
+      - "5432:5432"
+    volumes:
+      # Persistent data storage
+      - postgres_data:/var/lib/postgresql/data
+      # Initialization scripts
+      - ./scripts:/docker-entrypoint-initdb.d:ro
+      # Backup directory
+      - ./backups:/backups
+      # Logs directory
+      - ./logs:/var/log/postgresql
+      # Configuration
+      - ./postgresql.conf:/etc/postgresql/postgresql.conf:ro
+    networks:
+      - dtime-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-dtime} -d ${POSTGRES_DB:-dtime}"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+
+volumes:
+  postgres_data:
+    driver: local
+
+networks:
+  dtime-network:
+    driver: bridge
+    name: dtime-network

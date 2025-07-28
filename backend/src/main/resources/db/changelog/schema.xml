@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<databaseChangeLog
+        xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+        xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
+        logicalFilePath="schema.xml">
+
+    <changeSet id="create-user-table" author="mikael">
+        <createTable tableName="users">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="password" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="firstname" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="lastname" type="varchar(30)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="varchar(60)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="userrole" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet author="mikael" id="create-email-index">
+        <createIndex indexName="idx_user_email" tableName="users" unique="true">
+            <column name="email"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-account-table" author="mikael">
+        <createTable tableName="account">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addUC-account-table" author="mikael">
+        <addUniqueConstraint columnNames="name" constraintName="uc_account_name" tableName="account"/>
+    </changeSet>
+
+    <changeSet id="create-task-table" author="mikael">
+        <createTable tableName="task">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_account" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="varchar(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addUC-task-table" author="mikael">
+        <addUniqueConstraint columnNames="name, id_account" constraintName="uc_task_name" tableName="task"/>
+    </changeSet>
+
+    <changeSet id="addFK-task-table" author="mikael">
+        <addForeignKeyConstraint baseColumnNames="id_account"
+                                 baseTableName="task"
+                                 constraintName="fk_task_account"
+                                 referencedColumnNames="id"
+                                 referencedTableName="account"/>
+    </changeSet>
+
+    <changeSet id="create-task-contributor-table" author="mikael">
+        <createTable tableName="task_contributor">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_user" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="id_task" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addFK-task-contributor-table" author="mikael">
+        <addForeignKeyConstraint baseColumnNames="id_task"
+                                 baseTableName="task_contributor"
+                                 constraintName="fk_task_contributor_task"
+                                 referencedColumnNames="id"
+                                 referencedTableName="task"/>
+        <addForeignKeyConstraint baseColumnNames="id_user"
+                                 baseTableName="task_contributor"
+                                 constraintName="fk_task_contributor_user"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+    <changeSet author="mikael" id="create-task-contributor-user-task-index">
+        <createIndex indexName="idx_task_contributor_user" tableName="task_contributor" unique="true">
+            <column name="id_user"/>
+            <column name="id_task"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="create-time-table" author="mikael">
+        <createTable tableName="time_report">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_task_contributor" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="reportedtime" type="DECIMAL(13,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addFK-timereport-table" author="mikael">
+        <addForeignKeyConstraint baseColumnNames="id_task_contributor"
+                                 baseTableName="time_report"
+                                 constraintName="fk_time_task_contributor"
+                                 referencedColumnNames="id"
+                                 referencedTableName="task_contributor"/>
+    </changeSet>
+
+    <changeSet id="addUniqueConstraint-timereport-table" author="mikael">
+        <addUniqueConstraint columnNames="id_task_contributor, date" constraintName="uc_task_contributor_date"
+                             tableName="time_report"/>
+    </changeSet>
+
+    <changeSet id="create-public-holiday-table" author="mikael">
+        <createTable tableName="publicholiday">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="workday" type="${boolean.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="create-systemproperty-table" author="mikael">
+        <createTable tableName="systemproperty">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="name" type="varchar(50)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="value" type="varchar(100)"/>
+            <column name="type" type="varchar(20)"/>
+            <column name="description" type="varchar(50)"/>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addUniqueConstraint-systemproperty-table" author="mikael">
+        <addUniqueConstraint columnNames="name" constraintName="uc_systemproperty_name" tableName="systemproperty"/>
+    </changeSet>
+
+    <changeSet id="create-time-close-table" author="mikael">
+        <createTable tableName="closedate">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_user" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addFK-closedate-table" author="mikael">
+        <addForeignKeyConstraint baseColumnNames="id_user"
+                                 baseTableName="closedate"
+                                 constraintName="fk_closedate_user"
+                                 referencedColumnNames="id"
+                                 referencedTableName="users"/>
+    </changeSet>
+
+    <changeSet author="mikael" id="create-closedate-index">
+        <createIndex indexName="idx_closedate" tableName="closedate" unique="true">
+            <column name="id_user"/>
+            <column name="date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="mikael" id="create-timereport-index">
+        <createIndex indexName="idx_timereport" tableName="time_report" unique="true">
+            <column name="id_task_contributor"/>
+            <column name="date"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet author="mikael" id="create-timereport-date-index">
+        <createIndex indexName="idx_timereport_date" tableName="time_report" unique="false">
+            <column name="date"/>
+        </createIndex>
+    </changeSet>
+
+</databaseChangeLog>

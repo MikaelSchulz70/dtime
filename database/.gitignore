@@ -1,0 +1,23 @@
+# Ignore data files but keep directory structure
+data/*
+!data/.gitkeep
+
+# Ignore backup files (they can be large)
+backups/*.sql
+backups/*.sql.gz
+backups/*.dump
+
+# Ignore log files
+logs/*.log
+
+# Environment files (contain credentials)
+.env
+.env.local
+.env.*.local
+
+# Docker volumes
+.volumes/
+
+# Temporary files
+*.tmp
+*.temp
