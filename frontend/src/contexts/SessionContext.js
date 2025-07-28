@@ -20,7 +20,7 @@ export const SessionProvider = ({ children }) => {
     // Check if we just came from a successful login
     const urlParams = new URLSearchParams(window.location.search);
     const loginSuccess = urlParams.get('loginSuccess');
-    
+
     if (loginSuccess) {
       // Remove the parameter from URL without refreshing
       window.history.replaceState({}, document.title, window.location.pathname);
@@ -39,7 +39,6 @@ export const SessionProvider = ({ children }) => {
       setError(null);
       const sessionService = new SessionService();
       const response = await sessionService.getSessionInfo();
-      alert(`Session data: ${JSON.stringify(response.data)}`);
       setSession(response.data);
       setLoading(false);
     } catch (err) {
@@ -48,7 +47,7 @@ export const SessionProvider = ({ children }) => {
         setTimeout(() => loadSession(retryCount + 1), 1000);
         return;
       }
-      
+
       setError(err.message);
       setSession(null);
       setLoading(false);
@@ -68,9 +67,9 @@ export const SessionProvider = ({ children }) => {
   };
 
   const hasRole = (role) => {
-    return session && session.loggedInUser && 
-           ((role === 'ADMIN' && session.loggedInUser.isAdmin) || 
-            (role === 'USER' && !session.loggedInUser.isAdmin));
+    return session && session.loggedInUser &&
+      ((role === 'ADMIN' && session.loggedInUser.isAdmin) ||
+        (role === 'USER' && !session.loggedInUser.isAdmin));
   };
 
   const canAccessTimeReport = (userId) => {

@@ -24,7 +24,7 @@ public class TaskContributorRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity add(@Valid @RequestBody TaskContributor taskContributor) {
+    public ResponseEntity<Void> add(@Valid @RequestBody TaskContributor taskContributor) {
         taskContributorService.addOrUpdate(taskContributor);
         return new ResponseEntity<>(HttpStatus.CREATED);
     }
@@ -32,14 +32,14 @@ public class TaskContributorRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/{userId}")
     public ResponseEntity<List<TaskContributor>> get(@PathVariable long userId) {
-        List<TaskContributor> assignments = taskContributorService.getParticipationsForUser(userId);
-        return new ResponseEntity<>(assignments, HttpStatus.OK);
+        List<TaskContributor> taskContributors = taskContributorService.getTasksForUser(userId);
+        return new ResponseEntity<>(taskContributors, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/currentassignments")
-    public ResponseEntity<List<TaskContributor>> getCurrentAssignments() {
-        List<TaskContributor> assignments = taskContributorService.getCurrentParticipations();
+    @GetMapping(path = "/currentTaskContributors")
+    public ResponseEntity<List<TaskContributor>> getCurrentTaskContributor() {
+        List<TaskContributor> assignments = taskContributorService.getCurrentTaskContributors();
         return new ResponseEntity<>(assignments, HttpStatus.OK);
     }
 

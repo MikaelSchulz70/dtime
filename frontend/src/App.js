@@ -74,6 +74,7 @@ const Main = () => (
             <Route exact path='/account/:accountId' component={AccountDetails} />
             <Route exact path='/task' component={Task} />
             <Route exact path='/task/:taskId' component={TaskDetails} />
+            <Route exact path='/tasks/:taskId' component={TaskDetails} />
             <Route exact path='/taskcontributor' component={TaskContributor} />
             <Route exact path='/reports' component={Reports} />
             <Route exact path='/userreport' component={UserReports} />
@@ -115,7 +116,7 @@ const AppContent = () => {
     window.location.href = '/login';
     return <LoadingSpinner fullPage text="Redirecting to login..." />;
   }
-  
+
   console.log('User authenticated, loading app');
 
   return (

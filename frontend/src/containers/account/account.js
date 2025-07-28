@@ -7,7 +7,7 @@ class AccountTableRow extends React.Component {
     render() {
         if (this.props == null) return null;
 
-        const editRoute = '/organizations/' + this.props.organization.id;
+        const editRoute = '/account/' + this.props.organization.id;
 
         return (
             <tr>
@@ -20,11 +20,11 @@ class AccountTableRow extends React.Component {
     }
 };
 
-class OrganizationTable extends React.Component {
+class AccountTable extends React.Component {
     constructor(props) {
         super(props);
         this.handleDelete = this.handleDelete.bind(this);
-        this.state = { organizations: this.props.organizations };
+        this.state = { accounts: this.props.accounts };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -38,19 +38,19 @@ class OrganizationTable extends React.Component {
     }
 
     render() {
-        if (this.state == null || this.state.organizations == null) return null;
+        if (this.state == null || this.state.accounts == null) return null;
 
         var nameFilter = this.props.nameFilter;
         var statusFilter = this.props.statusFilter;
 
-        var filteredOrganizations = this.state.organizations.filter(function (organization) {
-            return (organization.activationStatus === statusFilter) &&
-                (organization.name.toLowerCase().startsWith(nameFilter.toLowerCase()));
+        var filteredAccounts = this.state.accounts.filter(function (account) {
+            return (account.activationStatus === statusFilter) &&
+                (account.name.toLowerCase().startsWith(nameFilter.toLowerCase()));
         });
 
         var handleDelete = this.handleDelete;
         var rows = [];
-        filteredOrganizations.forEach(function (organization) {
+        filteredAccounts.forEach(function (organization) {
             rows.push(
                 <AccountTableRow organization={organization} key={organization.id} handleDelete={handleDelete} />);
         });
@@ -78,11 +78,44 @@ export default class Account extends React.Component {
         this.filterChanged = this.filterChanged.bind(this);
         this.loadFromServer = this.loadFromServer.bind(this);
 
-        this.state = { nameFilter: '', statusFilter: Constants.ACTIVE_STATUS };
+        this.state = { nameFilter: '', statusFilter: Constants.ACTIVE_STATUS, accounts: null };
     }
 
     componentDidMount() {
+        console.log('Account componentDidMount called');
         this.loadFromServer();
+        
+        // Add event listener for when the window gains focus
+        this.handleFocus = () => {
+            console.log('Window gained focus, reloading account data');
+            this.loadFromServer();
+        };
+        window.addEventListener('focus', this.handleFocus);
+    }
+
+    componentWillUnmount() {
+        // Clean up event listener
+        if (this.handleFocus) {
+            window.removeEventListener('focus', this.handleFocus);
+        }
+    }
+
+    componentDidUpdate(prevProps) {
+        // Reload data when navigating back to this route or when refresh parameter changes
+        console.log('Account componentDidUpdate called');
+        if (this.props.location && prevProps.location) {
+            const currentParams = new URLSearchParams(this.props.location.search);
+            const prevParams = new URLSearchParams(prevProps.location.search);
+            const currentRefresh = currentParams.get('refresh');
+            const prevRefresh = prevParams.get('refresh');
+            
+            if (currentRefresh !== prevRefresh && currentRefresh) {
+                console.log('Refresh parameter detected, reloading data');
+                this.loadFromServer();
+                // Clean up the URL parameter
+                this.props.history.replace('/account');
+            }
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -92,14 +125,18 @@ export default class Account extends React.Component {
     }
 
     loadFromServer() {
+        console.log('loadFromServer called for accounts');
         const self = this;
-        var organizationService = new AccountService();
-        organizationService.getAll()
+        var accountService = new AccountService();
+        console.log('Making request to get all accounts...');
+        accountService.getAll()
             .then(response => {
-                self.setState({ organizations: response.data });
+                console.log('Accounts loaded successfully:', response.data);
+                self.setState({ accounts: response.data });
             })
             .catch(error => {
-                alert('Failed to load organizations');
+                console.error('Failed to load accounts:', error);
+                alert('Failed to load accounts: ' + (error.response?.data?.error || error.message));
             });
     }
 
@@ -116,8 +153,8 @@ export default class Account extends React.Component {
         }
 
         var self = this;
-        var organizationService = new AccountService();
-        organizationService.delete(id)
+        var accountService = new AccountService();
+        accountService.delete(id)
             .then(response => {
                 self.loadFromServer();
             })
@@ -127,7 +164,7 @@ export default class Account extends React.Component {
     }
 
     render() {
-        if (this.state == null || this.state.organizations == null) return null;
+        if (this.state == null || this.state.accounts == null) return null;
 
         return (
             <div className="container">
@@ -142,11 +179,11 @@ export default class Account extends React.Component {
                         </select>
                     </div>
                     <div className="col-sm-8">
-                        <Link className="btn btn-success float-sm-right" to='/organizations/0'>Add</Link>
+                        <Link className="btn btn-success float-sm-right" to='/account/0'>Add</Link>
                     </div>
                 </div>
                 <div className="row">
-                    <OrganizationTable organizations={this.state.organizations}
+                    <AccountTable accounts={this.state.accounts}
                         handleDelete={this.handleDelete.bind(this)}
                         nameFilter={this.state.nameFilter}
                         statusFilter={this.state.statusFilter} />

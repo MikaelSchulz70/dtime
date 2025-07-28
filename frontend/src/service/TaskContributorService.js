@@ -1,23 +1,18 @@
-import { BaseService } from './BaseService';
+import axios from 'axios';
+import { Headers } from './ServiceUtil';
 
-export default class TaskContributorService extends BaseService {
-    constructor() {
-        super('/api/taskcontributor');
+const BASE_URL = "/api/taskcontributor";
+
+export default class TaskContributorService {
+
+    getTaskContributor(userId) {
+        return axios.get(BASE_URL + '/' + userId);
     }
 
-    getTaskContributors() {
-        return this.getAll();
-    }
-
-    getTaskContributor(id) {
-        return this.get(`/${id}`);
-    }
-
-    saveTaskContributor(taskContributor) {
-        return taskContributor.id ? this.put(taskContributor) : this.post(taskContributor);
-    }
-
-    deleteTaskContributor(id) {
-        return this.delete(`/${id}`);
+    udate(entity) {
+        const payLoad = JSON.stringify(entity);
+        return axios.post(BASE_URL,
+            payLoad,
+            Headers());
     }
 }

@@ -43,7 +43,8 @@ export default class AccountDetails extends BaseDetails {
         const service = new AccountService();
         service.addOrUdate(this.state.account)
             .then(response => {
-                self.props.history.push('/account');
+                // Force a full reload by using replace with a timestamp
+                self.props.history.replace('/account?refresh=' + Date.now());
             })
             .catch(error => {
                 self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
@@ -51,7 +52,7 @@ export default class AccountDetails extends BaseDetails {
     }
 
     canelAddEdit() {
-        this.props.history.push('/companies');
+        this.props.history.push('/account');
     }
 
     validate(event) {

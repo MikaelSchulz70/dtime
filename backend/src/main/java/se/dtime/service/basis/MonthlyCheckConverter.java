@@ -26,7 +26,11 @@ public class MonthlyCheckConverter extends BaseConverter {
         }
 
         MonthlyCheckPO monthlyCheckPO = new MonthlyCheckPO();
-        monthlyCheckPO.setId(monthlyCheck.getId());
+        // Only set ID if it's not 0 (for updates)
+        // For new entities (ID = 0), let Hibernate generate the ID via sequence
+        if (monthlyCheck.getId() != null && monthlyCheck.getId() != 0) {
+            monthlyCheckPO.setId(monthlyCheck.getId());
+        }
         monthlyCheckPO.setAccount(new AccountPO(monthlyCheck.getAccountId()));
         monthlyCheckPO.setDate(monthlyCheck.getDate());
         updateBaseData(monthlyCheckPO);

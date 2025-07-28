@@ -46,7 +46,11 @@ public class TaskContributorConverter extends BaseConverter {
         }
 
         TaskContributorPO taskContributorPO = new TaskContributorPO();
-        taskContributorPO.setId(taskContributor.getId());
+        // Only set ID if it's not 0 (for updates)
+        // For new entities (ID = 0), let Hibernate generate the ID via sequence
+        if (taskContributor.getId() != null && taskContributor.getId() != 0) {
+            taskContributorPO.setId(taskContributor.getId());
+        }
         taskContributorPO.setUser(new UserPO(taskContributor.getUser().getId()));
         taskContributorPO.setTask(new TaskPO(taskContributor.getTask().getId()));
         taskContributorPO.setActivationStatus(taskContributor.getActivationStatus());

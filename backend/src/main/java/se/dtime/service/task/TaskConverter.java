@@ -34,7 +34,11 @@ public class TaskConverter extends BaseConverter {
         }
 
         TaskPO taskPO = new TaskPO();
-        taskPO.setId(task.getId());
+        // Only set ID if it's not 0 (for updates)
+        // For new entities (ID = 0), let Hibernate generate the ID via sequence
+        if (task.getId() != null && task.getId() != 0) {
+            taskPO.setId(task.getId());
+        }
         taskPO.setName(task.getName());
         taskPO.setActivationStatus(task.getActivationStatus());
         updateBaseData(taskPO);

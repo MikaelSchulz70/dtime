@@ -28,7 +28,11 @@ public class AccountConverter extends BaseConverter {
         }
 
         AccountPO accountPO = new AccountPO();
-        accountPO.setId(account.getId());
+        // Only set ID if it's not 0 (for updates)
+        // For new entities (ID = 0), let Hibernate generate the ID via sequence
+        if (account.getId() != null && account.getId() != 0) {
+            accountPO.setId(account.getId());
+        }
         accountPO.setName(account.getName());
         accountPO.setActivationStatus(account.getActivationStatus());
         updateBaseData(accountPO);

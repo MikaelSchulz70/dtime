@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import TaskService from '../../service/TaskService';
 import *  as Constants from '../../common/Constants';
 
-class taskTableRow extends React.Component {
+class TaskTableRow extends React.Component {
     render() {
         if (this.props == null) return null;
 
@@ -13,10 +13,6 @@ class taskTableRow extends React.Component {
             <tr>
                 <td>{this.props.task.account.name}</td>
                 <td>{this.props.task.name}</td>
-                <td><input type="checkbox" readOnly={true} checked={this.props.task.internal} /></td>
-                <td><input type="checkbox" readOnly={true} checked={this.props.task.provision} /></td>
-                <td><input type="checkbox" readOnly={true} checked={this.props.task.fixRate} /></td>
-                <td>{this.props.task.taskCategory}</td>
                 <td>{this.props.task.activationStatus}</td>
                 <td><Link className="btn btn-success" to={editRoute}>Edit</Link></td>
                 <td><button className="btn btn-success" onClick={() => this.props.handleDelete(this.props.task.id)} >Delete</button></td>
@@ -25,7 +21,7 @@ class taskTableRow extends React.Component {
     }
 };
 
-class taskTable extends React.Component {
+class TaskTable extends React.Component {
     constructor(props) {
         super(props);
         this.handleDelete = this.handleDelete.bind(this);
@@ -48,12 +44,10 @@ class taskTable extends React.Component {
         var nameFilter = this.props.nameFilter;
         var accountNameFilter = this.props.accountNameFilter;
         var statusFilter = this.props.statusFilter;
-        var categoryFilter = this.props.categoryFilter;
 
         var filteredtasks = this.props.tasks.filter(function (task) {
             return (task.activationStatus === statusFilter) &&
                 (task.name.toLowerCase().startsWith(nameFilter.toLowerCase())) &&
-                (task.taskCategory === categoryFilter || '' === categoryFilter) &&
                 (task.account.name.toLowerCase().startsWith(accountNameFilter.toLowerCase()));
         });
 
@@ -61,7 +55,7 @@ class taskTable extends React.Component {
         var rows = [];
         filteredtasks.forEach(function (task) {
             rows.push(
-                <taskTableRow task={task} key={task.id} handleDelete={handleDelete} />);
+                <TaskTableRow task={task} key={task.id} handleDelete={handleDelete} />);
         });
 
         return (
@@ -88,11 +82,27 @@ export default class Task extends React.Component {
         this.filterChanged = this.filterChanged.bind(this);
         this.loadFromServer = this.loadFromServer.bind(this);
 
-        this.state = { accountNameFilter: '', nameFilter: '', statusFilter: Constants.ACTIVE_STATUS, categoryFilter: '' };
+        this.state = { accountNameFilter: '', nameFilter: '', statusFilter: Constants.ACTIVE_STATUS };
     }
 
     componentDidMount() {
         this.loadFromServer();
+    }
+
+    componentDidUpdate(prevProps) {
+        // Reload data when navigating back to this route or when refresh parameter changes
+        if (this.props.location && prevProps.location) {
+            const currentParams = new URLSearchParams(this.props.location.search);
+            const prevParams = new URLSearchParams(prevProps.location.search);
+            const currentRefresh = currentParams.get('refresh');
+            const prevRefresh = prevParams.get('refresh');
+
+            if (currentRefresh !== prevRefresh && currentRefresh) {
+                this.loadFromServer();
+                // Clean up the URL parameter
+                this.props.history.replace('/task');
+            }
+        }
     }
 
     componentWillReceiveProps(nextProps) {
@@ -159,12 +169,11 @@ export default class Task extends React.Component {
                     </div>
                 </div>
                 <div className="row">
-                    <taskTable tasks={this.state.tasks}
+                    <TaskTable tasks={this.state.tasks}
                         handleDelete={this.handleDelete.bind(this)}
                         nameFilter={this.state.nameFilter}
                         accountNameFilter={this.state.accountNameFilter}
-                        statusFilter={this.state.statusFilter}
-                        categoryFilter={this.state.categoryFilter} />
+                        statusFilter={this.state.statusFilter} />
                 </div>
             </div>
         );

@@ -30,7 +30,7 @@ export default class TaskDetails extends BaseDetails {
     componentDidMount() {
         const self = this;
         if (this.state.id !== '0') {
-            const service = new taskService();
+            const service = new TaskService();
             service.get(this.state.id)
                 .then(response => {
                     self.setState({ task: response.data });
@@ -40,23 +40,24 @@ export default class TaskDetails extends BaseDetails {
                 });
         }
 
-        const taskService = new AccountService();
-        taskService.getByStatus(true)
+        const accountService = new AccountService();
+        accountService.getByStatus(true)
             .then(response => {
                 self.setState({ companies: response.data });
             })
             .catch(error => {
-                alert('Failed to fetch companies');
+                alert('Failed to fetch accounts');
             });
     }
 
     handleCreateUpdate(id) {
         this.clearErrors();
         const self = this;
-        const service = new taskService();
+        const service = new TaskService();
         service.addOrUdate(this.state.task)
             .then(response => {
-                self.props.history.push('/tasks');
+                // Force a full reload by using replace with a timestamp
+                self.props.history.replace('/task?refresh=' + Date.now());
             })
             .catch(error => {
                 self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
@@ -64,7 +65,7 @@ export default class TaskDetails extends BaseDetails {
     }
 
     canelAddEdit() {
-        this.props.history.push('/tasks');
+        this.props.history.push('/task');
     }
 
     validate(event) {
@@ -72,7 +73,7 @@ export default class TaskDetails extends BaseDetails {
         let value = event.target.value;
 
         const self = this;
-        const service = new taskService();
+        const service = new TaskService();
         service.validate(this.state.id, field, value)
             .then(response => {
                 self.clearError(field);
@@ -130,7 +131,7 @@ export default class TaskDetails extends BaseDetails {
         return (
             <div className="container">
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">account name</label>
+                    <label className="col-sm-2 col-form-label">Account name</label>
                     <div className="col-sm-6">
                         <select className="form-control" value={this.state.task.account.id} name="account.id" onChange={this.handleChange}>
                             {accountOptions}
@@ -147,33 +148,6 @@ export default class TaskDetails extends BaseDetails {
                     </div>
                     <div className="col-sm-4">
                         <small className="text-danger" id="nameErrorMsg"></small>
-                    </div>
-                </div>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Internal</label>
-                    <div className="col-sm-6">
-                        <input type="checkbox" checked={this.state.task.internal} name="internal" onChange={this.handleChange} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="internalErrorMsg"></small>
-                    </div>
-                </div>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Provision</label>
-                    <div className="col-sm-6">
-                        <input type="checkbox" checked={this.state.task.provision} name="provision" onChange={this.handleChange} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="provisionErrorMsg"></small>
-                    </div>
-                </div>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Fix rate</label>
-                    <div className="col-sm-6">
-                        <input type="checkbox" checked={this.state.task.fixRate} name="fixRate" onChange={this.handleChange} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="fixRateErrorMsg"></small>
                     </div>
                 </div>
                 <div className="form-group row">

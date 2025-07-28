@@ -97,6 +97,13 @@ export default class Users extends React.Component {
         this.loadFromServer();
     }
 
+    componentDidUpdate(prevProps) {
+        // Reload data when navigating back to this route
+        if (this.props.location !== prevProps.location) {
+            this.loadFromServer();
+        }
+    }
+
     loadFromServer() {
         const self = this;
         const userService = new UserService();

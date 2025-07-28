@@ -43,16 +43,16 @@ public class TaskContributorService {
         return taskContributorConverter.toModel(savedPO);
     }
 
-    public List<TaskContributor> getParticipationsForUser(long userId) {
+    public List<TaskContributor> getTasksForUser(long userId) {
         UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
         List<TaskContributorPO> taskContributorPOS = taskContributorRepository.findByUserAndActivationStatus(userPO, ActivationStatus.ACTIVE);
         List<TaskPO> taskPOS = taskRepository.findByActivationStatus(ActivationStatus.ACTIVE);
         return taskContributorConverter.toModel(userPO, taskContributorPOS, taskPOS);
     }
 
-    public List<TaskContributor> getCurrentParticipations() {
+    public List<TaskContributor> getCurrentTaskContributors() {
         UserExt userExt = (UserExt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        return getParticipationsForUser(userExt.getId());
+        return getTasksForUser(userExt.getId());
     }
 
     public void delete(long id) {

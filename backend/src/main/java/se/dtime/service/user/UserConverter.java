@@ -53,7 +53,11 @@ public class UserConverter extends BaseConverter {
 
     public UserPO toPO(User user, UserPO currentUserPO) {
         UserPO updatedUserPO = new UserPO();
-        updatedUserPO.setId(user.getId());
+        // Only set ID if it's not 0 (for updates)
+        // For new entities (ID = 0), let Hibernate generate the ID via sequence
+        if (user.getId() != null && user.getId() != 0) {
+            updatedUserPO.setId(user.getId());
+        }
         updatedUserPO.setFirstName(user.getFirstName());
         updatedUserPO.setLastName(user.getLastName());
         updatedUserPO.setEmail(user.getEmail());

@@ -24,8 +24,8 @@ class TaskcontributorTableRow extends React.Component {
         taskcontributor[field] = value;
 
         const self = this;
-        const taskcontributorService = new TaskContributorService();
-        taskcontributorService.update(taskcontributor)
+        const taskContributorService = new TaskContributorService();
+        taskContributorService.udate(taskcontributor)
             .then(response => {
                 self.props.activationStatusChanged(taskcontributor);
             })
@@ -41,9 +41,6 @@ class TaskcontributorTableRow extends React.Component {
             <tr>
                 <td>{this.state.taskcontributor.task.account.name}</td>
                 <td>{this.state.taskcontributor.task.name}</td>
-                <td><input type="checkbox" readOnly={true} checked={this.state.taskcontributor.task.provision} /></td>
-                <td><input type="checkbox" readOnly={true} checked={this.state.taskcontributor.task.internal} /></td>
-                <td>{this.state.taskcontributor.task.taskCategory}</td>
                 <td>
                     <select className="form-control input-sm" name="activationStatus" value={this.state.taskcontributor.activationStatus} onChange={this.handleChange}>
                         <option value={Constants.ACTIVE_STATUS}>Active</option>
@@ -75,7 +72,7 @@ class TaskContributorTable extends React.Component {
         var statusFilter = this.props.statusFilter;
 
         if (this.state.taskcontributors != null) {
-            var filteredtaskcontributors = this.state.taskcontributors.filter(function (taskcontributor) {
+            var filteredTaskcontributors = this.state.taskcontributors.filter(function (taskcontributor) {
                 return (taskcontributor.activationStatus === statusFilter) &&
                     (taskcontributor.task.account.name.toLowerCase().startsWith(accountNameFilter.toLowerCase())) &&
                     (taskcontributor.task.name.toLowerCase().startsWith(taskNameFilter.toLowerCase()));
@@ -83,7 +80,7 @@ class TaskContributorTable extends React.Component {
 
             var self = this;
             var rows = [];
-            filteredtaskcontributors.forEach(function (taskcontributor) {
+            filteredTaskcontributors.forEach(function (taskcontributor) {
                 var key = taskcontributor.task.account.id + '_' + taskcontributor.task.id;
                 rows.push(
                     <TaskcontributorTableRow taskcontributor={taskcontributor} key={key} activationStatusChanged={self.props.activationStatusChanged} />);
@@ -121,6 +118,7 @@ export default class TaskContributor extends React.Component {
     }
 
     loadFromServer() {
+        console.log('TaskContributor loadFromServer called');
         const self = this;
         const userService = new UserService();
         userService.getByStatus(true)
@@ -128,6 +126,7 @@ export default class TaskContributor extends React.Component {
                 self.setState({ users: response.data });
             })
             .catch(error => {
+                console.error('Failed to load users:', error);
                 alert('Failed to load users');
             });
     }
@@ -153,19 +152,27 @@ export default class TaskContributor extends React.Component {
 
     handleUserChange(event) {
         const userId = parseInt(event.target.value, 10);
+        console.log('User selected:', userId);
+
         if (userId === 0) {
-            this.setState({ accountNameFilter: '', taskNameFilter: '', statusFilter: Constants.ACTIVE_STATUS });
+            this.setState({ accountNameFilter: '', taskNameFilter: '', statusFilter: Constants.ACTIVE_STATUS, taskcontributors: null });
             return;
         }
 
         const self = this;
-        const taskcontributorService = new TaskContributorService();
-        taskcontributorService.getAssginmentForUser(userId)
+        const taskContributorService = new TaskContributorService();
+        console.log('Loading task contributors for user:', userId);
+        taskContributorService.getTaskContributor(userId)
             .then(response => {
                 self.setState({ taskcontributors: response.data });
             })
             .catch(error => {
-                alert('Failed to load taskcontributors');
+                console.error('Failed to load taskcontributors:', error.response?.status, error.response?.data);
+                if (error.response?.status === 403) {
+                    alert('Access denied: You need admin privileges to view task contributors');
+                } else {
+                    alert('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message));
+                }
             });
     }
 
@@ -177,7 +184,7 @@ export default class TaskContributor extends React.Component {
             <option value={u.id} key={u.id} >{u.firstName + ' ' + u.lastName}</option>
         ));
 
-        userOptions.unshift(<option value={0} key={0}>{''}</option>);
+        userOptions.unshift(<option value={0} key={0}>{'Select a user...'}</option>);
 
         return (
             <div className="container">
