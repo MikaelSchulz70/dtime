@@ -6,4 +6,8 @@ application/.idea/*
 database/.idea/*
 **/*.iml
 application/log
-src/main/frontend/node_moduless
+frontend/node_modules/
+frontend/dist/
+frontend/node/
+frontend/*.log
+logs/
