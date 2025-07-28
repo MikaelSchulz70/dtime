@@ -1,5 +1,6 @@
 package se.dtime.restcontroller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -9,8 +10,6 @@ import se.dtime.model.Account;
 import se.dtime.model.Attribute;
 import se.dtime.service.account.AccountService;
 import se.dtime.service.account.AccountValidator;
-
-import jakarta.validation.Valid;
 
 @RestController
 @RequestMapping("/api/account")
@@ -23,7 +22,7 @@ public class AccountRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity addOrUpdate(@Valid @RequestBody Account account) {
+    public ResponseEntity<Void> addOrUpdate(@Valid @RequestBody Account account) {
         if (account.getId() == 0) {
             accountService.add(account);
         } else {

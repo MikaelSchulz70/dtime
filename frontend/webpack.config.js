@@ -45,7 +45,21 @@ module.exports = {
         secure: false,
         changeOrigin: true,
         cookieDomainRewrite: 'localhost',
-        cookiePathRewrite: '/'
+        cookiePathRewrite: '/',
+        onProxyReq: (proxyReq, req, res) => {
+          // Ensure cookies are properly forwarded
+          if (req.headers.cookie) {
+            proxyReq.setHeader('Cookie', req.headers.cookie);
+          }
+        },
+        onProxyRes: (proxyRes, req, res) => {
+          // Ensure Set-Cookie headers are properly handled
+          if (proxyRes.headers['set-cookie']) {
+            proxyRes.headers['set-cookie'] = proxyRes.headers['set-cookie'].map(cookie => {
+              return cookie.replace(/Domain=[^;]+;?\s*/i, '').replace(/Path=[^;]+;?\s*/i, 'Path=/; ');
+            });
+          }
+        }
       }
     ]
   }

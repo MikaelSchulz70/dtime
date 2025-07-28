@@ -11,12 +11,6 @@
 */
 
 /*!
-  react-datepicker v7.6.0
-  https://github.com/Hacker0x01/react-datepicker
-  Released under the MIT License.
-*/
-
-/*!
  * Adapted from jQuery UI core
  *
  * http://jqueryui.com
@@ -25,7 +19,7 @@
  * Released under the MIT license.
  * http://jquery.org/license
  *
- * http://api.jqueryui.com/task/ui-core/
+ * http://api.jqueryui.com/category/ui-core/
  */
 
 /*!
@@ -38,11 +32,6 @@
  *
  * Date: 2023-08-28T13:37Z
  */
-
-/*!
-* tabbable 6.2.0
-* @license MIT, https://github.com/focus-trap/tabbable/blob/master/LICENSE
-*/
 
 /**
  * @license React

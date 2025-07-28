@@ -144,7 +144,7 @@ class FollowUpCategoryReportTable extends React.Component {
     }
 };
 
-class FollowUpaccountReportTable extends React.Component {
+class FollowUpAccountReportTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { report: this.props.report };
@@ -169,15 +169,15 @@ class FollowUpaccountReportTable extends React.Component {
             </tr>);
 
         var key = 1;
-        this.state.report.followUpaccountReports.forEach(function (followUpaccountReport) {
+        this.state.report.followUpAccountReports.forEach(function (followUpAccountReport) {
             rows.push(
                 <tr key={key}>
-                    <td>{followUpaccountReport.accountName}</td>
-                    <td>{followUpaccountReport.totalHours}</td>
-                    <td>{followUpaccountReport.totalAmount}</td>
-                    <td>{followUpaccountReport.amountSubcontractor}</td>
-                    <td>{followUpaccountReport.amount}</td>
-                    <td>{followUpaccountReport.comment}</td>
+                    <td>{followUpAccountReport.accountName}</td>
+                    <td>{followUpAccountReport.totalHours}</td>
+                    <td>{followUpAccountReport.totalAmount}</td>
+                    <td>{followUpAccountReport.amountSubcontractor}</td>
+                    <td>{followUpAccountReport.amount}</td>
+                    <td>{followUpAccountReport.comment}</td>
                 </tr>);
             key++;
         });
@@ -309,7 +309,7 @@ export default class FollowUp extends React.Component {
                     ) : this.state.reportType === Constants.FOLLOW_UP_USER ? (
                         <FollowUpUserReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
                     ) : this.state.reportType === Constants.FOLLOW_UP_account ? (
-                        <FollowUpaccountReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
+                        <FollowUpAccountReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
                     ) : ''}
                 </div>
             </div>

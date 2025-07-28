@@ -103,7 +103,7 @@ export default class Task extends React.Component {
 
     loadFromServer() {
         const self = this;
-        var service = new taskService();
+        var service = new TaskService();
         service.getAll()
             .then(response => {
                 self.setState({ tasks: response.data });
@@ -126,7 +126,7 @@ export default class Task extends React.Component {
         }
 
         var self = this;
-        var service = new taskService();
+        var service = new TaskService();
         service.delete(id)
             .then(response => {
                 self.loadFromServer();

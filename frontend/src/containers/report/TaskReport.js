@@ -1,6 +1,6 @@
 import React from "react";
 
-export default class taskReportTable extends React.Component {
+export default class TaskReportTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { report: this.props.report };
@@ -23,9 +23,6 @@ export default class taskReportTable extends React.Component {
                     <td>{taskReport.accountName}</td>
                     <td>{taskReport.taskName}</td>
                     <td>{taskReport.totalHours}</td>
-                    <td>{taskReport.taskCategory}</td>
-                    <td><input type="checkbox" readOnly="true" checked={taskReport.provision} /></td>
-                    <td><input type="checkbox" readOnly="true" checked={taskReport.internal} /></td>
                 </tr>);
         });
 
@@ -37,10 +34,6 @@ export default class taskReportTable extends React.Component {
                             <th>Account</th>
                             <th>Task</th>
                             <th>Total</th>
-                            <th>Category</th>
-                            <th>Provision</th>
-                            <th>Internal</th>
-                            <th>On call</th>
                         </tr>
                     </thead>
                     <tbody>

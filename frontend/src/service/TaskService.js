@@ -1,6 +1,6 @@
 import { BaseService } from './BaseService';
 
-class TaskService extends BaseService {
+export default class TaskService extends BaseService {
     constructor() {
         super('/api/task');
     }
@@ -21,5 +21,3 @@ class TaskService extends BaseService {
         return this.delete(`/${id}`);
     }
 }
-
-export default new TaskService();

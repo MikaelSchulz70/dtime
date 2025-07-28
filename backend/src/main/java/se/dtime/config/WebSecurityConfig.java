@@ -21,12 +21,14 @@ import se.dtime.service.user.UserLoginService;
 public class WebSecurityConfig {
 
     private final UserLoginService userLoginService;
+    private final CustomAuthenticationSuccessHandler successHandler;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
 
-    public WebSecurityConfig(UserLoginService userLoginService) {
+    public WebSecurityConfig(UserLoginService userLoginService, CustomAuthenticationSuccessHandler successHandler) {
         this.userLoginService = userLoginService;
+        this.successHandler = successHandler;
     }
 
     @Bean
@@ -53,9 +55,10 @@ public class WebSecurityConfig {
                 )
                 .formLogin(form -> form
                         .loginPage("/login")
+                        .loginProcessingUrl("/perform_login")
                         .usernameParameter("username")
                         .passwordParameter("password")
-                        .defaultSuccessUrl("/index", true)
+                        .successHandler(successHandler)
                         .failureUrl("/login?error")
                         .permitAll()
                 )

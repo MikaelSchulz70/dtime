@@ -36,11 +36,6 @@ export default class UserReportTable extends React.Component {
                         <tr className="bg-success text-white">
                             <th>Name</th>
                             <th>Total</th>
-                            <th>Provision external</th>
-                            <th>Provision internal</th>
-                            <th>No provision external</th>
-                            <th>No provision internal</th>
-                            <th>On call</th>
                         </tr>
                     </thead>
                     <tbody>

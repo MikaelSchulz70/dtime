@@ -20,24 +20,23 @@ class SubContractorReportRows extends React.Component {
 
         var rows = [];
         rows.push(<tr key={0} className="bg-success text-white">
-            <th>Company</th>
-            <th>Project</th>
-            <th>On call hours</th>
+            <th>Account</th>
+            <th>Task</th>
             <th>Hours</th>
         </tr>);
 
         var i = 0;
         var totalTime = 0;
-        this.state.userReport.projectReports.forEach(function (projectReport) {
+        this.state.userReport.taskReports.forEach(function (taskReport) {
             var time = '';
             var key = 'row-' + i;
-                totalTime += projectReport.totalHours;
-                time = projectReport.totalHours;
+            totalTime += taskReport.totalHours;
+            time = taskReport.totalHours;
 
             rows.push(
                 <tr key={key}>
-                    <td>{projectReport.companyName}</td>
-                    <td>{projectReport.projectName}</td>
+                    <td>{taskReport.accountName}</td>
+                    <td>{taskReport.taskName}</td>
                     <td>{time}</td>
                 </tr>);
             i++;
@@ -77,35 +76,20 @@ class UserReportRows extends React.Component {
 
         var rows = [];
         rows.push(<tr key={0} className="bg-success text-white">
-            <th>Company</th>
-            <th>Project</th>
-            <th>Time provision</th>
-            <th>Time no provision</th>
-            <th>On call hours</th>
+            <th>Account</th>
+            <th>Task</th>
             <th>Total hours</th>
-            <th>Provision hours</th>
         </tr>);
 
         var i = 0;
-        this.state.userReport.projectReports.forEach(function (projectReport) {
+        this.state.userReport.taskReports.forEach(function (taskReport) {
             var time = '';
-            var timeProvision = '';
-            var timeNoProvision = '';
-             if (projectReport.provision === true) {
-                timeProvision = projectReport.totalHours;
-                time = timeProvision;
-            } else {
-                timeNoProvision = projectReport.totalHours;
-                time = timeNoProvision;
-            }
 
             var key = 'row-' + i;
             rows.push(
                 <tr key={key}>
-                    <td>{projectReport.companyName}</td>
-                    <td>{projectReport.projectName}</td>
-                    <td>{timeProvision}</td>
-                    <td>{timeNoProvision}</td>
+                    <td>{taskReport.accountName}</td>
+                    <td>{taskReport.taskName}</td>
                     <td>{time}</td>
                     <td></td>
                 </tr>);
@@ -117,10 +101,7 @@ class UserReportRows extends React.Component {
         rows.push(<tr key={key}>
             <th></th>
             <th>Total time</th>
-            <th>{this.state.userReport.totalTimeProvision}</th>
-            <th>{this.state.userReport.totalTimeNoProvision}</th>
             <th>{totalTime}</th>
-            <th>{this.state.userReport.provisionHours}</th>
         </tr>);
 
         return (

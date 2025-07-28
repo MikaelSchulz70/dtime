@@ -57,7 +57,7 @@ class SystemPropertyRow extends React.Component {
     update(event) {
         var self = this;
         var service = new SystemService();
-        service.udateProperty(this.state.systemProperty)
+        service.updateProperty(this.state.systemProperty)
             .then(response => {
                 self.setState({ systemConfig: response.data });
             })

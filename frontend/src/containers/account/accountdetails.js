@@ -93,7 +93,7 @@ export default class AccountDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Name</label>
                     <div className="col-sm-6">
-                        <input className="form-control" type="text" value={this.state.company.name} name="name" maxLength="40" onChange={this.handleChange} onBlur={this.validate} />
+                        <input className="form-control" type="text" value={this.state.account.name} name="name" maxLength="40" onChange={this.handleChange} onBlur={this.validate} />
                     </div>
                     <div className="col-sm-4">
                         <small className="text-danger" id="nameErrorMsg"></small>
@@ -102,7 +102,7 @@ export default class AccountDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Status</label>
                     <div className="col-sm-6">
-                        <select className="form-control" value={this.state.company.activationStatus} name="activationStatus" onChange={this.handleChange}>
+                        <select className="form-control" value={this.state.account.activationStatus} name="activationStatus" onChange={this.handleChange}>
                             <option value={Constants.ACTIVE_STATUS}>Active</option>
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>

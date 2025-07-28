@@ -34,10 +34,10 @@ class TimeReportTableEntry extends React.Component {
     }
 };
 
-class ProjectUserTableRow extends React.Component {
+class TaskUserTableRow extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { timeReportProject: this.props.timeReportProject, totalProjectTime: this.props.totalProjectTime };
+        this.state = { timeReporttask: this.props.timeReporttask, totaltaskTime: this.props.totaltaskTime };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -49,23 +49,23 @@ class ProjectUserTableRow extends React.Component {
     render() {
         if (this.state == null) return null;
         var entries = [];
-        if (this.state.timeReportProject != null) {
-            this.state.timeReportProject.timeReportDays.forEach(function (timeReportDay) {
+        if (this.state.timeReporttask != null) {
+            this.state.timeReporttask.timeReportDays.forEach(function (timeReportDay) {
                 entries.push(
                     <TimeReportTableEntry timeReportDay={timeReportDay} />);
             });
         }
 
-        var accountName = this.state.timeReportProject.project.account.name;
+        var accountName = this.state.timeReporttask.task.account.name;
         var accountShortName = accountName.substring(0, Math.min(20, accountName.length));
-        var projectName = this.state.timeReportProject.project.name;
-        var projectShortName = projectName.substring(0, Math.min(20, projectName.length));
+        var taskName = this.state.timeReporttask.task.name;
+        var taskShortName = taskName.substring(0, Math.min(20, taskName.length));
 
         return (
             <tr>
-                <th className="text-nowrap" title={companyName}>{companyShortName}</th>
-                <th className="text-nowrap" title={projectName}>{projectShortName}</th>
-                <th><input className="time" readOnly={true} name={this.state.timeReportProject.project.name} type="text" value={this.state.totalProjectTime} /></th>
+                <th className="text-nowrap" title={accountName}>{accountShortName}</th>
+                <th className="text-nowrap" title={taskName}>{taskShortName}</th>
+                <th><input className="time" readOnly={true} name={this.state.timeReporttask.task.name} type="text" value={this.state.totaltaskTime} /></th>
                 {entries}
             </tr>
         );
@@ -73,10 +73,10 @@ class ProjectUserTableRow extends React.Component {
 };
 
 
-class ProjectUserReportRow extends React.Component {
+class TaskUserReportRow extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { projectUserReport: this.props.projectUserReport };
+        this.state = { taskUserReport: this.props.taskUserReport };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -91,20 +91,20 @@ class ProjectUserReportRow extends React.Component {
 
         var rows = [];
 
-        var companyName = this.state.projectUserReport.companyName;
-        var companyShortName = companyName.substring(0, Math.min(30, companyName.length));
-        var projectName = this.state.projectUserReport.projectName;
-        var projectShortName = projectName.substring(0, Math.min(30, projectName.length));
-        var columnNameShortName = companyShortName + "/" + projectShortName;
-        var columnName = companyName + "/" + projectName;
+        var accountName = this.state.taskUserReport.accountName;
+        var accountShortName = accountName.substring(0, Math.min(30, accountName.length));
+        var taskName = this.state.taskUserReport.taskName;
+        var taskShortName = taskName.substring(0, Math.min(30, taskName.length));
+        var columnNameShortName = accountShortName + "/" + taskShortName;
+        var columnName = accountName + "/" + taskName;
 
         rows.push(<tr className="bg-success text-white">
             <th className="w-25" title={columnName}>{columnNameShortName}</th>
-            <th className="w-25">{this.state.projectUserReport.totalHours} (hours)</th>
-            <th className="w-50">{this.state.projectUserReport.totalDaysScaled} (days)</th>
+            <th className="w-25">{this.state.taskUserReport.totalHours} (hours)</th>
+            <th className="w-50">{this.state.taskUserReport.totalDaysScaled} (days)</th>
         </tr>);
 
-        this.state.projectUserReport.projectUserUserReports.forEach(function (userReport) {
+        this.state.taskUserReport.taskUserUserReports.forEach(function (userReport) {
             var userName = userReport.userName;
             var userShortName = userName.substring(0, Math.min(50, userName.length));
 
@@ -124,7 +124,7 @@ class ProjectUserReportRow extends React.Component {
     };
 };
 
-export default class ProjectUserReportTable extends React.Component {
+export default class TaskUserReportTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { report: this.props.report };
@@ -142,9 +142,9 @@ export default class ProjectUserReportTable extends React.Component {
 
         var rows = [];
 
-        if (this.state.report.projectUserReports != null) {
-            this.state.report.projectUserReports.forEach(function (projectUserReport) {
-                rows.push(<ProjectUserReportRow projectUserReport={projectUserReport} />);
+        if (this.state.report.taskUserReports != null) {
+            this.state.report.taskUserReports.forEach(function (taskUserReport) {
+                rows.push(<TaskUserReportRow taskUserReport={taskUserReport} />);
             });
         }
 

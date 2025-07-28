@@ -4,7 +4,7 @@ import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 
 
-class taskcontributorTableRow extends React.Component {
+class TaskcontributorTableRow extends React.Component {
     constructor(props) {
         super(props);
         this.handleChange = this.handleChange.bind(this);
@@ -24,8 +24,8 @@ class taskcontributorTableRow extends React.Component {
         taskcontributor[field] = value;
 
         const self = this;
-        const taskcontributorService = new taskcontributorService();
-        taskcontributorService.udate(taskcontributor)
+        const taskcontributorService = new TaskContributorService();
+        taskcontributorService.update(taskcontributor)
             .then(response => {
                 self.props.activationStatusChanged(taskcontributor);
             })
@@ -55,7 +55,7 @@ class taskcontributorTableRow extends React.Component {
     }
 };
 
-class taskcontributorTable extends React.Component {
+class TaskContributorTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { taskcontributors: this.props.taskcontributors };
@@ -86,7 +86,7 @@ class taskcontributorTable extends React.Component {
             filteredtaskcontributors.forEach(function (taskcontributor) {
                 var key = taskcontributor.task.account.id + '_' + taskcontributor.task.id;
                 rows.push(
-                    <taskcontributorTableRow taskcontributor={taskcontributor} key={key} activationStatusChanged={self.props.activationStatusChanged} />);
+                    <TaskcontributorTableRow taskcontributor={taskcontributor} key={key} activationStatusChanged={self.props.activationStatusChanged} />);
             });
         }
 
@@ -96,10 +96,6 @@ class taskcontributorTable extends React.Component {
                     <tr className="text-white">
                         <th>account</th>
                         <th>task</th>
-                        <th>Provision</th>
-                        <th>Internal</th>
-                        <th>On call</th>
-                        <th>Category</th>
                         <th>Status</th>
                     </tr>
                 </thead>
@@ -109,7 +105,7 @@ class taskcontributorTable extends React.Component {
     }
 };
 
-export default class taskcontributor extends React.Component {
+export default class TaskContributor extends React.Component {
     constructor(props) {
         super(props);
         this.loadFromServer = this.loadFromServer.bind(this);
@@ -163,7 +159,7 @@ export default class taskcontributor extends React.Component {
         }
 
         const self = this;
-        const taskcontributorService = new taskcontributorService();
+        const taskcontributorService = new TaskContributorService();
         taskcontributorService.getAssginmentForUser(userId)
             .then(response => {
                 self.setState({ taskcontributors: response.data });
@@ -205,7 +201,7 @@ export default class taskcontributor extends React.Component {
                     </div>
                 </div>
                 <div className="row">
-                    <taskcontributorTable
+                    <TaskContributorTable
                         taskcontributors={this.state.taskcontributors}
                         accountNameFilter={this.state.accountNameFilter}
                         taskNameFilter={this.state.taskNameFilter}

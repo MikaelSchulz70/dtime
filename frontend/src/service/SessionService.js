@@ -4,7 +4,7 @@ import { BaseService } from './BaseService';
 export default class SessionService extends BaseService {
 
     getSessionInfo() {
-        return axios.get('/api/session');
+        return axios.get('/api/session', { timeout: 10000 });
     }
 
     logout() {

@@ -115,6 +115,8 @@ const AppContent = () => {
     window.location.href = '/login';
     return <LoadingSpinner fullPage text="Redirecting to login..." />;
   }
+  
+  console.log('User authenticated, loading app');
 
   return (
     <div className="d-flex flex-column min-vh-100">

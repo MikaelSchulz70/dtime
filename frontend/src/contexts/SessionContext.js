@@ -17,20 +17,40 @@ export const SessionProvider = ({ children }) => {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    loadSession();
+    // Check if we just came from a successful login
+    const urlParams = new URLSearchParams(window.location.search);
+    const loginSuccess = urlParams.get('loginSuccess');
+    
+    if (loginSuccess) {
+      // Remove the parameter from URL without refreshing
+      window.history.replaceState({}, document.title, window.location.pathname);
+      // Wait a bit longer for session to be established
+      setTimeout(() => loadSession(), 1500);
+    } else {
+      loadSession();
+    }
   }, []);
 
-  const loadSession = async () => {
+  const loadSession = async (retryCount = 0) => {
     try {
-      setLoading(true);
+      if (retryCount === 0) {
+        setLoading(true);
+      }
       setError(null);
-      const response = await SessionService.getSessionInfo();
+      const sessionService = new SessionService();
+      const response = await sessionService.getSessionInfo();
+      alert(`Session data: ${JSON.stringify(response.data)}`);
       setSession(response.data);
+      setLoading(false);
     } catch (err) {
-      console.log('Session load failed:', err.response?.status, err.message);
+      // If it's a 401/403 and we're just coming from login, retry once after a short delay
+      if ((err.response?.status === 401 || err.response?.status === 403) && retryCount < 2) {
+        setTimeout(() => loadSession(retryCount + 1), 1000);
+        return;
+      }
+      
       setError(err.message);
       setSession(null);
-    } finally {
       setLoading(false);
     }
   };
