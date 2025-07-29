@@ -138,10 +138,6 @@ public class ReportService {
         } else if (reportType == ReportType.USER) {
             List<UserReport> userReports = reportRepository.getUserReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setUserReports(userReports);
-        } else if (reportType == ReportType.TASK_USER) {
-            List<TaskUserReport> taskUserReports = reportRepository.getTaskUserReport(reportDates.getFromDate(), reportDates.getToDate());
-            report.setTaskUserReports(taskUserReports);
-            taskUserReports.sort((a, b) -> Double.compare(b.getTotalHours(), a.getTotalHours()));
         }
 
         return report;

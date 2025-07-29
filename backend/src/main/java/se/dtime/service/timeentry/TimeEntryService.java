@@ -117,9 +117,9 @@ public class TimeEntryService {
     private TimeReport getTimeReportBetweenDatesForUser(ReportDates reportDates, UserPO userPO, TimeReportView timeReportView) {
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
         List<TimeEntryPO> timeReportDayPOS = timeEntiryRepository.findByUserAndBetweenDates(userPO.getId(), reportDates.getFromDate(), reportDates.getToDate());
-        List<TaskContributorPO> assignments = taskContributorRepository.findByUserAndActivationStatus(userPO, ActivationStatus.ACTIVE);
+        List<TaskContributorPO> taskContributorPOS = taskContributorRepository.findByUserAndActivationStatus(userPO, ActivationStatus.ACTIVE);
 
-        TimeReport timeReport = timeReportConverter.convertToTimeReport(days, userPO, timeReportDayPOS, assignments);
+        TimeReport timeReport = timeReportConverter.convertToTimeReport(days, userPO, timeReportDayPOS, taskContributorPOS);
         timeReport.setWorkableHours(calendarService.calcWorkableHours(days));
 
         Set<LocalDate> closedMonths = getClosedMonths(days, userPO);

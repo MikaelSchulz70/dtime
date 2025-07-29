@@ -20,12 +20,8 @@ export default class UserReportTable extends React.Component {
         this.state.report.userReports.forEach(function (userReport) {
             rows.push(
                 <tr>
-                    <td>{userReport.userName}</td>
+                    <td>{userReport.fullName}</td>
                     <td>{userReport.totalTime}</td>
-                    <td>{userReport.totalTimeExternalProvision}</td>
-                    <td>{userReport.totalTimeInternalProvision}</td>
-                    <td>{userReport.totalTimeExternalNoProvision}</td>
-                    <td>{userReport.totalTimeInternalNoProvision}</td>
                 </tr>);
         });
 

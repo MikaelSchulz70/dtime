@@ -126,16 +126,6 @@ public class UserValidator extends ValidatorBase<User> {
         }
     }
 
-    private void validateHasAssignments(UserPO userPO) {
-        boolean hasAssignments = taskContributorRepository.countByUser(userPO) > 0;
-        check(!hasAssignments, "user.cannot.delete.have.assignments");
-    }
-
-    private void validateHasTimeReports(UserPO userPO) {
-        boolean hasTimeReports = timeEntryRepository.countByUserId(userPO.getId()) > 0;
-        check(!hasTimeReports, "user.cannot.delete.has.time.reports");
-    }
-
 
     class FirstNameValidator extends AttributeValidator {
         @Override

@@ -1,11 +1,9 @@
 import React from "react";
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
-import UserTaskReportTable from './TaskUserReport'
-import TaskReportTable from './TaskReport'
-import TaskCategoryReportTable from './ProjectCategoryReport'
-import UserReportTable from './UserReport'
-import TaskUserReportTable from './UserProjectReport'
+import TaskReportTable from './TaskReport';
+import UserReportTable from './UserReport';
+import UserTaskReportTable from './UserTaskReport';
 
 export default class Reports extends React.Component {
     constructor(props) {
@@ -14,11 +12,11 @@ export default class Reports extends React.Component {
         this.handleNextReport = this.handleNextReport.bind(this);
         this.viewChange = this.viewChange.bind(this);
         this.typeChange = this.typeChange.bind(this);
-        this.state = { reportView: Constants.MONTH_VIEW, reportType: Constants.USER_task_REPORT };
+        this.state = { reportView: Constants.MONTH_VIEW, reportType: Constants.USER_TASK_REPORT };
     }
 
     componentDidMount() {
-        this.loadFromServer(Constants.MONTH_VIEW, Constants.USER_task_REPORT);
+        this.loadFromServer(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
     }
 
     viewChange(event) {
@@ -90,11 +88,9 @@ export default class Reports extends React.Component {
                     </div>
                     <div className="col-sm-3">
                         <select className="form-control input-sm" value={this.state.reportType} name="reportType" onChange={this.typeChange}>
-                            <option value={Constants.USER_task_REPORT}>User task report</option>
-                            <option value={Constants.task_REPORT}>task report</option>
+                            <option value={Constants.USER_TASK_REPORT}>User task report</option>
+                            <option value={Constants.TASK_REPORT}>Task report</option>
                             <option value={Constants.USER_REPORT}>User report</option>
-                            <option value={Constants.task_CATEGORY_REPORT}>task category report</option>
-                            <option value={Constants.task_USER_REPORT}>Internal task user report</option>
                         </select>
                     </div>
                     <div className="col-sm-5">
@@ -105,16 +101,12 @@ export default class Reports extends React.Component {
 
                 </div>
                 <div className="row">
-                    {this.state.reportType === Constants.USER_task_REPORT ? (
+                    {this.state.reportType === Constants.USER_TASK_REPORT ? (
                         <UserTaskReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
-                    ) : this.state.reportType === Constants.task_REPORT ? (
+                    ) : this.state.reportType === Constants.TASK_REPORT ? (
                         <TaskReportTable report={this.state.report} />
-                    ) : this.state.reportType === Constants.task_CATEGORY_REPORT ? (
-                        <TaskCategoryReportTable report={this.state.report} />
                     ) : this.state.reportType === Constants.USER_REPORT ? (
                         <UserReportTable report={this.state.report} />
-                    ) : this.state.reportType === Constants.task_USER_REPORT ? (
-                        <TaskUserReportTable report={this.state.report} />
                     ) : ''}
                 </div>
             </div>

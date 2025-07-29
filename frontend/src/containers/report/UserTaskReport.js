@@ -388,7 +388,7 @@ class UserDetailReport extends React.Component {
     }
 }
 
-export default class UsertaskReportTable extends React.Component {
+export default class UserTaskReportTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { report: this.props.report, reportView: this.props.reportView, fromDate: this.props.fromDate };

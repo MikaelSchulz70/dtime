@@ -293,7 +293,7 @@ export default class FollowUp extends React.Component {
                         <select className="form-control input-sm" value={this.state.reportType} name="reportType" onChange={this.typeChange}>
                             <option value={Constants.FOLLOW_UP_CATEGORY}>task category</option>
                             <option value={Constants.FOLLOW_UP_USER}>User</option>
-                            <option value={Constants.FOLLOW_UP_account}>account</option>
+                            <option value={Constants.FOLLOW_UP_ACCOUNT}>account</option>
                         </select>
                     </div>
                     <div className="col-sm-5">
@@ -308,7 +308,7 @@ export default class FollowUp extends React.Component {
                         <FollowUpCategoryReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
                     ) : this.state.reportType === Constants.FOLLOW_UP_USER ? (
                         <FollowUpUserReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
-                    ) : this.state.reportType === Constants.FOLLOW_UP_account ? (
+                    ) : this.state.reportType === Constants.FOLLOW_UP_ACCOUNT ? (
                         <FollowUpAccountReportTable report={this.state.report} reportView={this.state.reportView} fromDate={this.state.report.fromDate} />
                     ) : ''}
                 </div>

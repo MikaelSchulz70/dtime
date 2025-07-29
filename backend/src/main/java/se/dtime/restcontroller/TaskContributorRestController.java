@@ -39,8 +39,8 @@ public class TaskContributorRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/currentTaskContributors")
     public ResponseEntity<List<TaskContributor>> getCurrentTaskContributor() {
-        List<TaskContributor> assignments = taskContributorService.getCurrentTaskContributors();
-        return new ResponseEntity<>(assignments, HttpStatus.OK);
+        List<TaskContributor> taskContributors = taskContributorService.getCurrentTaskContributors();
+        return new ResponseEntity<>(taskContributors, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

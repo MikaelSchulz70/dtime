@@ -20,16 +20,14 @@ export const CATEGORY_REPORT = 'CATEGORY';
 export const USER_REPORT = 'USER';
 export const CATEGORY_TYPE_REPORT = 'CATEGORY_TYPE';
 export const CATEGORY_USER_REPORT = 'CATEGORY_USER';
-export const USER_task_REPORT = 'USER_task';
-export const task_USER_REPORT = 'task_USER';
-export const task_REPORT = 'task';
-export const task_CATEGORY_REPORT = 'task_CATEGORY';
+export const USER_TASK_REPORT = 'USER_TASK';
+export const TASK_REPORT = 'TASK';
 
 // Follow up
 export const FOLLOW_UP_CATEGORY = 'CATEGORY_TYPE';
 export const FOLLOW_UP_USER = 'USER';
 export const FOLLOW_UP_ORGANIZATION = 'ORGANIZATION';
-export const FOLLOW_UP_account = 'account';
+export const FOLLOW_UP_ACCOUNT = 'ACCOUNT';
 
 
 // Colors
