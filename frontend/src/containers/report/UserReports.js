@@ -3,6 +3,7 @@ import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
 
 
+
 class UserReportRows extends React.Component {
     constructor(props) {
         super(props);
@@ -45,7 +46,7 @@ class UserReportRows extends React.Component {
         rows.push(<tr key={key}>
             <th></th>
             <th>Total time</th>
-            <th>{this.state.userReports.totalTime}</th>
+            <th>{this.state.userReport.totalTime}</th>
         </tr>);
 
         return (

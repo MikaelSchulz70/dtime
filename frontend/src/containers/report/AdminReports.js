@@ -6,7 +6,7 @@ import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
 
-export default class Reports extends React.Component {
+export default class AdminReports extends React.Component {
     constructor(props) {
         super(props);
         this.handlePreviousReport = this.handlePreviousReport.bind(this);

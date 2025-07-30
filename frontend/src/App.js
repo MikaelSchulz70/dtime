@@ -20,7 +20,7 @@ import AccountDetails from './containers/account/accountdetails';
 import Task from './containers/task/task';
 import TaskDetails from './containers/task/taskdetails';
 import TaskContributor from './containers/taskcontributor/taskcontributor';
-import Reports from './containers/report/Reports';
+import AdminReports from './containers/report/AdminReports';
 import UserReports from './containers/report/UserReports';
 import Vacations from './containers/report/Vacations';
 import PasswordChanger from './containers/user/changepwd';
@@ -76,7 +76,7 @@ const Main = () => (
             <Route exact path='/task/:taskId' component={TaskDetails} />
             <Route exact path='/tasks/:taskId' component={TaskDetails} />
             <Route exact path='/taskcontributor' component={TaskContributor} />
-            <Route exact path='/reports' component={Reports} />
+            <Route exact path='/reports' component={AdminReports} />
             <Route exact path='/userreport' component={UserReports} />
             <Route exact path='/vacations' component={Vacations} />
             <Route exact path='/followup' component={FollowUpReport} />

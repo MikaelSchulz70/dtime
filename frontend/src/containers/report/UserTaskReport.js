@@ -329,8 +329,6 @@ class UserDetailReport extends React.Component {
             headerRow = <TimeReportTableHeaderRow days={this.state.timeReport.days} />;
         }
 
-        console.log('tr', this.state);
-
         var rows = [];
         if (this.state.timeReport != null && this.state.timeReport.timeReporttasksExternal != null) {
             this.state.timeReport.timeReporttasksExternal.forEach(function (timeReporttask) {

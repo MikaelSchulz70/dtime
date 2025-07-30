@@ -15,13 +15,13 @@ export default class UserReportTable extends React.Component {
     render() {
         if (this.state == null)
             return null;
-
+        
         var rows = [];
         this.state.report.userReports.forEach(function (userReport) {
             rows.push(
                 <tr>
                     <td>{userReport.fullName}</td>
-                    <td>{userReport.totalTime}</td>
+                    <td>{userReport.totalHours}</td>
                 </tr>);
         });
 
