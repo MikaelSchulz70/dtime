@@ -2,6 +2,7 @@ import React from "react";
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
 import TaskReportTable from './TaskReport';
+import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
 
@@ -89,6 +90,7 @@ export default class Reports extends React.Component {
                     <div className="col-sm-3">
                         <select className="form-control input-sm" value={this.state.reportType} name="reportType" onChange={this.typeChange}>
                             <option value={Constants.USER_TASK_REPORT}>User task report</option>
+                            <option value={Constants.ACCOUNT_REPORT}>Account report</option>
                             <option value={Constants.TASK_REPORT}>Task report</option>
                             <option value={Constants.USER_REPORT}>User report</option>
                         </select>
@@ -107,6 +109,8 @@ export default class Reports extends React.Component {
                         <TaskReportTable report={this.state.report} />
                     ) : this.state.reportType === Constants.USER_REPORT ? (
                         <UserReportTable report={this.state.report} />
+                    ) : this.state.reportType === Constants.ACCOUNT_REPORT ? (
+                        <AccountReportTable report={this.state.report} />
                     ) : ''}
                 </div>
             </div>

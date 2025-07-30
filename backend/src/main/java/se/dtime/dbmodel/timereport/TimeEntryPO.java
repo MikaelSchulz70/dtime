@@ -7,7 +7,7 @@ import se.dtime.dbmodel.TaskContributorPO;
 import java.time.LocalDate;
 
 @Entity(name = "TimeEntry")
-@Table(name = "timeentry")
+@Table(name = "time_report")
 @NamedQueries({
         @NamedQuery(name = "TimeEntryPO.findByUserAndDate", query = "SELECT te FROM TimeEntry te WHERE te.taskContributor.user.id = :userId AND date=:date ORDER BY te.date"),
         @NamedQuery(name = "TimeEntryPO.findByUserAndBetweenDates", query = "SELECT te FROM TimeEntry te WHERE te.taskContributor.user.id = :userId AND date >= :startDate and date <= :endDate ORDER BY te.date"),
@@ -41,7 +41,7 @@ public class TimeEntryPO extends BasePO {
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "id_taskcontributor", nullable = false)
+    @JoinColumn(name = "id_task_contributor", nullable = false)
     public TaskContributorPO getTaskContributor() {
         return taskContributor;
     }

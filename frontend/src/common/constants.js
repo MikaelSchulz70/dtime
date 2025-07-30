@@ -15,13 +15,10 @@ export const ADMIN_ROLE = 'ADMIN';
 export const REST_ERROR = 'REST_ERROR';
 
 // Report
-export const USER_CATEGORY_REPORT = 'USER_CATEGORY';
-export const CATEGORY_REPORT = 'CATEGORY';
 export const USER_REPORT = 'USER';
-export const CATEGORY_TYPE_REPORT = 'CATEGORY_TYPE';
-export const CATEGORY_USER_REPORT = 'CATEGORY_USER';
 export const USER_TASK_REPORT = 'USER_TASK';
 export const TASK_REPORT = 'TASK';
+export const ACCOUNT_REPORT = 'ACCOUNT';
 
 // Follow up
 export const FOLLOW_UP_CATEGORY = 'CATEGORY_TYPE';

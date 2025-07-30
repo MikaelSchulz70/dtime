@@ -47,11 +47,11 @@ public class FollowUpReportRepository extends JdbcDaoSupport {
 
             FollowUpData followUpData = FollowUpData.
                     builder().
-                    accountId(((BigDecimal) row.get("accountId")).longValue()).
+                    accountId((Long) row.get("accountId")).
                     accountName((String) row.get("accountName")).
-                    taskId(((BigDecimal) row.get("taskId")).longValue()).
+                    taskId((Long) row.get("taskId")).
                     taskName((String) row.get("taskName")).
-                    userId(((BigDecimal) row.get("userId")).longValue()).
+                    userId((Long) row.get("userId")).
                     fullName(row.get("firstname") + " " + row.get("lastname")).
                     totalTime(totalTime).
                     build();

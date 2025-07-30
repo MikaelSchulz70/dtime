@@ -138,6 +138,9 @@ public class ReportService {
         } else if (reportType == ReportType.USER) {
             List<UserReport> userReports = reportRepository.getUserReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setUserReports(userReports);
+        } else if (reportType == ReportType.ACCOUNT) {
+            List<AccountReport> accountReports = reportRepository.getAccountReports(reportDates.getFromDate(), reportDates.getToDate());
+            report.setAccountReports(accountReports);
         }
 
         return report;
@@ -146,6 +149,9 @@ public class ReportService {
     void calcStatistics(Report report, List<UserReport> userReports) {
         int totalWorkableHours = report.getWorkableHours() * userReports.size();
         report.setTotalWorkableHours(totalWorkableHours);
+
+        double totalHoursWorked = userReports.stream().mapToDouble(UserReport::getTotalTime).sum();
+        report.setTotalHoursWorked(totalHoursWorked);
     }
 
     private void updateClosedReport(UserReport userReport) {

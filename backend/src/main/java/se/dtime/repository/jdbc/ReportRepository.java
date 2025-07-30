@@ -4,11 +4,11 @@ import jakarta.annotation.PostConstruct;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Repository;
+import se.dtime.model.report.AccountReport;
 import se.dtime.model.report.TaskReport;
 import se.dtime.model.report.UserReport;
 
 import javax.sql.DataSource;
-import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -54,6 +54,17 @@ public class ReportRepository extends JdbcDaoSupport {
                     "having sum(reportedtime) > 0 " +
                     "order by c.name, p.name";
 
+    private final String ACCOUNT_REPORT =
+            "select c.id accountId, c.name accountName, sum(reportedtime) totalTime " +
+                    "from time_report tr " +
+                    "join task_contributor a on a.id = tr.id_task_contributor " +
+                    "join task p on p.id = a.id_task " +
+                    "join account c on c.id = p.id_account " +
+                    "where date >= ? and date <= ? " +
+                    "group by c.id, c.name " +
+                    "having sum(reportedtime) > 0 " +
+                    "order by c.name";
+
     private final String USER_REPORTS =
             "select u.id userId, u.firstname, u.lastname, sum(reportedtime) totalTime " +
                     "from time_report tr " +
@@ -93,7 +104,7 @@ public class ReportRepository extends JdbcDaoSupport {
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
         for (Map<String, Object> row : rows) {
-            long userId = ((BigDecimal) row.get("userId")).longValue();
+            long userId = (Long) row.get("userId");
             UserReport userReport = userReportMap.get(userId);
             if (userReport == null) {
                 userReport = new UserReport();
@@ -105,7 +116,7 @@ public class ReportRepository extends JdbcDaoSupport {
                 userReport.setToDate(toDate);
             }
 
-            double totalTime = ((BigDecimal) row.get("totalTime")).doubleValue();
+            double totalTime = (Float) row.get("totalTime");
             userReport.setTotalTime(totalTime);
         }
 
@@ -122,11 +133,11 @@ public class ReportRepository extends JdbcDaoSupport {
         List<TaskReport> taskReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
             TaskReport taskReport = new TaskReport();
-            taskReport.setAccountId(((BigDecimal) row.get("accountId")).longValue());
+            taskReport.setAccountId((Long) row.get("accountId"));
             taskReport.setAccountName((String) row.get("accountName"));
-            taskReport.setTaskId(((BigDecimal) row.get("taskId")).longValue());
+            taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            taskReport.setTotalHours(((BigDecimal) row.get("totalTime")).doubleValue());
+            taskReport.setTotalHours((Float) row.get("totalTime"));
             taskReports.add(taskReport);
         }
 
@@ -139,7 +150,7 @@ public class ReportRepository extends JdbcDaoSupport {
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
         for (Map<String, Object> row : rows) {
-            long userId = ((BigDecimal) row.get("userId")).longValue();
+            long userId = (Long) row.get("userId");
             UserReport userReport = userReportMap.get(userId);
             if (userReport == null) {
                 userReport = new UserReport();
@@ -152,13 +163,14 @@ public class ReportRepository extends JdbcDaoSupport {
             }
 
             TaskReport taskReport = new TaskReport();
-            taskReport.setAccountId(((BigDecimal) row.get("accountId")).longValue());
+            taskReport.setAccountId((Long) row.get("accountId"));
             taskReport.setAccountName((String) row.get("accountName"));
-            taskReport.setTaskId(((BigDecimal) row.get("taskId")).longValue());
+            taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            double totalHoursTask = ((BigDecimal) row.get("totalTime")).doubleValue();
+            double totalHoursTask = (Float) row.get("totalTime");
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);
+            userReport.setTotalTime(userReport.getTotalTime() + totalHoursTask);
         }
 
         return userReports;
@@ -179,5 +191,20 @@ public class ReportRepository extends JdbcDaoSupport {
         }
 
         return userReports;
+    }
+
+    public List<AccountReport> getAccountReports(LocalDate fromDate, LocalDate toDate) {
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, new Object[]{fromDate, toDate});
+
+        List<AccountReport> accountReports = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            AccountReport accountReport = new AccountReport();
+            accountReport.setAccountId((Long) row.get("accountId"));
+            accountReport.setAccountName((String) row.get("accountName"));
+            accountReport.setTotalHours((Float) row.get("totalTime"));
+            accountReports.add(accountReport);
+        }
+
+        return accountReports;
     }
 }

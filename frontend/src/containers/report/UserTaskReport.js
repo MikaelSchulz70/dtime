@@ -61,18 +61,19 @@ class UserReportSummaryTable extends React.Component {
         rows.push(
             <tr key={'summary-header'} className="bg-success text-white">
                 <th>Summary</th>
+                <th>Workable hours mounth</th>
                 <th>Total workable hours</th>
-                <th>Workable hours</th>
-                <th>Total</th>
+                <th>Total hours worked</th>
+                <th></th>
             </tr>
         );
 
         rows.push(
             <tr key={'summary-info'}>
                 <td></td>
-                <td>{this.state.report.totalWorkableHours}</td>
                 <td>{this.state.report.workableHours}</td>
-                <td>{this.state.report.totalWorkedHours} ({this.state.report.totalWorkedHoursPcp}%)</td>
+                <td>{this.state.report.totalWorkableHours}</td>
+                <td>{this.state.report.totalHoursWorked}</td>
             </tr>
         );
 
@@ -176,7 +177,7 @@ class UserReportRows extends React.Component {
         var keyBase = this.state.userReport.userId + '_';
         var keyHeader = keyBase + '0';
         rows.push(<tr key={keyHeader} className="bg-success text-white">
-            <th>{this.state.userReport.userName}</th>
+            <th>{this.state.userReport.fullName}</th>
             <th>Account</th>
             <th>Task</th>
             <th>Total</th>
@@ -200,10 +201,10 @@ class UserReportRows extends React.Component {
             var key = keyBase + '_' + taskReport.idtask;
             rows.push(
                 <tr key={key}>
-                    <td>{taskReport.userName}</td>
+                    <td></td>
                     <td className="text-nowrap" title={accountName}>{accountShortName}</td>
                     <td className="text-nowrap" title={taskName}>{taskShortName}</td>
-                    <td></td>
+                    <td>{taskReport.totalHours}</td>
                     <td></td>
                     <td></td>
                     <td></td>
@@ -328,26 +329,11 @@ class UserDetailReport extends React.Component {
             headerRow = <TimeReportTableHeaderRow days={this.state.timeReport.days} />;
         }
 
+        console.log('tr', this.state);
+
         var rows = [];
         if (this.state.timeReport != null && this.state.timeReport.timeReporttasksExternal != null) {
             this.state.timeReport.timeReporttasksExternal.forEach(function (timeReporttask) {
-                var totaltaskTime = 0;
-                timeReporttask.timeReportDays.forEach(function (timeReportDay) {
-                    if (timeReportDay.time != null) {
-                        var time = parseFloat(timeReportDay.time);
-                        if (!isNaN(time)) {
-                            totaltaskTime += time;
-                        }
-                    }
-                });
-
-                rows.push(
-                    <TimeReportTableRow timeReporttask={timeReporttask} totaltaskTime={totaltaskTime} />);
-            });
-        }
-
-        if (this.state.timeReport != null && this.state.timeReport.timeReporttasksInternal != null) {
-            this.state.timeReport.timeReporttasksInternal.forEach(function (timeReporttask) {
                 var totaltaskTime = 0;
                 timeReporttask.timeReportDays.forEach(function (timeReportDay) {
                     if (timeReportDay.time != null) {
