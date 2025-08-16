@@ -11,3 +11,5 @@ frontend/dist/
 frontend/node/
 frontend/*.log
 logs/
+**/*.logs
+**/*gz

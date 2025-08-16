@@ -23,6 +23,8 @@ public class SystemPropertyPO extends BasePO {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_systemproperty")
+    @SequenceGenerator(name = "seq_systemproperty", sequenceName = "seq_systemproperty", allocationSize = 1)
     public Long getId() {
         return id;
     }

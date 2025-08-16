@@ -21,61 +21,61 @@ public class ReportRepository extends JdbcDaoSupport {
     private DataSource dataSource;
 
     private final String USERS_TASK_REPORTS =
-            "select u.id userId, u.firstname, u.lastname, c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(reportedtime) totalTime " +
-                    "from time_report tr " +
-                    "join task_contributor a on a.id = tr.id_task_contributor " +
-                    "join users u on u.id = a.id_user " +
-                    "join task p on p.id = a.id_task " +
-                    "join account c on c.id = p.id_account " +
-                    "where date >= ? and date <= ? " +
+            "select u.\"id\" userId, u.\"firstname\", u.\"lastname\", c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, sum(tr.\"reportedtime\") totalTime " +
+                    "from \"PUBLIC\".\"time_report\" tr " +
+                    "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
+                    "join \"PUBLIC\".\"users\" u on u.\"id\" = a.\"id_user\" " +
+                    "join \"PUBLIC\".\"task\" p on p.\"id\" = a.\"id_task\" " +
+                    "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
+                    "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
                     "{USER_CONDITION}" +
-                    "group by id_task_contributor, u.id, u.firstname, u.lastname, c.id, c.name, p.id, p.name " +
-                    "having sum(reportedtime) > 0 " +
-                    "order by u.firstname, u.lastname, c.name, p.name";
+                    "group by tr.\"id_task_contributor\", u.\"id\", u.\"firstname\", u.\"lastname\", c.\"id\", c.\"name\", p.\"id\", p.\"name\" " +
+                    "having sum(tr.\"reportedtime\") > 0 " +
+                    "order by u.\"firstname\", u.\"lastname\", c.\"name\", p.\"name\"";
 
     private final String USERS_REPORTS_NO_TIME =
-            "select u.id userId, u.firstname, u.lastname " +
-                    "from users u " +
-                    "where u.status = 'ACTIVE' and u.id not in (" +
-                    "select id_user from task_contributor a where a.id in (" +
-                    "select id_task_contributor from time_report tr " +
+            "select u.\"id\" userId, u.\"firstname\", u.\"lastname\" " +
+                    "from \"PUBLIC\".\"users\" u " +
+                    "where u.\"status\" = 'ACTIVE' and u.\"id\" not in (" +
+                    "select \"id_user\" from \"PUBLIC\".\"task_contributor\" a where a.\"id\" in (" +
+                    "select \"id_task_contributor\" from \"PUBLIC\".\"time_report\" tr " +
                     "where " +
-                    "tr.date >= ? and tr.date <= ? " +
-                    "group by id_task_contributor))";
+                    "tr.\"date\" >= ? and tr.\"date\" <= ? " +
+                    "group by \"id_task_contributor\"))";
 
     private final String TASK_REPORT =
-            "select c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(reportedtime) totalTime " +
-                    "from time_report tr " +
-                    "join task_contributor a on a.id = tr.id_task_contributor " +
-                    "join task p on p.id = a.id_task " +
-                    "join account c on c.id = p.id_account " +
-                    "where date >= ? and date <= ? " +
-                    "group by c.id, c.name, p.id, p.name " +
-                    "having sum(reportedtime) > 0 " +
-                    "order by c.name, p.name";
+            "select c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, sum(tr.\"reportedtime\") totalTime " +
+                    "from \"PUBLIC\".\"time_report\" tr " +
+                    "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
+                    "join \"PUBLIC\".\"task\" p on p.\"id\" = a.\"id_task\" " +
+                    "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
+                    "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
+                    "group by c.\"id\", c.\"name\", p.\"id\", p.\"name\" " +
+                    "having sum(tr.\"reportedtime\") > 0 " +
+                    "order by c.\"name\", p.\"name\"";
 
     private final String ACCOUNT_REPORT =
-            "select c.id accountId, c.name accountName, sum(reportedtime) totalTime " +
-                    "from time_report tr " +
-                    "join task_contributor a on a.id = tr.id_task_contributor " +
-                    "join task p on p.id = a.id_task " +
-                    "join account c on c.id = p.id_account " +
-                    "where date >= ? and date <= ? " +
-                    "group by c.id, c.name " +
-                    "having sum(reportedtime) > 0 " +
-                    "order by c.name";
+            "select c.\"id\" accountId, c.\"name\" accountName, sum(tr.\"reportedtime\") totalTime " +
+                    "from \"PUBLIC\".\"time_report\" tr " +
+                    "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
+                    "join \"PUBLIC\".\"task\" p on p.\"id\" = a.\"id_task\" " +
+                    "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
+                    "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
+                    "group by c.\"id\", c.\"name\" " +
+                    "having sum(tr.\"reportedtime\") > 0 " +
+                    "order by c.\"name\"";
 
     private final String USER_REPORTS =
-            "select u.id userId, u.firstname, u.lastname, sum(reportedtime) totalTime " +
-                    "from time_report tr " +
-                    "join task_contributor a on a.id = tr.id_task_contributor " +
-                    "join users u on u.id = a.id_user " +
-                    "join task p on p.id = a.id_task " +
-                    "join account c on c.id = p.id_account " +
-                    "where date >= ? and date <= ? " +
-                    "group by u.id, u.firstname, u.lastname " +
-                    "having sum(reportedtime) > 0 " +
-                    "order by sum(reportedtime) desc";
+            "select u.\"id\" userId, u.\"firstname\", u.\"lastname\", sum(tr.\"reportedtime\") totalTime " +
+                    "from \"PUBLIC\".\"time_report\" tr " +
+                    "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
+                    "join \"PUBLIC\".\"users\" u on u.\"id\" = a.\"id_user\" " +
+                    "join \"PUBLIC\".\"task\" p on p.\"id\" = a.\"id_task\" " +
+                    "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
+                    "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
+                    "group by u.\"id\", u.\"firstname\", u.\"lastname\" " +
+                    "having sum(tr.\"reportedtime\") > 0 " +
+                    "order by sum(tr.\"reportedtime\") desc";
 
     @PostConstruct
     private void initialize() {
@@ -94,7 +94,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<UserReport> getUserTaskReports(long userId, LocalDate fromDate, LocalDate toDate) {
-        String sql = USERS_TASK_REPORTS.replace("{USER_CONDITION}", "and u.id = ? ");
+        String sql = USERS_TASK_REPORTS.replace("{USER_CONDITION}", "and u.\"id\" = ? ");
         return getUserTaskReports(sql, fromDate, toDate, new Object[]{fromDate, toDate, userId});
     }
 
@@ -116,7 +116,7 @@ public class ReportRepository extends JdbcDaoSupport {
                 userReport.setToDate(toDate);
             }
 
-            double totalTime = (Float) row.get("totalTime");
+            double totalTime = ((Number) row.get("totalTime")).floatValue();
             userReport.setTotalTime(totalTime);
         }
 
@@ -137,7 +137,7 @@ public class ReportRepository extends JdbcDaoSupport {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            taskReport.setTotalHours((Float) row.get("totalTime"));
+            taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             taskReports.add(taskReport);
         }
 
@@ -167,7 +167,7 @@ public class ReportRepository extends JdbcDaoSupport {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            double totalHoursTask = (Float) row.get("totalTime");
+            double totalHoursTask = ((Number) row.get("totalTime")).floatValue();
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);
             userReport.setTotalTime(userReport.getTotalTime() + totalHoursTask);
@@ -201,7 +201,7 @@ public class ReportRepository extends JdbcDaoSupport {
             AccountReport accountReport = new AccountReport();
             accountReport.setAccountId((Long) row.get("accountId"));
             accountReport.setAccountName((String) row.get("accountName"));
-            accountReport.setTotalHours((Float) row.get("totalTime"));
+            accountReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             accountReports.add(accountReport);
         }
 

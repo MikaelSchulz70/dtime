@@ -21,6 +21,8 @@ public class PublicHolidayPO extends BasePO {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_publicholiday")
+    @SequenceGenerator(name = "seq_publicholiday", sequenceName = "seq_publicholiday", allocationSize = 1)
     public Long getId() {
         return id;
     }
