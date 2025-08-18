@@ -30,10 +30,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(excludeAutoConfiguration = {LiquibaseAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @TestPropertySource(properties = {
+    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
     "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true"
+    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
+    "spring.jpa.properties.hibernate.default_schema=PUBLIC"
 })
-@Import(ReportRepository.class)
+@Import(TestReportRepository.class)
 @Transactional
 class ReportRepositoryIT {
 
@@ -41,7 +43,7 @@ class ReportRepositoryIT {
     private EntityManager entityManager;
 
     @Autowired
-    private ReportRepository reportRepository;
+    private TestReportRepository reportRepository;
 
     @Autowired
     private UserRepository userRepository;
