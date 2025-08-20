@@ -1,5 +1,6 @@
 package se.dtime.restcontroller;
 
+import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
@@ -11,8 +12,6 @@ import se.dtime.model.report.ReportType;
 import se.dtime.model.report.ReportView;
 import se.dtime.model.timereport.CloseDate;
 import se.dtime.service.report.ReportService;
-
-import jakarta.validation.Valid;
 
 import java.time.LocalDate;
 

@@ -17,7 +17,7 @@ public class SessionRestController {
     @Autowired
     private SessionService sessionService;
 
-    @PreAuthorize("hasRole('USER')")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping(path = "")
     public ResponseEntity<SessionInfo> getSessionInfo() {
         return new ResponseEntity<>(sessionService.getSessionInfo(), HttpStatus.OK);

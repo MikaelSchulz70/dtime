@@ -13,9 +13,51 @@
                         startValue="2"/>
     </changeSet>
 
+    <changeSet id="seq_account" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_account"
+                        startValue="1"/>
+    </changeSet>
+
     <changeSet id="seq_closedate" author="mikael">
         <createSequence incrementBy="1"
                         sequenceName="seq_closedate"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_monthlycheck" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_monthlycheck"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_participation" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_participation"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_systemproperty" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_systemproperty"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_publicholiday" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_publicholiday"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_task" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_task"
+                        startValue="1"/>
+    </changeSet>
+
+    <changeSet id="seq_timeentry" author="mikael">
+        <createSequence incrementBy="1"
+                        sequenceName="seq_timeentry"
                         startValue="1"/>
     </changeSet>
 

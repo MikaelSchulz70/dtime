@@ -29,8 +29,9 @@ public class SystemRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping(path = "/systemproperty")
-    public void updateSystemProperty(@Valid @RequestBody SystemPropertyDB systemProperty) {
+    public ResponseEntity<Void> updateSystemProperty(@Valid @RequestBody SystemPropertyDB systemProperty) {
         systemService.updateSystemProperty(systemProperty);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

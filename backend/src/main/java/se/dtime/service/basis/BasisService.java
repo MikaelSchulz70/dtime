@@ -39,8 +39,12 @@ public class BasisService {
     public MonthlyCheck addUpdateMonthlyCheck(MonthlyCheck monthlyCheck) {
         monthlyCheckValidator.validateMonthlyCheck(monthlyCheck);
         MonthlyCheckPO monthlyCheckPO = monthlyCheckRepository.findByAccountAndDate(new AccountPO(monthlyCheck.getAccountId()), monthlyCheck.getDate());
-        if (monthlyCheckPO != null) {
+        if (monthlyCheckPO == null) {
             monthlyCheckPO = monthlyCheckConverter.toPO(monthlyCheck);
+        } else {
+            // Update existing entity, preserving the database ID
+            monthlyCheckPO.setDate(monthlyCheck.getDate());
+            monthlyCheckConverter.updateBaseData(monthlyCheckPO);
         }
         return monthlyCheckConverter.toModel(monthlyCheckRepository.save(monthlyCheckPO));
     }

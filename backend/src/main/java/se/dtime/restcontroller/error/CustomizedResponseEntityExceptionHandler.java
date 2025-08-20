@@ -1,15 +1,16 @@
 package se.dtime.restcontroller.error;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import se.dtime.common.Messages;
 import se.dtime.model.error.*;
 
@@ -19,10 +20,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @ControllerAdvice
 public class CustomizedResponseEntityExceptionHandler {
-    
+
     private final DataIntegrityViolationHandler dataIntegrityViolationHandler;
     private final Messages messages;
-    
+
     // Constructor injection instead of @Autowired
     public CustomizedResponseEntityExceptionHandler(
             DataIntegrityViolationHandler dataIntegrityViolationHandler,
@@ -41,7 +42,7 @@ public class CustomizedResponseEntityExceptionHandler {
                 .message("An internal server error occurred")
                 .path(path)
                 .build();
-        
+
         log.error("Server error at path {}: {}", path, ex.getMessage(), ex);
         return new ResponseEntity<>(apiError, HttpStatus.INTERNAL_SERVER_ERROR);
     }
@@ -56,7 +57,7 @@ public class CustomizedResponseEntityExceptionHandler {
                 .message("Access denied")
                 .path(path)
                 .build();
-        
+
         log.warn("Access denied at path {}: {}", path, ex.getMessage());
         return new ResponseEntity<>(apiError, HttpStatus.FORBIDDEN);
     }
@@ -93,9 +94,38 @@ public class CustomizedResponseEntityExceptionHandler {
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
 
+    @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(MissingServletRequestParameterException.class)
+    public ResponseEntity<String> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(IllegalArgumentException.class)
+    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
+        return ResponseEntity.badRequest().body(ex.getMessage());
+    }
+
+    @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<ApiError> handleMethodNotSupported(org.springframework.web.HttpRequestMethodNotSupportedException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        ApiError apiError = ApiError.builder()
+                .timestamp(java.time.Instant.now())
+                .status(HttpStatus.METHOD_NOT_ALLOWED.value())
+                .error(HttpStatus.METHOD_NOT_ALLOWED.getReasonPhrase())
+                .message(ex.getMessage())
+                .path(path)
+                .build();
+
+        return new ResponseEntity<>(apiError, HttpStatus.METHOD_NOT_ALLOWED);
+    }
+
     @ExceptionHandler(InvalidInputException.class)
     public final ResponseEntity<ApiError> handleInvalidInputException(InvalidInputException ex, WebRequest request) {
-        ApiError apiError = new ApiError(HttpStatus.NOT_FOUND, messages.get(ex.getMessageKey()));
+        ApiError apiError = new ApiError(HttpStatus.BAD_REQUEST, messages.get(ex.getMessageKey()));
         return new ResponseEntity<>(apiError, apiError.getStatus());
     }
 

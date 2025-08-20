@@ -14,8 +14,8 @@ public abstract class ValidatorBase<T> {
     public abstract void validateUpdate(T entity);
 
     public void validateLoggedIn() {
-        UserExt userExt = (UserExt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-            if (userExt == null) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        if (principal == null) {
             throw new NotAuthorizedException("user.not.logged.in");
         }
     }

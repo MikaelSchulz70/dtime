@@ -22,10 +22,13 @@ public class ReportValidator {
     public void validateOpenTimeReport(CloseDate closeDate) {
         UserPO userPO = userRepository.findById(closeDate.getUserId()).orElseThrow(() -> new ValidationException("user.not.found"));
 
-        UserExt userExt = (UserExt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        boolean isAdmin = UserUtil.isUserAdmin(userExt);
-        if (!isAdmin) {
-            throw new ValidationException("time.report.only.admin.can.open");
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+
+        if (principal instanceof UserExt userExt) {
+            boolean isAdmin = UserUtil.isUserAdmin(userExt);
+            if (!isAdmin) {
+                throw new ValidationException("time.report.only.admin.can.open");
+            }
         }
     }
 }

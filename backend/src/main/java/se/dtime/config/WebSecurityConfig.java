@@ -11,8 +11,10 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.http.HttpStatus;
 import se.dtime.service.user.UserLoginService;
 
 @Configuration
@@ -52,6 +54,12 @@ public class WebSecurityConfig {
                         .requestMatchers("/pub/**", "/login", "/perform_login", "/error").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
+                )
+                .exceptionHandling(exceptions -> exceptions
+                        .defaultAuthenticationEntryPointFor(
+                                new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
+                                request -> request.getRequestURI().startsWith("/api/")
+                        )
                 )
                 .formLogin(form -> form
                         .loginPage("/login")

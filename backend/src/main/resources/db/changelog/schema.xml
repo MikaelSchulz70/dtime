@@ -322,4 +322,48 @@
         </createIndex>
     </changeSet>
 
+    <changeSet id="create-monthlycheck-table" author="mikael">
+        <createTable tableName="monthlycheck">
+            <column name="id" type="${identifier.type}">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="id_account" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="date" type="date">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invoiceverified" type="${boolean.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="invoicesent" type="${boolean.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedatetime" type="${timestamp.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="createdby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updatedby" type="${identifier.type}">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+    </changeSet>
+
+    <changeSet id="addFK-monthlycheck-table" author="mikael">
+        <addForeignKeyConstraint baseColumnNames="id_account"
+                                 baseTableName="monthlycheck"
+                                 constraintName="fk_monthlycheck_account"
+                                 referencedColumnNames="id"
+                                 referencedTableName="account"/>
+    </changeSet>
+
+    <changeSet id="addUC-monthlycheck-table" author="mikael">
+        <addUniqueConstraint columnNames="id_account, date" constraintName="uc_monthlycheck_account_date" tableName="monthlycheck"/>
+    </changeSet>
+
 </databaseChangeLog>

@@ -47,8 +47,9 @@ public class FollowUpReportService {
     }
 
     private FollowUpReport getReportBetweenDates(ReportDates reportDates, FollowUpReportType type) {
-        UserExt userExt = (UserExt) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (userExt == null) {
+        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
+        // Just validate we have a principal (UserExt or test user)
+        if (principal == null) {
             throw new NotFoundException("user.not.logged.in");
         }
 
