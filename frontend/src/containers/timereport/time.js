@@ -109,13 +109,19 @@ class TimeReportTableEntry extends React.Component {
         var backGroundColor = '';
         if (isClosed) {
             backGroundColor = Constants.CLOSED_COLOR;
-            if (this.state.timeReportDay.day.weekend || this.state.timeReportDay.day.majorHoliday) {
+            if (this.state.timeReportDay.day.weekend) {
                 backGroundColor = Constants.CLOSED_WEEK_END_COLOR;
+            } else if (this.state.timeReportDay.day.majorHoliday) {
+                backGroundColor = Constants.CLOSED_MAJOR_HOLIDAY_COLOR;
+            } else if (this.state.timeReportDay.day.halfDay) {
+                backGroundColor = Constants.CLOSED_HALF_DAY_COLOR;
             }
         } else if (this.state.timeReportDay.day.weekend) {
             backGroundColor = Constants.WEEKEND_COLOR;
         } else if (this.state.timeReportDay.day.majorHoliday) {
-            backGroundColor = Constants.WEEKEND_COLOR;
+            backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+        } else if (this.state.timeReportDay.day.halfDay) {
+            backGroundColor = Constants.HALF_DAY_COLOR;
         } else {
             backGroundColor = Constants.DAY_COLOR;
         }
@@ -211,7 +217,9 @@ class TimeReportTableHeaderRow extends React.Component {
                 if (day.weekend) {
                     backGroundColor = Constants.WEEKEND_COLOR;
                 } else if (day.majorHoliday) {
-                    backGroundColor = Constants.WEEKEND_COLOR;
+                    backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+                } else if (day.halfDay) {
+                    backGroundColor = Constants.HALF_DAY_COLOR;
                 } else {
                     backGroundColor = Constants.DAY_COLOR;
                 }

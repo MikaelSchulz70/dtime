@@ -64,6 +64,7 @@ const NavigationMenu = () => {
             <Nav.Link className="text-dark" as={Link} to="/changepwd" eventKey={12}>Change password</Nav.Link>
             <NavDropdown.Divider />
             <Nav.Link className="text-dark" as={Link} to="/system/properties" eventKey={13}>System properties</Nav.Link>
+            <Nav.Link className="text-dark" as={Link} to="/specialdays" eventKey={14}>Special Days</Nav.Link>
           </NavDropdown>
           <Nav.Link as={Link} to="/logout" eventKey={22}>Logout</Nav.Link>
         </Nav>

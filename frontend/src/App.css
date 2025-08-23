@@ -31,3 +31,8 @@
     transform: rotate(360deg);
   }
 }
+
+/* Time report table styling */
+.time {
+  border: 0.5px solid #dee2e6 !important;
+}

@@ -30,6 +30,10 @@ export const FOLLOW_UP_ACCOUNT = 'ACCOUNT';
 // Colors
 export const DAY_COLOR = "#ffffff";
 export const WEEKEND_COLOR = "#fce0d4";
+export const MAJOR_HOLIDAY_COLOR = "#ffcccc";
+export const HALF_DAY_COLOR = "#fff2cc";
 export const CLOSED_COLOR = "#faf9f7";
 export const CLOSED_WEEK_END_COLOR = "#fce0d4";
+export const CLOSED_MAJOR_HOLIDAY_COLOR = "#ffcccc";
+export const CLOSED_HALF_DAY_COLOR = "#fff2cc";
 export const ALERT_COLOR = '#66ff66';

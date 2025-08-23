@@ -25,13 +25,13 @@ public class CalendarService {
     private final static int DAYS_OF_WEEK = 7;
 
     private final SpecialDayRepository specialDayRepository;
-    private final int hoursPerDay;
+    private final float hoursPerDay;
     private final LocalDate systemStartDate;
     private static final Map<Integer, Map<LocalDate, DayType>> specialDaysByYear = new HashMap<>();
 
     public CalendarService(SpecialDayRepository specialDayRepository,
                            @Value("${dtime.system.start-date}") String systemStartDate,
-                           @Value("${dtime.hours_per_day}") int hoursPerDay) {
+                           @Value("${dtime.hours_per_day}") float hoursPerDay) {
         this.specialDayRepository = specialDayRepository;
         this.systemStartDate = LocalDate.parse(systemStartDate);
         ;
@@ -202,5 +202,9 @@ public class CalendarService {
 
     public LocalDate getSystemStartDate() {
         return systemStartDate;
+    }
+
+    public void resetSpecialDaysCache() {
+        specialDaysByYear.clear();
     }
 }
