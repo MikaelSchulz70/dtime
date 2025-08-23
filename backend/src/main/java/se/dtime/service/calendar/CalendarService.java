@@ -1,16 +1,15 @@
 package se.dtime.service.calendar;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
+import se.dtime.dbmodel.SpecialDayPO;
 import se.dtime.model.timereport.Day;
+import se.dtime.model.timereport.DayType;
 import se.dtime.model.timereport.Month;
 import se.dtime.model.timereport.Week;
-import se.dtime.service.system.SystemProperty;
+import se.dtime.repository.SpecialDayRepository;
 
-import jakarta.annotation.PostConstruct;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
@@ -19,33 +18,24 @@ import java.time.temporal.TemporalAdjusters;
 import java.time.temporal.TemporalField;
 import java.time.temporal.WeekFields;
 import java.util.*;
-import java.util.stream.Stream;
 
 @Slf4j
 @Service
 public class CalendarService {
     private final static int DAYS_OF_WEEK = 7;
-    private final int WORKABLE_HOURS_PER_DAY = 8;
 
-    @Autowired
-    private Environment environment;
-    @Autowired
-    private PublicHolidaysGenerator publicHolidaysGenerator;
+    private final SpecialDayRepository specialDayRepository;
+    private final int hoursPerDay;
+    private final LocalDate systemStartDate;
+    private static final Map<Integer, Map<LocalDate, DayType>> specialDaysByYear = new HashMap<>();
 
-    private static LocalDate systemStartDate;
-    private static Map<Integer, Set<LocalDate>> majorHolidays = new HashMap<>();
-
-
-    @PostConstruct
-    public void setUp() {
-        if (systemStartDate == null) {
-            String startDate = environment.getProperty(SystemProperty.SYSTEM_START_DATE_PROP);
-            if (StringUtils.isEmpty(startDate)) {
-                log.warn("System start date not configured");
-            }
-
-            systemStartDate = LocalDate.parse(startDate);
-        }
+    public CalendarService(SpecialDayRepository specialDayRepository,
+                           @Value("${dtime.system.start-date}") String systemStartDate,
+                           @Value("${dtime.hours_per_day}") int hoursPerDay) {
+        this.specialDayRepository = specialDayRepository;
+        this.systemStartDate = LocalDate.parse(systemStartDate);
+        ;
+        this.hoursPerDay = hoursPerDay;
     }
 
     public LocalDate getNowDate() {
@@ -70,9 +60,7 @@ public class CalendarService {
             day = day.plusDays(1);
         }
 
-        Month month = Month.builder().month(date.getMonthValue()).monthName(date.getMonth().name()).days(daysInMouth).build();
-
-        return month;
+        return Month.builder().month(date.getMonthValue()).monthName(date.getMonth().name()).days(daysInMouth).build();
     }
 
     public Week getWeek(int year, int week) {
@@ -107,6 +95,14 @@ public class CalendarService {
     }
 
     Day getDay(LocalDate date) {
+        // Get special days for this year from repository
+        Map<LocalDate, DayType> specialDaysForYear = getSpecialDaysForYear(date.getYear());
+
+        // Check if this date is a special day
+        DayType specialDayType = specialDaysForYear.get(date);
+        boolean isMajorHoliday = specialDayType == DayType.PUBLIC_HOLIDAY;
+        boolean isHalfDay = specialDayType == DayType.HALF_DAY;
+
         return Day.builder().
                 year(date.getYear()).
                 month(date.getMonthValue()).
@@ -114,7 +110,8 @@ public class CalendarService {
                 day(date.getDayOfMonth()).
                 date(date).
                 isWeekend(isWeekend(date)).
-                isMajorHoliday(isMajorHoliday(date)).
+                isMajorHoliday(isMajorHoliday).
+                isHalfDay(isHalfDay).
                 dayName(date.getDayOfWeek().name()).
                 withinCurrentMonth(isWithinCurrentMonth(date)).
                 build();
@@ -124,14 +121,23 @@ public class CalendarService {
         return date.getDayOfWeek() == DayOfWeek.SATURDAY || date.getDayOfWeek() == DayOfWeek.SUNDAY;
     }
 
-    public boolean isMajorHoliday(LocalDate date) {
-        Set<LocalDate> majorHolidaysForYear = majorHolidays.get(date.getYear());
-        if (majorHolidaysForYear == null) {
-            majorHolidaysForYear = publicHolidaysGenerator.generate(date.getYear());
-            majorHolidays.put(date.getYear(), majorHolidaysForYear);
+    private Map<LocalDate, DayType> getSpecialDaysForYear(int year) {
+        Map<LocalDate, DayType> specialDaysForYear = specialDaysByYear.get(year);
+        if (specialDaysForYear == null) {
+            // Fetch special days for this year from repository
+            List<SpecialDayPO> specialDayPOs = specialDayRepository.findByYear(year);
+
+            // Convert to map for efficient lookup
+            specialDaysForYear = new HashMap<>();
+            for (SpecialDayPO specialDayPO : specialDayPOs) {
+                specialDaysForYear.put(specialDayPO.getDate(), specialDayPO.getDayType());
+            }
+
+            // Cache for future use
+            specialDaysByYear.put(year, specialDaysForYear);
         }
 
-        return majorHolidaysForYear.contains(date);
+        return specialDaysForYear;
     }
 
     public int getNumberOfDaysInMonth(int year, int month) {
@@ -140,7 +146,7 @@ public class CalendarService {
     }
 
     public Day[] getDays(LocalDate fromDate, LocalDate toDate) {
-        if(fromDate.isAfter(toDate)) {
+        if (fromDate.isAfter(toDate)) {
             return new Day[0];
         }
 
@@ -151,11 +157,21 @@ public class CalendarService {
             date = date.plusDays(1);
         }
 
-        return days.toArray(new Day[days.size()]);
+        return days.toArray(new Day[0]);
     }
 
     public int calcWorkableHours(Day[] days) {
-        return (int) Stream.of(days).filter(d -> !d.isWeekend() && !d.isMajorHoliday()).count() * WORKABLE_HOURS_PER_DAY;
+        int totalHours = 0;
+        for (Day day : days) {
+            if (!day.isWeekend() && !day.isMajorHoliday()) {
+                if (day.isHalfDay()) {
+                    totalHours += hoursPerDay / 2;
+                } else {
+                    totalHours += hoursPerDay;
+                }
+            }
+        }
+        return totalHours;
     }
 
     public boolean isWithinCurrentMonth(LocalDate date) {

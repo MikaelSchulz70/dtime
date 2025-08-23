@@ -1,21 +1,22 @@
 import React from "react";
 import SystemService from '../../service/SystemService';
 
-class PublicHolidayTable extends React.Component {
+class SpecialDaysTable extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { publicHolidays: this.props.publicHolidays };
+        this.state = { specialDays: this.props.specialDays };
     }
 
     render() {
-        if (this.state == null || this.state.publicHolidays == null) return null;
+        if (this.state == null || this.state.specialDays == null) return null;
 
-        var publicHolidaysRows = [];
-        this.state.publicHolidays.forEach(function (publicHoliday) {
-            publicHolidaysRows.push(
-                <tr key={publicHoliday.id}>
-                    <td>{publicHoliday.name}</td>
-                    <td><input type="checkbox" checked={publicHoliday.workday} readOnly={true} /></td>
+        var specialDaysRows = [];
+        this.state.specialDays.forEach(function (specialDay) {
+            specialDaysRows.push(
+                <tr key={specialDay.id}>
+                    <td>{specialDay.name}</td>
+                    <td>{specialDay.dayType}</td>
+                    <td>{specialDay.date}</td>
                 </tr>
             );
 
@@ -23,15 +24,16 @@ class PublicHolidayTable extends React.Component {
 
         return (
             <div className="row">
-                <h5>Public holidays</h5>
+                <h5>Special days</h5>
                 <table className="table table-striped">
                     <thead className="thead-inverse bg-success text-white">
                         <tr>
                             <th>Name</th>
-                            <th>Workday</th>
+                            <th>Day type</th>
+                            <th>Date</th>
                         </tr>
                     </thead>
-                    <tbody>{publicHolidaysRows}</tbody>
+                    <tbody>{specialDaysRows}</tbody>
                 </table>
             </div>
         );
@@ -141,7 +143,7 @@ export default class SystemConfig extends React.Component {
         if (this.state == null) return null;
 
         var tables = [];
-        tables.push(<PublicHolidayTable key={'holydayTable'} publicHolidays={this.state.systemConfig.publicHolidays} />);
+        tables.push(<SpecialDaysTable key={'specialDayTable'} specialDays={this.state.systemConfig.specialDays} />);
         tables.push(<SystemPropertyTable key={'propTable'} systemProperties={this.state.systemConfig.systemProperties} />);
 
         return (

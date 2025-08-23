@@ -19,3 +19,8 @@ spring:
     init:
       mode: always
       schema-locations: classpath:schema-h2.sql
+
+dtime:
+  hours_per_day: 8
+  system:
+    start-date: 2025-01-01

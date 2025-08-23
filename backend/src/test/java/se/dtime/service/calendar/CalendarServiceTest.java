@@ -1,13 +1,14 @@
 package se.dtime.service.calendar;
 
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import se.dtime.model.timereport.Day;
 import se.dtime.model.timereport.Month;
 import se.dtime.model.timereport.Week;
+import se.dtime.repository.SpecialDayRepository;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -17,10 +18,15 @@ import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
 public class CalendarServiceTest {
-    @InjectMocks
     private CalendarService calendarService;
     @Mock
-    private PublicHolidaysGenerator publicHolidaysGenerator;
+    private SpecialDayRepository specialDayRepository;
+
+    @BeforeEach
+    void setUp() {
+        // Replace "8" with a suitable value for your config
+        calendarService = new CalendarService(specialDayRepository, "2020-01-01", 8);
+    }
 
     @Test
     public void testGetMonth() {

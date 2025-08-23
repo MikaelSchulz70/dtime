@@ -271,12 +271,12 @@ public class TimeReportValidatorTest {
     }
 
     private Day createDay() {
-        Day day = new Day();
         LocalDate date = LocalDate.now();
-        day.setDate(date);
-        day.setYear(date.getYear());
-        day.setMonth(date.getMonthValue());
-        return day;
+        return Day.builder()
+                .date(date)
+                .year(date.getYear())
+                .month(date.getMonthValue())
+                .build();
     }
 
 }

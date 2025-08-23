@@ -1,13 +1,12 @@
 package se.dtime.service.system;
 
 import org.springframework.stereotype.Service;
-import se.dtime.dbmodel.PublicHolidayPO;
+import se.dtime.dbmodel.SpecialDayPO;
 import se.dtime.dbmodel.SystemPropertyPO;
-import se.dtime.model.PublicHoliday;
+import se.dtime.model.SpecialDay;
 import se.dtime.model.SystemPropertyDB;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class SystemConverter {
@@ -17,9 +16,9 @@ public class SystemConverter {
             return null;
         }
 
-        List<SystemPropertyDB> systemProperties = systemPropertyPOS.stream().map(s -> toModel(s)).collect(Collectors.toList());
+        List<SystemPropertyDB> systemProperties = systemPropertyPOS.stream().map(this::toModel).toList();
 
-        return systemProperties.toArray(new SystemPropertyDB[systemProperties.size()]);
+        return systemProperties.toArray(new SystemPropertyDB[0]);
     }
 
     public SystemPropertyPO toPO(SystemPropertyDB systemProperty) {
@@ -42,24 +41,25 @@ public class SystemConverter {
                 build();
     }
 
-    public PublicHoliday[] toPublicHolidayModel(List<PublicHolidayPO> publicHolidayPOS) {
-        if (publicHolidayPOS == null) {
+    public SpecialDay[] toSpecialDays(List<SpecialDayPO> specialDayPOS) {
+        if (specialDayPOS == null) {
             return null;
         }
 
-        List<PublicHoliday> systemProperties = publicHolidayPOS.stream().map(s -> toModel(s)).collect(Collectors.toList());
+        List<SpecialDay> systemProperties = specialDayPOS.stream().map(this::toModel).toList();
 
-        return systemProperties.toArray(new PublicHoliday[systemProperties.size()]);
+        return systemProperties.toArray(new SpecialDay[0]);
     }
 
-    private PublicHoliday toModel(PublicHolidayPO publicHolidayPO) {
-        if (publicHolidayPO == null) {
+    private SpecialDay toModel(SpecialDayPO specialDayPO) {
+        if (specialDayPO == null) {
             return null;
         }
 
-        return PublicHoliday.builder().id(publicHolidayPO.getId()).
-                name(publicHolidayPO.getName()).
-                isWorkday(publicHolidayPO.isWorkday()).
-                build();
+        return SpecialDay.builder().id(specialDayPO.getId())
+                .name(specialDayPO.getName())
+                .dayType(specialDayPO.getDayType())
+                .date(specialDayPO.getDate())
+                .build();
     }
 }

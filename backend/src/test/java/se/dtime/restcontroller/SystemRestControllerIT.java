@@ -18,7 +18,7 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
                 .andExpect(jsonPath("$.systemProperties").exists())
-                .andExpect(jsonPath("$.publicHolidays").exists());
+                .andExpect(jsonPath("$.specialDays").exists());
     }
 
     @Test
@@ -46,8 +46,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isOk());
     }
 
@@ -63,8 +63,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isOk());
     }
 
@@ -80,8 +80,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -97,8 +97,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -114,8 +114,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -131,8 +131,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isBadRequest());
     }
 
@@ -148,8 +148,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isOk());
     }
 
@@ -165,8 +165,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isOk());
     }
 
@@ -182,8 +182,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isForbidden());
     }
 
@@ -198,8 +198,8 @@ class SystemRestControllerIT extends BaseRestControllerIT {
                 .build();
 
         mockMvc.perform(put("/api/system/systemproperty")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(asJsonString(systemProperty)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(asJsonString(systemProperty)))
                 .andExpect(status().isUnauthorized());
     }
 

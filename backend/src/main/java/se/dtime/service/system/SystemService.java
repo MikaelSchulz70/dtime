@@ -3,17 +3,16 @@ package se.dtime.service.system;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import se.dtime.dbmodel.PublicHolidayPO;
+import se.dtime.dbmodel.SpecialDayPO;
 import se.dtime.dbmodel.SystemPropertyPO;
-import se.dtime.model.PublicHoliday;
+import se.dtime.model.SpecialDay;
 import se.dtime.model.SystemConfiguration;
 import se.dtime.model.SystemPropertyDB;
 import se.dtime.model.error.NotFoundException;
-import se.dtime.repository.PublicHolidayRepository;
+import se.dtime.repository.SpecialDayRepository;
 import se.dtime.repository.SystemPropertyRepository;
 import se.dtime.repository.UserRepository;
 
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
@@ -21,7 +20,7 @@ import java.util.List;
 @Service
 public class SystemService {
     @Autowired
-    private PublicHolidayRepository publicHolidayRepository;
+    private SpecialDayRepository specialDayRepository;
     @Autowired
     private SystemPropertyRepository systemPropertyRepository;
     @Autowired
@@ -33,10 +32,10 @@ public class SystemService {
     @Autowired
     private UserRepository userRepository;
 
-    public PublicHoliday[] getPublicHolidays() {
-        List<PublicHolidayPO> publicHolidayPOS = publicHolidayRepository.findAll();
-        Collections.sort(publicHolidayPOS, Comparator.comparingLong(PublicHolidayPO::getId));
-        return systemConverter.toPublicHolidayModel(publicHolidayPOS);
+    public SpecialDay[] getSpecialDays() {
+        List<SpecialDayPO> specialDayPOS = specialDayRepository.findAll();
+        specialDayPOS.sort(Comparator.comparing(SpecialDayPO::getDate));
+        return systemConverter.toSpecialDays(specialDayPOS);
     }
 
     public SystemPropertyDB[] getSystemProperties() {
@@ -57,7 +56,7 @@ public class SystemService {
     public SystemConfiguration getSystemConfig() {
         return SystemConfiguration.builder().
                 systemProperties(getSystemProperties()).
-                publicHolidays(getPublicHolidays()).
+                specialDays(getSpecialDays()).
                 build();
     }
 }

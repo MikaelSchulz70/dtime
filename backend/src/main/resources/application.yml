@@ -63,6 +63,6 @@ reminder:
 
 # Application Configuration
 dtime:
+  hours_per_day: 8
   system:
-    start:
-      date: 2025-01-01
+    start-date: 2025-01-01

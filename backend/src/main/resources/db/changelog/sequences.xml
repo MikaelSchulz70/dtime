@@ -43,9 +43,9 @@
                         startValue="1"/>
     </changeSet>
 
-    <changeSet id="seq_publicholiday" author="mikael">
+    <changeSet id="seq_publicspecialDay" author="mikael">
         <createSequence incrementBy="1"
-                        sequenceName="seq_publicholiday"
+                        sequenceName="seq_publicspecialDay"
                         startValue="1"/>
     </changeSet>
 
