@@ -2,6 +2,7 @@ import React from "react";
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useSession } from "../../contexts/SessionContext";
+import logo from "../../assets/logo.png";
 
 const NavigationMenu = () => {
   const { session } = useSession();
@@ -13,7 +14,14 @@ const NavigationMenu = () => {
   const renderUserMenu = () => {
     return (
       <Navbar bg="dark" variant="dark" expand="lg">
-        <Navbar.Brand href="/">Time</Navbar.Brand>
+        <Navbar.Brand href="/">
+          <img
+            src={logo}
+            alt="D-Time"
+            style={{ height: "40px", marginRight: "10px" }}
+          />
+          <span>D-Time</span>
+        </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
@@ -45,7 +53,14 @@ const NavigationMenu = () => {
   // Render admin menu
   return (
     <Navbar bg="dark" variant="dark" expand="lg">
-      <Navbar.Brand href="/">Time</Navbar.Brand>
+      <Navbar.Brand href="/">
+        <img
+          src={logo}
+          alt="D-Time"
+          style={{ height: "40px", marginRight: "10px" }}
+        />
+        <span>D-Time</span>
+      </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
@@ -59,7 +74,7 @@ const NavigationMenu = () => {
             <Nav.Link className="text-dark" as={Link} to="/reports" eventKey={6}>Reports</Nav.Link>
             <Nav.Link className="text-dark" as={Link} to="/vacations" eventKey={7}>Vacations</Nav.Link>
             <NavDropdown.Divider />
-            <Nav.Link className="text-dark" as={Link} to="/followup" eventKey={11}>Follow up</Nav.Link>
+            <Nav.Link className="text-dark" as={Link} to="/timereportstatus" eventKey={16}>Time Report Status</Nav.Link>
             <NavDropdown.Divider />
             <Nav.Link className="text-dark" as={Link} to="/changepwd" eventKey={12}>Change password</Nav.Link>
             <NavDropdown.Divider />

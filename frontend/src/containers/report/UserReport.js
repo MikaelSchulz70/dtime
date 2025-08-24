@@ -15,15 +15,28 @@ export default class UserReportTable extends React.Component {
     render() {
         if (this.state == null)
             return null;
-        
+
         var rows = [];
+        var totalSum = 0;
+        
         this.state.report.userReports.forEach(function (userReport) {
+            const hours = parseFloat(userReport.totalTime) || 0;
+            totalSum += hours;
+            
             rows.push(
-                <tr>
+                <tr key={userReport.userId}>
                     <td>{userReport.fullName}</td>
-                    <td>{userReport.totalHours}</td>
+                    <td>{userReport.totalTime}</td>
                 </tr>);
         });
+
+        // Add summary row
+        rows.push(
+            <tr key="summary" className="bg-light font-weight-bold">
+                <td><strong>Total Sum</strong></td>
+                <td><strong>{totalSum.toFixed(2)}</strong></td>
+            </tr>
+        );
 
         return (
             <div className="table-responsive">

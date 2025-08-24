@@ -182,14 +182,7 @@ class UserReportRows extends React.Component {
             <th>Task</th>
             <th>Total</th>
             <th></th>
-            <th>
-                {this.state.reportView === Constants.MONTH_VIEW ? (
-                    <label>
-                        <font color={closeTextColor}>Closed</font>
-                        <input className="ml-2" type="checkbox" id={this.state.userReport.userId} name={this.state.fromDate} checked={this.state.userReport.closed} onClick={this.handleOpenCloseReport.bind(this)} />
-                    </label>
-                ) : ''}
-            </th>
+            <th></th>
         </tr>);
 
         this.state.userReport.taskReports.forEach(function (taskReport) {

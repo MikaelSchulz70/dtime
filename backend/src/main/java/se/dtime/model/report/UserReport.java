@@ -14,6 +14,7 @@ import java.util.List;
 public class UserReport {
     private long userId;
     private String fullName;
+    private String email;
     private LocalDate fromDate;
     private LocalDate toDate;
     private double totalTime = 0;

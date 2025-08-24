@@ -20,11 +20,8 @@ export const USER_TASK_REPORT = 'USER_TASK';
 export const TASK_REPORT = 'TASK';
 export const ACCOUNT_REPORT = 'ACCOUNT';
 
-// Follow up
-export const FOLLOW_UP_CATEGORY = 'CATEGORY_TYPE';
-export const FOLLOW_UP_USER = 'USER';
-export const FOLLOW_UP_ORGANIZATION = 'ORGANIZATION';
-export const FOLLOW_UP_ACCOUNT = 'ACCOUNT';
+// Time Report Status
+export const TIME_REPORT_STATUS_UNCLOSED = 'UNCLOSED_USERS';
 
 
 // Colors
@@ -32,8 +29,8 @@ export const DAY_COLOR = "#ffffff";
 export const WEEKEND_COLOR = "#fce0d4";
 export const MAJOR_HOLIDAY_COLOR = "#ffcccc";
 export const HALF_DAY_COLOR = "#fff2cc";
-export const CLOSED_COLOR = "#faf9f7";
-export const CLOSED_WEEK_END_COLOR = "#fce0d4";
-export const CLOSED_MAJOR_HOLIDAY_COLOR = "#ffcccc";
-export const CLOSED_HALF_DAY_COLOR = "#fff2cc";
+export const CLOSED_COLOR = "#d2d2d4";
+export const CLOSED_WEEK_END_COLOR = "#d2d2d4";
+export const CLOSED_MAJOR_HOLIDAY_COLOR = "#d2d2d4";
+export const CLOSED_HALF_DAY_COLOR = "#d2d2d4";
 export const ALERT_COLOR = '#66ff66';

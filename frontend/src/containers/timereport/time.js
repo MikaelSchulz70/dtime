@@ -295,7 +295,6 @@ class TimeReportTable extends React.Component {
     }
 
     updateTime(timeReportDayUpdated, timeReportTasks) {
-        console.log(timeReportTasks);
         for (var timeReportTaskKey in timeReportTasks) {
             var timeReportTask = timeReportTasks[timeReportTaskKey];
             for (var timeReportEntryKey in timeReportTask.timeEntries) {

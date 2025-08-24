@@ -17,14 +17,28 @@ export default class TaskReportTable extends React.Component {
             return null;
 
         var rows = [];
+        var totalSum = 0;
+        
         this.state.report.taskReports.forEach(function (taskReport) {
+            const hours = parseFloat(taskReport.totalHours) || 0;
+            totalSum += hours;
+            
             rows.push(
-                <tr>
+                <tr key={taskReport.taskId}>
                     <td>{taskReport.accountName}</td>
                     <td>{taskReport.taskName}</td>
                     <td>{taskReport.totalHours}</td>
                 </tr>);
         });
+
+        // Add summary row
+        rows.push(
+            <tr key="summary" className="bg-light font-weight-bold">
+                <td><strong>Total Sum</strong></td>
+                <td></td>
+                <td><strong>{totalSum.toFixed(2)}</strong></td>
+            </tr>
+        );
 
         return (
             <div className="table-responsive">

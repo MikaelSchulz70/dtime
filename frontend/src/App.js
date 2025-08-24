@@ -25,7 +25,7 @@ import UserReports from './containers/report/UserReports';
 import Vacations from './containers/report/Vacations';
 import PasswordChanger from './containers/user/changepwd';
 import SystemConfig from './containers/system/systemConfig';
-import FollowUpReport from './containers/followup/FollowUpReport';
+import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
 import SpecialDays from './containers/specialday/SpecialDays';
 
 // Placeholder imports for missing components - these may not be used in routes
@@ -80,7 +80,7 @@ const Main = () => (
             <Route exact path='/reports' component={AdminReports} />
             <Route exact path='/userreport' component={UserReports} />
             <Route exact path='/vacations' component={Vacations} />
-            <Route exact path='/followup' component={FollowUpReport} />
+            <Route exact path='/timereportstatus' component={UnclosedUsersPage} />
             <Route exact path='/changepwd' component={PasswordChanger} />
             <Route exact path='/system/properties' component={SystemConfig} />
             <Route exact path='/specialdays' component={SpecialDays} />

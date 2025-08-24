@@ -17,13 +17,26 @@ export default class AccountReportTable extends React.Component {
             return null;
 
         var rows = [];
+        var totalSum = 0;
+        
         this.state.report.accountReports.forEach(function (accountReport) {
+            const hours = parseFloat(accountReport.totalHours) || 0;
+            totalSum += hours;
+            
             rows.push(
-                <tr>
+                <tr key={accountReport.accountId}>
                     <td>{accountReport.accountName}</td>
                     <td>{accountReport.totalHours}</td>
                 </tr>);
         });
+
+        // Add summary row
+        rows.push(
+            <tr key="summary" className="bg-light font-weight-bold">
+                <td><strong>Total Sum</strong></td>
+                <td><strong>{totalSum.toFixed(2)}</strong></td>
+            </tr>
+        );
 
         return (
             <div className="table-responsive">
