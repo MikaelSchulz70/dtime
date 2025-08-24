@@ -18,11 +18,11 @@ export default class UserReportTable extends React.Component {
 
         var rows = [];
         var totalSum = 0;
-        
+
         this.state.report.userReports.forEach(function (userReport) {
             const hours = parseFloat(userReport.totalTime) || 0;
             totalSum += hours;
-            
+
             rows.push(
                 <tr key={userReport.userId}>
                     <td>{userReport.fullName}</td>
@@ -33,7 +33,7 @@ export default class UserReportTable extends React.Component {
         // Add summary row
         rows.push(
             <tr key="summary" className="bg-light font-weight-bold">
-                <td><strong>Total Sum</strong></td>
+                <td><strong>Total time</strong></td>
                 <td><strong>{totalSum.toFixed(2)}</strong></td>
             </tr>
         );

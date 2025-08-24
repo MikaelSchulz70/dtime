@@ -88,7 +88,7 @@ class UserReportSummaryTable extends React.Component {
 class TimeReportTableRow extends React.Component {
     constructor(props) {
         super(props);
-        this.state = { timeReporttask: this.props.timeReporttask, totaltaskTime: this.props.totaltaskTime };
+        this.state = { timeReportTask: this.props.timeReportTask, totalTaskTime: this.props.totalTaskTime };
     }
 
     componentWillReceiveProps(nextProps) {
@@ -100,23 +100,23 @@ class TimeReportTableRow extends React.Component {
     render() {
         if (this.state == null) return null;
         var entries = [];
-        if (this.state.timeReporttask != null) {
-            this.state.timeReporttask.timeReportDays.forEach(function (timeReportDay) {
+        if (this.state.timeReportTask != null) {
+            this.state.timeReportTask.timeEntries.forEach(function (timeEntry) {
                 entries.push(
-                    <TimeReportTableEntry timeReportDay={timeReportDay} />);
+                    <TimeReportTableEntry timeReportDay={timeEntry} />);
             });
         }
 
-        var accountName = this.state.timeReporttask.task.account.name;
+        var accountName = this.state.timeReportTask.task.account.name;
         var accountShortName = accountName.substring(0, Math.min(20, accountName.length));
-        var taskName = this.state.timeReporttask.task.name;
+        var taskName = this.state.timeReportTask.task.name;
         var taskShortName = taskName.substring(0, Math.min(20, taskName.length));
 
         return (
             <tr>
                 <th className="text-nowrap" title={accountName}>{accountShortName}</th>
                 <th className="text-nowrap" title={taskName}>{taskShortName}</th>
-                <th><input style={{ width: '55px' }} readOnly={true} name={this.state.timeReporttask.task.name} type="text" value={this.state.totaltaskTime} /></th>
+                <th><input style={{ width: '55px' }} readOnly={true} name={this.state.timeReportTask.task.name} type="text" value={this.state.totalTaskTime} /></th>
                 {entries}
             </tr>
         );
@@ -263,9 +263,9 @@ class TimeReportTableHeaderRow extends React.Component {
         }
 
         return (
-            <tr>
-                <th><font color={Constants.DAY_COLOR}>account</font></th>
-                <th><font color={Constants.DAY_COLOR}>task</font></th>
+            <tr key=''>
+                <th><font color={Constants.DAY_COLOR}>Account</font></th>
+                <th><font color={Constants.DAY_COLOR}>Task</font></th>
                 <th><font color={Constants.DAY_COLOR}>Time</font></th>
                 {columns}
             </tr>
@@ -305,10 +305,12 @@ class UserDetailReport extends React.Component {
         var service = new TimeService();
         service.getUserTimes(this.state.userId, this.state.fromDate)
             .then(response => {
+                console.log('Server response:', response);
                 self.setState({ timeReport: response.data, isOpen: true });
             })
             .catch(error => {
-                alert('Failed to load user report');
+                console.error('Error loading user report:', error);
+                alert('Failed to load user report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -322,21 +324,23 @@ class UserDetailReport extends React.Component {
             headerRow = <TimeReportTableHeaderRow days={this.state.timeReport.days} />;
         }
 
+        console.log('Tr', this.state.timeReport);
+
         var rows = [];
-        if (this.state.timeReport != null && this.state.timeReport.timeReporttasksExternal != null) {
-            this.state.timeReport.timeReporttasksExternal.forEach(function (timeReporttask) {
-                var totaltaskTime = 0;
-                timeReporttask.timeReportDays.forEach(function (timeReportDay) {
-                    if (timeReportDay.time != null) {
-                        var time = parseFloat(timeReportDay.time);
+        if (this.state.timeReport != null && this.state.timeReport.timeReportTasks != null) {
+            this.state.timeReport.timeReportTasks.forEach(function (timeReportTask) {
+                var totalTaskTime = 0;
+                timeReportTask.timeEntries.forEach(function (timeEntry) {
+                    if (timeEntry.time != null) {
+                        var time = parseFloat(timeEntry.time);
                         if (!isNaN(time)) {
-                            totaltaskTime += time;
+                            totalTaskTime += time;
                         }
                     }
                 });
 
                 rows.push(
-                    <TimeReportTableRow timeReporttask={timeReporttask} totaltaskTime={totaltaskTime} />);
+                    <TimeReportTableRow timeReportTask={timeReportTask} totalTaskTime={totalTaskTime} />);
             });
         }
 
@@ -347,16 +351,36 @@ class UserDetailReport extends React.Component {
                     <Modal
                         isOpen={this.state.isOpen}
                         onRequestClose={this.closeDetails}
+                        style={{
+                            content: {
+                                top: '50%',
+                                left: '50%',
+                                right: 'auto',
+                                bottom: 'auto',
+                                marginRight: '-50%',
+                                transform: 'translate(-50%, -50%)',
+                                maxWidth: '90%',
+                                maxHeight: '90%'
+                            }
+                        }}
                     >
-                        <div className="table-responsive">
-                            <table className="table-sm">
-                                <thead className="bg-success">
-                                    {headerRow}
-                                </thead>
-                                <tbody>
-                                    {rows}
-                                </tbody>
-                            </table>
+                        <div>
+                            <div className="d-flex justify-content-between align-items-center mb-3">
+                                <h4>Time Report Details</h4>
+                                <button type="button" className="btn btn-secondary" onClick={this.closeDetails}>
+                                    Close
+                                </button>
+                            </div>
+                            <div className="table-responsive">
+                                <table className="table table-sm">
+                                    <thead className="bg-success">
+                                        {headerRow}
+                                    </thead>
+                                    <tbody>
+                                        {rows}
+                                    </tbody>
+                                </table>
+                            </div>
                         </div>
                     </Modal>
                 ) : ''}
