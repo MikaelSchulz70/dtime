@@ -2,7 +2,8 @@ import React from "react";
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
 import { useSession } from "../../contexts/SessionContext";
-import logo from "../../assets/logo.png";
+// Use static resource path when served from backend
+const logo = "/pub/images/dtime.png";
 
 const NavigationMenu = () => {
   const { session } = useSession();

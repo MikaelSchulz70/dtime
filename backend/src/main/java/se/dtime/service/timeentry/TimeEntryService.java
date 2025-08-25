@@ -13,8 +13,10 @@ import se.dtime.model.ReportDates;
 import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.timereport.*;
+import se.dtime.model.TaskType;
 import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.TaskContributorRepository;
+import se.dtime.repository.TaskRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 import se.dtime.service.calendar.CalendarService;
@@ -42,6 +44,8 @@ public class TimeEntryService {
     private TimeReportValidator timeReportValidator;
     @Autowired
     private TaskContributorRepository taskContributorRepository;
+    @Autowired
+    private TaskRepository taskRepository;
     @Autowired
     private CloseDateRepository closeDateRepository;
 
@@ -224,5 +228,70 @@ public class TimeEntryService {
         }
 
         return closedMonths;
+    }
+
+    public VacationReport getCurrentVacationReport() {
+        return getVacationReport(LocalDate.now(), TimeReportView.MONTH);
+    }
+
+    public VacationReport getPreviousVacationReport(LocalDate date) {
+        LocalDate previousDate = getPreviousDate(TimeReportView.MONTH, date);
+        return getVacationReport(previousDate, TimeReportView.MONTH);
+    }
+
+    public VacationReport getNextVacationReport(LocalDate date) {
+        LocalDate nextDate = getNextDate(TimeReportView.MONTH, date);
+        return getVacationReport(nextDate, TimeReportView.MONTH);
+    }
+
+    private VacationReport getVacationReport(LocalDate date, TimeReportView timeReportView) {
+        ReportDates reportDates = getReportDates(timeReportView, date);
+        Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
+        
+        // Get users who have vacation tasks (TaskType.VACATION)
+        List<UserPO> usersWithVacationTasks = getUsersWithVacationTasks();
+        log.debug("Found {} users with vacation tasks", usersWithVacationTasks.size());
+        
+        // Get time entries for vacation tasks only for these specific users
+        List<TimeEntryPO> vacationTimeEntries = getVacationTimeEntriesForUsers(usersWithVacationTasks, reportDates.getFromDate(), reportDates.getToDate());
+        log.debug("Found {} vacation time entries between {} and {}", vacationTimeEntries.size(), reportDates.getFromDate(), reportDates.getToDate());
+        
+        // Convert to vacation report
+        List<UserVacation> userVacations = timeReportConverter.convertToUserVacations(usersWithVacationTasks, vacationTimeEntries, days);
+        log.debug("Created vacation report with {} user vacations", userVacations.size());
+        
+        return VacationReport.builder()
+                .firstDate(reportDates.getFromDate().toString())
+                .lastDate(reportDates.getToDate().toString())
+                .days(days)
+                .userVacations(userVacations)
+                .build();
+    }
+
+    private List<UserPO> getUsersWithVacationTasks() {
+        // Find all users who have task contributors for vacation tasks
+        return userRepository.findAll().stream()
+                .filter(user -> {
+                    // Check if user has any task contributors for vacation tasks
+                    List<TaskContributorPO> taskContributors = taskContributorRepository.findByUserAndActivationStatus(user, ActivationStatus.ACTIVE);
+                    return taskContributors.stream()
+                            .anyMatch(tc -> tc.getTask().getTaskType() == TaskType.VACATION);
+                })
+                .toList();
+    }
+
+    private List<TimeEntryPO> getVacationTimeEntriesForUsers(List<UserPO> users, LocalDate fromDate, LocalDate toDate) {
+        // Get all time entries for vacation tasks between the dates for specific users
+        return timeEntiryRepository.findByBetweenDates(fromDate, toDate).stream()
+                .filter(timeEntry -> {
+                    // Check if the time entry is for a vacation task
+                    if (timeEntry.getTaskContributor().getTask().getTaskType() != TaskType.VACATION) {
+                        return false;
+                    }
+                    // Check if the user is in our list of users with vacation tasks
+                    return users.stream().anyMatch(user -> 
+                        user.getId().equals(timeEntry.getTaskContributor().getUser().getId()));
+                })
+                .toList();
     }
 }

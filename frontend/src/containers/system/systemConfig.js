@@ -148,6 +148,7 @@ export default class SystemConfig extends React.Component {
 
         return (
             <div className="container">
+                <h2>System Properties</h2>
                 {tables}
             </div>
         );

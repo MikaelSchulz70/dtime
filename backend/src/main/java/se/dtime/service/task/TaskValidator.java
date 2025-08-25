@@ -5,10 +5,12 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.ValidatorBase;
+import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.Attribute;
 import se.dtime.model.Task;
+import se.dtime.model.TaskType;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.error.ValidationException;
 import se.dtime.repository.TaskContributorRepository;
@@ -46,6 +48,7 @@ public class TaskValidator extends ValidatorBase<Task> {
     @Override
     public void validateAdd(Task task) {
         validateName(task);
+        validateTaskType(task);
     }
 
     @Override
@@ -59,14 +62,39 @@ public class TaskValidator extends ValidatorBase<Task> {
         TaskPO taskPO = taskRepository.findById(task.getId()).orElseThrow(() -> new NotFoundException("task.not.found"));
 
         validateName(task);
+        validateTaskType(task);
     }
 
     private void validateName(Task task) {
         List<TaskPO> taskPOS = taskRepository.findByName(task.getName());
-        check(taskPOS == null || taskPOS.size() == 0 ||
+        check(taskPOS == null || taskPOS.isEmpty() ||
                         taskPOS.stream().noneMatch(c -> !c.getId().equals(task.getId()) &&
                                 c.getAccount().getId().equals(task.getAccount().getId())),
                 "task.name.not.unique");
+    }
+
+    private void validateTaskType(Task task) {
+        TaskType taskType = task.getTaskType();
+        if (taskType != TaskType.NORMAL) {
+            AccountPO accountPO = new AccountPO(task.getAccount().getId());
+            List<TaskPO> existingTasks = taskRepository.findByTaskTypeAndAccount(taskType, accountPO);
+            boolean hasExisting = existingTasks != null &&
+                    existingTasks.stream().anyMatch(t -> !t.getId().equals(task.getId()));
+
+            if (hasExisting) {
+                String errorKey = getTaskTypeErrorKey(taskType);
+                check(false, errorKey);
+            }
+        }
+    }
+
+    private String getTaskTypeErrorKey(TaskType taskType) {
+        return switch (taskType) {
+            case VACATION -> "task.vacation.already.exists";
+            case SICK_LEAVE -> "task.sick.leave.already.exists";
+            case PARENTAL_LEAVE -> "task.parental.leave.already.exists";
+            default -> "task.type.already.exists";
+        };
     }
 
     private void validateHasTimeEntries(TaskPO taskPO) {

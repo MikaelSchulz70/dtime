@@ -8,9 +8,11 @@ import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.web.servlet.ViewResolver;
+import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
 import org.springframework.web.servlet.config.annotation.ViewControllerRegistry;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
+import org.springframework.http.MediaType;
 import org.springframework.web.servlet.view.InternalResourceViewResolver;
 import org.springframework.web.servlet.view.JstlView;
 
@@ -23,6 +25,22 @@ public class MvcConfig implements WebMvcConfigurer {
         registry
                 .addResourceHandler("/resources/**")
                 .addResourceLocations("/resources/");
+        
+        registry
+                .addResourceHandler("/pub/**")
+                .addResourceLocations("classpath:/static/pub/");
+        
+        registry
+                .addResourceHandler("/internal/**")
+                .addResourceLocations("classpath:/static/internal/");
+    }
+
+    @Override
+    public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
+        configurer
+                .mediaType("js", MediaType.valueOf("application/javascript"))
+                .mediaType("css", MediaType.valueOf("text/css"))
+                .mediaType("json", MediaType.APPLICATION_JSON);
     }
 
     @Override

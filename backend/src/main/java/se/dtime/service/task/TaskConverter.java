@@ -24,6 +24,7 @@ public class TaskConverter extends BaseConverter {
         return Task.builder().id(taskPO.getId()).
                 name(taskPO.getName()).
                 activationStatus(taskPO.getActivationStatus()).
+                taskType(taskPO.getTaskType()).
                 account(accountConverter.toModel(taskPO.getAccount())).
                 build();
     }
@@ -41,6 +42,7 @@ public class TaskConverter extends BaseConverter {
         }
         taskPO.setName(task.getName());
         taskPO.setActivationStatus(task.getActivationStatus());
+        taskPO.setTaskType(task.getTaskType());
         updateBaseData(taskPO);
 
         AccountPO accountPO = new AccountPO();

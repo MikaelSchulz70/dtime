@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.*;
 import se.dtime.model.timereport.TimeEntry;
 import se.dtime.model.timereport.TimeReport;
 import se.dtime.model.timereport.TimeReportView;
+import se.dtime.model.timereport.VacationReport;
 import se.dtime.service.calendar.CalendarService;
 import se.dtime.service.timeentry.TimeEntryService;
 
@@ -62,5 +63,28 @@ public class TimeReportRestController {
                                                         @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
         TimeReport timeReportDay = timeEntryService.getUserTimeReport(userId, timeReportView, date);
         return new ResponseEntity<>(timeReportDay, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/vacations")
+    public ResponseEntity<VacationReport> getVacations() {
+        VacationReport vacationReport = timeEntryService.getCurrentVacationReport();
+        return new ResponseEntity<>(vacationReport, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/vacations/previous")
+    public ResponseEntity<VacationReport> getPreviousVacations(@RequestParam(value = "date", required = true)
+                                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        VacationReport vacationReport = timeEntryService.getPreviousVacationReport(date);
+        return new ResponseEntity<>(vacationReport, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/vacations/next")
+    public ResponseEntity<VacationReport> getNextVacations(@RequestParam(value = "date", required = true)
+                                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        VacationReport vacationReport = timeEntryService.getNextVacationReport(date);
+        return new ResponseEntity<>(vacationReport, HttpStatus.OK);
     }
 }

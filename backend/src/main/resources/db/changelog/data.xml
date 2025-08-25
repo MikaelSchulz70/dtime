@@ -12,7 +12,7 @@
     <changeSet id="addUsers" author="mikael">
         <insert tableName="users">
             <column name="id" value="1"/>
-            <column name="password" value="$2a$10$kRkmkSNT1poQE8tbcywxFe3sAMMEmygdMV9Yv6R4Bwnz1aHXya14u"/>
+            <column name="password" value="$2b$12$8UVIVfZgA/8.0EBAtAvp3eM5moNff3rq.BoUPohf6C.lQRUjDnB9e"/>
             <column name="firstname" value="D"/>
             <column name="lastname" value="Time"/>
             <column name="email" value="admin@dtime.se"/>

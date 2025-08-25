@@ -38,4 +38,7 @@ public interface TimeEntryRepository extends JpaRepository<TimeEntryPO, Long> {
     List<TimeEntryPO> findByTask(@Param("taskId") long taskId);
 
     List<TimeEntryPO> findByAccount(@Param("accountId") long accountId);
+
+    @Query("SELECT te FROM TimeEntry te WHERE te.date >= :startDate AND te.date <= :endDate ORDER BY te.date")
+    List<TimeEntryPO> findByBetweenDates(@Param("startDate") LocalDate startDate, @Param("endDate") LocalDate endDate);
 }

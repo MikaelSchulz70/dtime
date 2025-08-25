@@ -3,10 +3,7 @@ package se.dtime.restcontroller;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import se.dtime.model.Account;
-import se.dtime.model.ActivationStatus;
-import se.dtime.model.Attribute;
-import se.dtime.model.Task;
+import se.dtime.model.*;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -20,6 +17,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("New Task")
                 .activationStatus(ActivationStatus.ACTIVE)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
@@ -36,6 +34,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(testTask.getId())
                 .name("Updated Task")
                 .activationStatus(ActivationStatus.INACTIVE)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
@@ -52,6 +51,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("") // Invalid: empty name
                 .activationStatus(ActivationStatus.ACTIVE)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
@@ -68,6 +68,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("Test Task")
                 .activationStatus(null) // Invalid: null status
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
@@ -84,6 +85,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("Test Task")
                 .activationStatus(null)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(0L).build()) // Invalid: zero account ID
                 .build();
 
@@ -100,6 +102,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("New Task")
                 .activationStatus(ActivationStatus.ACTIVE)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
@@ -115,6 +118,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .name("New Task")
                 .activationStatus(ActivationStatus.ACTIVE)
+                .taskType(TaskType.NORMAL)
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 

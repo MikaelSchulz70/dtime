@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import org.hibernate.annotations.OnDelete;
 import org.hibernate.annotations.OnDeleteAction;
 import se.dtime.model.ActivationStatus;
+import se.dtime.model.TaskType;
 
 import java.util.Objects;
 
@@ -17,6 +18,7 @@ public class TaskPO extends BasePO {
     private Long id;
     private String name;
     private ActivationStatus activationStatus;
+    private TaskType taskType;
     private AccountPO account;
 
     public TaskPO() {
@@ -55,6 +57,16 @@ public class TaskPO extends BasePO {
 
     public void setActivationStatus(ActivationStatus activationStatus) {
         this.activationStatus = activationStatus;
+    }
+
+    @Enumerated(EnumType.STRING)
+    @Column(name = "task_type", unique = false, nullable = false, length = 20)
+    public TaskType getTaskType() {
+        return taskType != null ? taskType : TaskType.NORMAL;
+    }
+
+    public void setTaskType(TaskType taskType) {
+        this.taskType = taskType;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)

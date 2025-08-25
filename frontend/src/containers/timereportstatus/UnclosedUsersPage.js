@@ -228,6 +228,7 @@ export default class UnclosedUsersPage extends React.Component {
 
         return (
             <div className="container-fluid ml-4">
+                <h2>Time Report Status</h2>
                 <div className="row mb-3">
                     <div className="col-sm-1">
                         <button className="btn btn-success" name={fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>

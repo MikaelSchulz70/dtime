@@ -168,6 +168,7 @@ export default class Account extends React.Component {
 
         return (
             <div className="container">
+                <h2>Account</h2>
                 <div className="row mb-3">
                     <div className="col-sm-2">
                         <input className="form-control input-sm" type="text" placeholder="Name" name="nameFilter" onChange={this.filterChanged} />

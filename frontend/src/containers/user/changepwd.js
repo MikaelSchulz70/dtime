@@ -43,6 +43,7 @@ export default class PasswordChanger extends BaseDetails {
 
         return (
             <div className="container">
+                <h2>Change Password</h2>
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Current password</label>
                     <div className="col-sm-6">

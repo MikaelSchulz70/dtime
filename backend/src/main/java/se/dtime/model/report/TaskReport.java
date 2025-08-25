@@ -1,6 +1,7 @@
 package se.dtime.model.report;
 
 import lombok.*;
+import se.dtime.model.TaskType;
 
 @Getter
 @Setter
@@ -12,5 +13,6 @@ public class TaskReport {
     private String accountName;
     private Long taskId;
     private String taskName;
+    private TaskType taskType;
     private double totalHours;
 }

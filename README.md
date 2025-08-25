@@ -159,6 +159,14 @@ SECURITY_CSRF_ENABLED=true
 
 The database runs on port 5432, backend on port 8080, frontend development server on port 3000.
 
+### Default Admin Credentials
+
+After starting the application for the first time, you can log in with:
+- **Username**: `admin@dtime.se`
+- **Password**: `admin123`
+
+**Note**: Change the admin password immediately after first login for security.
+
 ### Quick Start with Docker
 
 ```bash

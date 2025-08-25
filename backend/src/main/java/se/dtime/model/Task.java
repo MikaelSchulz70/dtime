@@ -18,6 +18,8 @@ public class Task {
     private String name;
     @NotNull(message = "Invalid status")
     private ActivationStatus activationStatus;
+    @NotNull(message = "Task type is required")
+    private TaskType taskType;
     private Account account;
     private LocalDateTime createDateTime;
     private LocalDateTime updatedDateTime;

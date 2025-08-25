@@ -94,6 +94,9 @@
             <column name="status" type="varchar(20)">
                 <constraints nullable="false"/>
             </column>
+            <column name="task_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
             <column name="createdatetime" type="${timestamp.type}">
                 <constraints nullable="false"/>
             </column>

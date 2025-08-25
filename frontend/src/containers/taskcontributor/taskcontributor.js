@@ -188,6 +188,7 @@ export default class TaskContributor extends React.Component {
 
         return (
             <div className="container">
+                <h2>Task Contributor</h2>
                 <div className="row mb-3">
                     <div className="col-sm-3">
                         <select className="form-control dataLiveSearch" value={this.state.userId} name="user.id" onChange={this.handleUserChange}>

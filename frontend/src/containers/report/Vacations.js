@@ -8,9 +8,9 @@ class VacationTableEntry extends React.Component {
         this.state = { vacationsDay: this.props.vacationsDay };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
+    componentDidUpdate(prevProps) {
+        if (this.props !== prevProps) {
+            this.setState(this.props);
         }
     }
 
@@ -46,9 +46,9 @@ class VacationTableRow extends React.Component {
         this.state = { userVacation: this.props.userVacation };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
+    componentDidUpdate(prevProps) {
+        if (this.props !== prevProps) {
+            this.setState(this.props);
         }
     }
 
@@ -85,9 +85,9 @@ class VacationTableHeaderRow extends React.Component {
         this.state = { days: this.props.days };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
+    componentDidUpdate(prevProps) {
+        if (this.props !== prevProps) {
+            this.setState(this.props);
         }
     }
 
@@ -131,9 +131,9 @@ class VacationTable extends React.Component {
         this.state = { vacations: this.props.vacations };
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
+    componentDidUpdate(prevProps) {
+        if (this.props.vacations !== prevProps.vacations) {
+            this.setState({ vacations: this.props.vacations });
         }
     }
 
@@ -166,6 +166,7 @@ export default class Vacations extends React.Component {
 
     constructor(props) {
         super(props);
+        this.state = { vacations: null };
         this.loadCurrentVacations = this.loadCurrentVacations.bind(this);
         this.loadPreviousVacations = this.loadPreviousVacations.bind(this);
         this.loadNextVacations = this.loadNextVacations.bind(this);
@@ -177,7 +178,8 @@ export default class Vacations extends React.Component {
 
     loadCurrentVacations() {
         var self = this;
-        TimeService.getVacations()
+        var timeService = new TimeService();
+        timeService.getVacations()
             .then(response => {
                 self.setState({ vacations: response.data });
             })
@@ -189,8 +191,9 @@ export default class Vacations extends React.Component {
     loadPreviousVacations(event) {
         const date = event.target.name;
         var self = this;
+        var timeService = new TimeService();
 
-        TimeService.getPreviousVacations(date)
+        timeService.getPreviousVacations(date)
             .then(response => {
                 self.setState({ vacations: response.data });
             })
@@ -202,8 +205,9 @@ export default class Vacations extends React.Component {
     loadNextVacations(event) {
         const date = event.target.name;
         var self = this;
+        var timeService = new TimeService();
 
-        TimeService.getNextVacations(date)
+        timeService.getNextVacations(date)
             .then(response => {
                 self.setState({ vacations: response.data });
             })
@@ -217,6 +221,7 @@ export default class Vacations extends React.Component {
 
         return (
             <div className="container-fluid ml-4 mr-4">
+                <h2>Vacations</h2>
                 <div className="row mb-3">
                     <div className="col-sm-1">
                         <button className="btn btn-success" name={this.state.vacations.firstDate} onClick={this.loadPreviousVacations}>&lt;&lt;</button>

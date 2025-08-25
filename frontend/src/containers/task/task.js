@@ -2,6 +2,7 @@ import React from "react";
 import { Link } from 'react-router-dom';
 import TaskService from '../../service/TaskService';
 import *  as Constants from '../../common/Constants';
+import { TaskTypeLabels } from '../../common/TaskType';
 
 class TaskTableRow extends React.Component {
     render() {
@@ -13,6 +14,7 @@ class TaskTableRow extends React.Component {
             <tr>
                 <td>{this.props.task.account.name}</td>
                 <td>{this.props.task.name}</td>
+                <td>{TaskTypeLabels[this.props.task.taskType] || this.props.task.taskType}</td>
                 <td>{this.props.task.activationStatus}</td>
                 <td><Link className="btn btn-success" to={editRoute}>Edit</Link></td>
                 <td><button className="btn btn-success" onClick={() => this.props.handleDelete(this.props.task.id)} >Delete</button></td>
@@ -64,6 +66,7 @@ class TaskTable extends React.Component {
                     <tr className="text-white">
                         <th>Account name</th>
                         <th>Name</th>
+                        <th>Task Type</th>
                         <th>Status</th>
                         <th align="right">Edit</th>
                         <th align="right">Delete</th>
@@ -151,6 +154,7 @@ export default class Task extends React.Component {
 
         return (
             <div className="container">
+                <h2>Task</h2>
                 <div className="row mb-3">
                     <div className="col-sm-2">
                         <input className="form-control input-sm" type="text" placeholder="account name" name="accountNameFilter" onChange={this.filterChanged} />

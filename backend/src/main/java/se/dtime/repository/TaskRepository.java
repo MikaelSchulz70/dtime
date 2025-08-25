@@ -6,6 +6,7 @@ import org.springframework.stereotype.Repository;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskPO;
 import se.dtime.model.ActivationStatus;
+import se.dtime.model.TaskType;
 
 import java.util.List;
 
@@ -16,4 +17,6 @@ public interface TaskRepository extends JpaRepository<TaskPO, Long> {
     List<TaskPO> findByActivationStatus(@Param("activationStatus") ActivationStatus activationStatus);
 
     List<TaskPO> findByAccount(@Param("account") AccountPO account);
+
+    List<TaskPO> findByTaskTypeAndAccount(@Param("taskType") TaskType taskType, @Param("account") AccountPO account);
 }

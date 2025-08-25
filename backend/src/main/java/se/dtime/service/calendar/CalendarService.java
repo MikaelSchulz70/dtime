@@ -34,7 +34,6 @@ public class CalendarService {
                            @Value("${dtime.hours_per_day}") float hoursPerDay) {
         this.specialDayRepository = specialDayRepository;
         this.systemStartDate = LocalDate.parse(systemStartDate);
-        ;
         this.hoursPerDay = hoursPerDay;
     }
 

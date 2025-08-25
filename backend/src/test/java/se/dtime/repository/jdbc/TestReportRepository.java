@@ -21,7 +21,7 @@ public class TestReportRepository extends JdbcDaoSupport {
     private DataSource dataSource;
 
     private final String USERS_TASK_REPORTS =
-            "select u.\"id\" userId, u.\"firstname\", u.\"lastname\", c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, sum(tr.\"reportedtime\") totalTime " +
+            "select u.\"id\" userId, u.\"firstname\", u.\"lastname\", c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, p.\"task_type\" taskType, sum(tr.\"reportedtime\") totalTime " +
                     "from \"PUBLIC\".\"time_report\" tr " +
                     "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
                     "join \"PUBLIC\".\"users\" u on u.\"id\" = a.\"id_user\" " +
@@ -29,7 +29,7 @@ public class TestReportRepository extends JdbcDaoSupport {
                     "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
                     "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
                     "{USER_CONDITION}" +
-                    "group by tr.\"id_task_contributor\", u.\"id\", u.\"firstname\", u.\"lastname\", c.\"id\", c.\"name\", p.\"id\", p.\"name\" " +
+                    "group by tr.\"id_task_contributor\", u.\"id\", u.\"firstname\", u.\"lastname\", c.\"id\", c.\"name\", p.\"id\", p.\"name\", p.\"task_type\" " +
                     "having sum(tr.\"reportedtime\") > 0 " +
                     "order by u.\"firstname\", u.\"lastname\", c.\"name\", p.\"name\"";
 
@@ -44,13 +44,13 @@ public class TestReportRepository extends JdbcDaoSupport {
                     "group by \"id_task_contributor\"))";
 
     private final String TASK_REPORT =
-            "select c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, sum(tr.\"reportedtime\") totalTime " +
+            "select c.\"id\" accountId, c.\"name\" accountName, p.\"id\" taskId, p.\"name\" taskName, p.\"task_type\" taskType, sum(tr.\"reportedtime\") totalTime " +
                     "from \"PUBLIC\".\"time_report\" tr " +
                     "join \"PUBLIC\".\"task_contributor\" a on a.\"id\" = tr.\"id_task_contributor\" " +
                     "join \"PUBLIC\".\"task\" p on p.\"id\" = a.\"id_task\" " +
                     "join \"PUBLIC\".\"account\" c on c.\"id\" = p.\"id_account\" " +
                     "where tr.\"date\" >= ? and tr.\"date\" <= ? " +
-                    "group by c.\"id\", c.\"name\", p.\"id\", p.\"name\" " +
+                    "group by c.\"id\", c.\"name\", p.\"id\", p.\"name\", p.\"task_type\" " +
                     "having sum(tr.\"reportedtime\") > 0 " +
                     "order by c.\"name\", p.\"name\"";
 
@@ -137,6 +137,8 @@ public class TestReportRepository extends JdbcDaoSupport {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
+            String taskTypeStr = (String) row.get("taskType");
+            taskReport.setTaskType(taskTypeStr != null ? se.dtime.model.TaskType.valueOf(taskTypeStr) : se.dtime.model.TaskType.NORMAL);
             taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             taskReports.add(taskReport);
         }

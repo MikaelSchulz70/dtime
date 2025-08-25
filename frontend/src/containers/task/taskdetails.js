@@ -2,6 +2,7 @@ import React from "react";
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
+import { TaskType, TaskTypeLabels } from '../../common/TaskType';
 import BaseDetails from '../BaseDetails';
 
 export default class TaskDetails extends BaseDetails {
@@ -19,6 +20,7 @@ export default class TaskDetails extends BaseDetails {
         if (id === '0') {
             const task = {
                 id: '0', name: '', activationStatus: Constants.ACTIVE_STATUS,
+                taskType: TaskType.NORMAL,
                 account: { id: '0', name: '' }
             };
             this.state = { task: task, id: id };
@@ -33,7 +35,12 @@ export default class TaskDetails extends BaseDetails {
             const service = new TaskService();
             service.get(this.state.id)
                 .then(response => {
-                    self.setState({ task: response.data });
+                    // Ensure taskType is set for existing tasks
+                    const task = response.data;
+                    if (!task.taskType) {
+                        task.taskType = TaskType.NORMAL;
+                    }
+                    self.setState({ task: task });
                 })
                 .catch(error => {
                     alert('Failed to fetch task');
@@ -128,6 +135,11 @@ export default class TaskDetails extends BaseDetails {
             this.state.task.account.id = this.state.companies[0].id;
         }
 
+        // Ensure taskType is always set
+        if (!this.state.task.taskType) {
+            this.state.task.taskType = TaskType.NORMAL;
+        }
+
         return (
             <div className="container">
                 <div className="form-group row">
@@ -148,6 +160,21 @@ export default class TaskDetails extends BaseDetails {
                     </div>
                     <div className="col-sm-4">
                         <small className="text-danger" id="nameErrorMsg"></small>
+                    </div>
+                </div>
+                <div className="form-group row">
+                    <label className="col-sm-2 col-form-label">Task Type</label>
+                    <div className="col-sm-6">
+                        <select className="form-control" value={this.state.task.taskType} name="taskType" onChange={this.handleChange}>
+                            {Object.keys(TaskType).map(key => (
+                                <option key={TaskType[key]} value={TaskType[key]}>
+                                    {TaskTypeLabels[TaskType[key]]}
+                                </option>
+                            ))}
+                        </select>
+                    </div>
+                    <div className="col-sm-4">
+                        <small className="text-danger" id="taskTypeErrorMsg"></small>
                     </div>
                 </div>
                 <div className="form-group row">
