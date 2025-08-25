@@ -3,6 +3,7 @@ import { Switch, Route } from 'react-router-dom';
 import { BrowserRouter, Redirect } from 'react-router-dom';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
+import './App.css';
 
 // Context Providers
 import { SessionProvider, useSession } from './contexts/SessionContext';

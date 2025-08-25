@@ -17,8 +17,7 @@ class SystemRestControllerIT extends BaseRestControllerIT {
         mockMvc.perform(get("/api/system/config"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.systemProperties").exists())
-                .andExpect(jsonPath("$.specialDays").exists());
+                .andExpect(jsonPath("$.systemProperties").exists());
     }
 
     @Test

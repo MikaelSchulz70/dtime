@@ -149,7 +149,7 @@ class VacationTable extends React.Component {
         }
 
         return (
-            <table className="table-sm table-bordered mb5">
+            <table className="table-sm table-bordered time-report-table mb5">
                 <thead className="bg-success">
                     <VacationTableHeaderRow days={this.state.vacations.days} />
                 </thead>

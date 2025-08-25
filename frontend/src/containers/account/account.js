@@ -13,8 +13,10 @@ class AccountTableRow extends React.Component {
             <tr>
                 <td>{this.props.organization.name}</td>
                 <td>{this.props.organization.activationStatus}</td>
-                <td><Link className="btn btn-success" to={editRoute}>Edit</Link></td>
-                <td><button className="btn btn-success" onClick={() => this.props.handleDelete(this.props.organization.id)} >Delete</button></td>
+                <td>
+                    <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>Edit</Link>
+                    <button className="btn btn-outline-danger btn-sm" onClick={() => this.props.handleDelete(this.props.organization.id)}>Delete</button>
+                </td>
             </tr>
         );
     }
@@ -61,8 +63,7 @@ class AccountTable extends React.Component {
                     <tr className="text-white">
                         <th>Name</th>
                         <th>Status</th>
-                        <th align="right">Edit</th>
-                        <th align="right">Delete</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>
@@ -179,8 +180,8 @@ export default class Account extends React.Component {
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>
                     </div>
-                    <div className="col-sm-8">
-                        <Link className="btn btn-success float-sm-right" to='/account/0'>Add</Link>
+                    <div className="col-sm-8 text-end">
+                        <Link className="btn btn-primary btn-sm" to='/account/0'>+ Add Account</Link>
                     </div>
                 </div>
                 <div className="row">

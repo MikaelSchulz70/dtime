@@ -9,7 +9,6 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class SystemConfiguration {
     private SystemPropertyDB[] systemProperties;
-    private SpecialDay[] specialDays;
 
     public SystemPropertyDB[] getSystemProperties() {
         return systemProperties;
@@ -17,13 +16,5 @@ public class SystemConfiguration {
 
     public void setSystemProperties(SystemPropertyDB[] systemProperties) {
         this.systemProperties = systemProperties;
-    }
-
-    public SpecialDay[] getSpecialDays() {
-        return specialDays;
-    }
-
-    public void setSpecialDays(SpecialDay[] specialDays) {
-        this.specialDays = specialDays;
     }
 }

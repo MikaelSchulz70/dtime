@@ -344,7 +344,7 @@ class TimeReportTable extends React.Component {
         rows.push(<TimeReportTableFooterRow key="footer4" days={this.state.timeReport.days} time={this.state.timeReport.workableHours} label='Workable hours' />);
 
         return (
-            <table className="table-sm">
+            <table className="table-sm time-report-table">
                 <thead className="bg-success">
                     {headerRow}
                 </thead>

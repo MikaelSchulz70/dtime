@@ -1,45 +1,6 @@
 import React from "react";
 import SystemService from '../../service/SystemService';
 
-class SpecialDaysTable extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { specialDays: this.props.specialDays };
-    }
-
-    render() {
-        if (this.state == null || this.state.specialDays == null) return null;
-
-        var specialDaysRows = [];
-        this.state.specialDays.forEach(function (specialDay) {
-            specialDaysRows.push(
-                <tr key={specialDay.id}>
-                    <td>{specialDay.name}</td>
-                    <td>{specialDay.dayType}</td>
-                    <td>{specialDay.date}</td>
-                </tr>
-            );
-
-        });
-
-        return (
-            <div className="row">
-                <h5>Special days</h5>
-                <table className="table table-striped">
-                    <thead className="thead-inverse bg-success text-white">
-                        <tr>
-                            <th>Name</th>
-                            <th>Day type</th>
-                            <th>Date</th>
-                        </tr>
-                    </thead>
-                    <tbody>{specialDaysRows}</tbody>
-                </table>
-            </div>
-        );
-    }
-};
-
 class SystemPropertyRow extends React.Component {
     constructor(props) {
         super(props);
@@ -100,7 +61,6 @@ class SystemPropertyTable extends React.Component {
 
         return (
             <div className="row">
-                <h5>System properties</h5>
                 <table className="table table-striped">
                     <thead className="thead-inverse bg-success text-white">
                         <tr>
@@ -142,14 +102,10 @@ export default class SystemConfig extends React.Component {
     render() {
         if (this.state == null) return null;
 
-        var tables = [];
-        tables.push(<SpecialDaysTable key={'specialDayTable'} specialDays={this.state.systemConfig.specialDays} />);
-        tables.push(<SystemPropertyTable key={'propTable'} systemProperties={this.state.systemConfig.systemProperties} />);
-
         return (
             <div className="container">
                 <h2>System Properties</h2>
-                {tables}
+                <SystemPropertyTable systemProperties={this.state.systemConfig.systemProperties} />
             </div>
         );
     }

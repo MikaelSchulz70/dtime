@@ -24,13 +24,34 @@ export const ACCOUNT_REPORT = 'ACCOUNT';
 export const TIME_REPORT_STATUS_UNCLOSED = 'UNCLOSED_USERS';
 
 
-// Colors
+// Colors - Professional Theme (Avanza-inspired)
 export const DAY_COLOR = "#ffffff";
-export const WEEKEND_COLOR = "#fce0d4";
-export const MAJOR_HOLIDAY_COLOR = "#ffcccc";
-export const HALF_DAY_COLOR = "#fff2cc";
-export const CLOSED_COLOR = "#d2d2d4";
-export const CLOSED_WEEK_END_COLOR = "#d2d2d4";
-export const CLOSED_MAJOR_HOLIDAY_COLOR = "#d2d2d4";
-export const CLOSED_HALF_DAY_COLOR = "#d2d2d4";
-export const ALERT_COLOR = '#66ff66';
+export const WEEKEND_COLOR = "#f8f9fa";
+export const MAJOR_HOLIDAY_COLOR = "#e8f5e8";
+export const HALF_DAY_COLOR = "#fff8e1";
+export const CLOSED_COLOR = "#e9ecef";
+export const CLOSED_WEEK_END_COLOR = "#e9ecef";
+export const CLOSED_MAJOR_HOLIDAY_COLOR = "#e9ecef";
+export const CLOSED_HALF_DAY_COLOR = "#e9ecef";
+export const ALERT_COLOR = '#28a745';
+
+// Professional Color Palette
+export const BRAND_PRIMARY = '#28a745';    // Professional Green
+export const BRAND_SECONDARY = '#6c757d';  // Professional Gray
+export const BRAND_SUCCESS = '#28a745';    // Success Green
+export const BRAND_INFO = '#17a2b8';       // Info Blue
+export const BRAND_WARNING = '#ffc107';    // Warning Yellow
+export const BRAND_DANGER = '#dc3545';     // Danger Red
+export const BRAND_LIGHT = '#f8f9fa';      // Light Gray
+export const BRAND_DARK = '#343a40';       // Dark Gray
+
+// Text Colors
+export const TEXT_PRIMARY = '#212529';
+export const TEXT_SECONDARY = '#6c757d';
+export const TEXT_MUTED = '#6c757d';
+export const TEXT_WHITE = '#ffffff';
+
+// Background Colors
+export const BG_PRIMARY = '#ffffff';
+export const BG_SECONDARY = '#f8f9fa';
+export const BG_ACCENT = '#e8f5e8';

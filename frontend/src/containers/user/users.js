@@ -17,8 +17,10 @@ class UserTableRow extends React.Component {
                 <td>{this.props.user.email}</td>
                 <td>{this.props.user.userRole}</td>
                 <td>{this.props.user.activationStatus}</td>
-                <td><Link className="btn btn-success" to={editRoute}>Edit</Link></td>
-                <td><button className="btn btn-success" onClick={() => this.props.handleDelete(this.props.user.id)} >Delete</button></td>
+                <td>
+                    <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>Edit</Link>
+                    <button className="btn btn-outline-danger btn-sm" onClick={() => this.props.handleDelete(this.props.user.id)}>Delete</button>
+                </td>
             </tr>
         );
     }
@@ -74,8 +76,7 @@ class UserTable extends React.Component {
                         <th>Email</th>
                         <th>Role</th>
                         <th>Status</th>
-                        <th>Edit</th>
-                        <th>Delete</th>
+                        <th>Actions</th>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>
@@ -165,8 +166,8 @@ export default class Users extends React.Component {
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>
                     </div>
-                    <div className="col-sm-2">
-                        <Link className="btn btn-success float-sm-right" to='/users/0'>Add</Link>
+                    <div className="col-sm-4 text-end">
+                        <Link className="btn btn-primary btn-sm" to='/users/0'>+ Add User</Link>
                     </div>
                 </div>
                 <div className="row">
