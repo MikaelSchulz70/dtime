@@ -27,6 +27,12 @@ public class EmailSender {
             return;
         }
 
+        // Check if email is enabled
+        if (!emailSendConfig.isMailEnabled()) {
+            log.info("Email sending is disabled - mail.enabled is false");
+            return;
+        }
+
         // Check if email credentials are properly configured
         if (isDummyEmailConfiguration()) {
             log.warn("Email sending is disabled - using dummy configuration");
@@ -54,8 +60,8 @@ public class EmailSender {
 
     private boolean isDummyEmailConfiguration() {
         return emailSendConfig.getReminderMailUsername().contains("@example.com") ||
-               emailSendConfig.getReminderMailPassword().equals("dummy-password") ||
-               emailSendConfig.getReminderMailPassword().equals("dev-password");
+                emailSendConfig.getReminderMailPassword().equals("dummy-password") ||
+                emailSendConfig.getReminderMailPassword().equals("dev-password");
     }
 
     private JavaMailSenderImpl createMailSender() {
@@ -68,7 +74,6 @@ public class EmailSender {
         props.put("mail.transport.protocol", emailSendConfig.getProtocol());
         props.put("mail.smtp.auth", emailSendConfig.getAuth());
         props.put("mail.smtp.starttls.enable", emailSendConfig.getStartTSLEnable());
-        props.put("mail.debug", emailSendConfig.getDebug());
         props.put("spring.mail.properties.mail.smtp.ssl.enable", emailSendConfig.getSslEnable());
 
         return mailSender;

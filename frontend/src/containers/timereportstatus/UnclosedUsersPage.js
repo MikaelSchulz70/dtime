@@ -1,5 +1,6 @@
 import React from "react";
 import TimeReportStatusService from '../../service/TimeReportStatusService';
+import SystemService from '../../service/SystemService';
 
 class UnclosedUsersTable extends React.Component {
     constructor(props) {
@@ -17,9 +18,9 @@ class UnclosedUsersTable extends React.Component {
     handleOpenCloseReport(event) {
         const userId = parseInt(event.target.id);
         const date = event.target.name;
-        
+
         if (!this.state.report.unclosedUsers) return;
-        
+
         const user = this.state.report.unclosedUsers.find(u => u.userId === userId);
         if (!user) return;
 
@@ -33,23 +34,23 @@ class UnclosedUsersTable extends React.Component {
             }
         }
 
-        const service = user.closed ? 
+        const service = user.closed ?
             TimeReportStatusService.openUserTimeReport(userId, date) :
             TimeReportStatusService.closeUserTimeReport(userId, date);
 
         service
             .then(response => {
                 // Update the user's closed status
-                const updatedUsers = this.state.report.unclosedUsers.map(u => 
+                const updatedUsers = this.state.report.unclosedUsers.map(u =>
                     u.userId === userId ? { ...u, closed: !u.closed } : u
                 );
-                
+
                 // Filter out users who are now closed (since this is unclosed users view)
                 const filteredUsers = updatedUsers.filter(u => !u.closed);
-                
+
                 const updatedReport = { ...this.state.report, unclosedUsers: filteredUsers };
                 this.setState({ report: updatedReport });
-                
+
                 if (this.props.onReportUpdate) {
                     this.props.onReportUpdate(updatedReport);
                 }
@@ -58,7 +59,7 @@ class UnclosedUsersTable extends React.Component {
                 console.error('Error toggling report status:', error);
                 const errorMessage = error.response?.data?.message || error.message || 'Failed to open/close report';
                 alert(errorMessage);
-                
+
                 // Revert the checkbox on error
                 event.target.checked = user.closed;
             });
@@ -78,7 +79,7 @@ class UnclosedUsersTable extends React.Component {
         var rows = [];
         const workableHours = this.state.report.workableHours || 0;
         const fromDate = this.state.report.fromDate || '';
-        
+
         rows.push(
             <tr key={0} className="bg-success text-white">
                 <th>User</th>
@@ -93,11 +94,11 @@ class UnclosedUsersTable extends React.Component {
         if (this.state.report.unclosedUsers && Array.isArray(this.state.report.unclosedUsers) && this.state.report.unclosedUsers.length > 0) {
             this.state.report.unclosedUsers.forEach((user) => {
                 if (!user) return; // Skip null/undefined users
-                
+
                 const totalTime = user.totalTime || 0;
                 const textColor = totalTime < workableHours ? 'text-danger' : '';
                 const closeTextColor = user.closed ? "white" : "red";
-                
+
                 rows.push(
                     <tr key={key}>
                         <td>{user.fullName || 'Unknown User'}</td>
@@ -105,17 +106,17 @@ class UnclosedUsersTable extends React.Component {
                         <td className={textColor}>{totalTime}</td>
                         <td>{workableHours}</td>
                         <td>
-                            <span style={{color: closeTextColor}}>
+                            <span style={{ color: closeTextColor }}>
                                 {user.closed ? 'Closed' : 'Open'}
                             </span>
                         </td>
                         <td>
                             <label>
-                                <input 
-                                    type="checkbox" 
-                                    id={user.userId} 
-                                    name={fromDate} 
-                                    checked={user.closed || false} 
+                                <input
+                                    type="checkbox"
+                                    id={user.userId}
+                                    name={fromDate}
+                                    checked={user.closed || false}
                                     onChange={this.handleOpenCloseReport}
                                 />
                                 <span className="ml-2">{user.closed ? 'Open' : 'Close'}</span>
@@ -128,8 +129,8 @@ class UnclosedUsersTable extends React.Component {
             rows.push(
                 <tr key={key}>
                     <td colSpan="6" className="text-center text-muted">
-                        {this.state.report.unclosedUsers === undefined ? 
-                            'Loading users...' : 
+                        {this.state.report.unclosedUsers === undefined ?
+                            'Loading users...' :
                             'All users have closed their time reports for this month'
                         }
                     </td>
@@ -155,16 +156,18 @@ export default class UnclosedUsersPage extends React.Component {
         this.handlePreviousReport = this.handlePreviousReport.bind(this);
         this.handleNextReport = this.handleNextReport.bind(this);
         this.handleReportUpdate = this.handleReportUpdate.bind(this);
-        this.state = { report: null };
+        this.handleSendEmailReminder = this.handleSendEmailReminder.bind(this);
+        this.state = { report: null, mailEnabled: false };
     }
 
     componentDidMount() {
         this.loadCurrentReport();
+        this.checkMailEnabled();
     }
 
     loadCurrentReport() {
         const self = this;
-        
+
         TimeReportStatusService.getCurrentUnclosedUsers()
             .then(response => {
                 console.log('Unclosed users response:', response);
@@ -209,8 +212,47 @@ export default class UnclosedUsersPage extends React.Component {
             });
     }
 
+    checkMailEnabled() {
+        const systemService = new SystemService();
+        systemService.isMailEnabled()
+            .then(response => {
+                this.setState({ mailEnabled: response.data });
+            })
+            .catch(error => {
+                console.error('Error checking mail enabled status:', error);
+                // Default to false if we can't check
+                this.setState({ mailEnabled: false });
+            });
+    }
+
     handleReportUpdate(updatedReport) {
         this.setState({ report: updatedReport });
+    }
+
+    handleSendEmailReminder() {
+        const unclosedUsers = this.state.report.unclosedUsers || [];
+        const unclosedCount = unclosedUsers.length;
+        
+        if (unclosedCount === 0) {
+            alert('No users have unclosed time reports. No emails will be sent.');
+            return;
+        }
+
+        const confirmMessage = `Send email reminders to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} who have unclosed time reports for this month?`;
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        const systemService = new SystemService();
+        systemService.sendEmailReminderToUnclosedUsers()
+            .then(response => {
+                alert(`Email reminders sent successfully to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} with unclosed time reports`);
+            })
+            .catch(error => {
+                console.error('Error sending email reminders:', error);
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to send email reminders';
+                alert('Failed to send email reminders: ' + errorMessage);
+            });
     }
 
     render() {
@@ -228,19 +270,25 @@ export default class UnclosedUsersPage extends React.Component {
 
         return (
             <div className="container-fluid ml-4">
-                <h2>Time Report Status</h2>
-                <div className="row mb-3">
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>
-                    </div>
-                    <div className="col-sm-1">
+                <div className="row mb-3 align-items-center">
+                    <div className="col-sm-2">
+                        <button className="btn btn-success me-2" name={fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>
                         <button className="btn btn-success" name={toDate} onClick={this.handleNextReport}>&gt;&gt;</button>
                     </div>
-                    <div className="col-sm-8">
+                    <div className="col-sm-6">
                         <h2>Users with Unclosed Time Reports</h2>
                     </div>
-                    <div className="col-sm-2">
-                        <span className="float-right">
+                    <div className="col-sm-4 text-end">
+                        {this.state.mailEnabled && (
+                            <button
+                                className="btn btn-primary btn-sm me-3"
+                                onClick={this.handleSendEmailReminder}
+                                title="Send email reminders to users with unclosed time reports"
+                            >
+                                📧 Send Email Reminders
+                            </button>
+                        )}
+                        <span>
                             <b>{fromDate} - {toDate}</b>
                         </span>
                     </div>

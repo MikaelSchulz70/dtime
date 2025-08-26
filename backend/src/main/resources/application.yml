@@ -29,14 +29,12 @@ spring:
 
   # Mail Configuration
   mail:
-    debug: false
     host: smtp.gmail.com
     port: 587
     transport:
       protocol: smtp
     properties:
       mail:
-        debug: true
         smtp:
           auth: true
           starttls:
@@ -55,11 +53,11 @@ logging:
 security:
   enable-csrf: ${SECURITY_CSRF_ENABLED:true}
 
-# Email Reminder Configuration
-reminder:
-  mail:
-    username: ${MAIL_USERNAME:dummy@example.com}
-    password: ${MAIL_PASSWORD:dummy-password}
+# Email Configuration
+mail:
+  enabled: ${MAIL_ENABLED:false}
+  username: ${MAIL_USERNAME:dummy@example.com}
+  password: ${MAIL_PASSWORD:dummy-password}
 
 # Application Configuration
 dtime:

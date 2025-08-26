@@ -5,6 +5,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
+import se.dtime.config.EmailSendConfig;
 import se.dtime.model.SystemConfiguration;
 import se.dtime.model.SystemPropertyDB;
 import se.dtime.service.system.SystemOperationService;
@@ -20,6 +21,8 @@ public class SystemRestController {
     private SystemService systemService;
     @Autowired
     private SystemOperationService systemOperationService;
+    @Autowired
+    private EmailSendConfig emailSendConfig;
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/config")
@@ -38,6 +41,18 @@ public class SystemRestController {
     @PostMapping(path = "/emailreminder")
     public void sendMailReminder() {
         systemOperationService.sendMailReminder();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PostMapping(path = "/emailreminder/unclosed")
+    public void sendMailReminderToUnclosedUsers() {
+        systemOperationService.sendMailReminderToUnclosedUsers();
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/mail/enabled")
+    public ResponseEntity<Boolean> isMailEnabled() {
+        return new ResponseEntity<>(emailSendConfig.isMailEnabled(), HttpStatus.OK);
     }
 
 }

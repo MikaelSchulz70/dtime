@@ -16,4 +16,16 @@ export default class SystemService {
             payLoad,
             Headers());
     }
+
+    sendEmailReminder() {
+        return axios.post(BASE_URL + '/emailreminder', null, Headers());
+    }
+
+    sendEmailReminderToUnclosedUsers() {
+        return axios.post(BASE_URL + '/emailreminder/unclosed', null, Headers());
+    }
+
+    isMailEnabled() {
+        return axios.get(BASE_URL + '/mail/enabled', Headers());
+    }
 } 

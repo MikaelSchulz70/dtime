@@ -15,14 +15,14 @@ public class EmailSendConfig {
     private String auth;
     @Value("${spring.mail.properties.mail.smtp.starttls.enable}")
     private String startTSLEnable;
-    @Value("${spring.mail.debug}")
-    private String debug;
     @Value("${spring.mail.properties.mail.smtp.ssl.enable}")
     private String sslEnable;
 
-    @Value("${reminder.mail.username}")
+    @Value("${mail.enabled}")
+    private boolean mailEnabled;
+    @Value("${mail.username}")
     private String reminderMailUsername;
-    @Value("${reminder.mail.password}")
+    @Value("${mail.password}")
     private String reminderMailPassword;
 
     public String getHost() {
@@ -65,14 +65,6 @@ public class EmailSendConfig {
         this.startTSLEnable = startTSLEnable;
     }
 
-    public String getDebug() {
-        return debug;
-    }
-
-    public void setDebug(String debug) {
-        this.debug = debug;
-    }
-
     public String getSslEnable() {
         return sslEnable;
     }
@@ -95,5 +87,13 @@ public class EmailSendConfig {
 
     public void setReminderMailPassword(String reminderMailPassword) {
         this.reminderMailPassword = reminderMailPassword;
+    }
+
+    public boolean isMailEnabled() {
+        return mailEnabled;
+    }
+
+    public void setMailEnabled(boolean mailEnabled) {
+        this.mailEnabled = mailEnabled;
     }
 }

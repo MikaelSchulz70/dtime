@@ -29,11 +29,11 @@ app:
       enabled: true
       url: http://localhost:9000
 
-# Email Reminder Configuration (disabled for development)
-reminder:
-  mail:
-    username: dev@example.com
-    password: dev-password
+# Email Configuration (disabled for development)
+mail:
+  enabled: false
+  username: dev@example.com
+  password: dev-password
 
 # Logging Configuration
 logging:
