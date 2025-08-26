@@ -68,7 +68,7 @@ const UsersModal = () => {
             firstName: user.firstName,
             lastName: user.lastName,
             email: user.email,
-            password: '', // Don't show existing password
+            password: user.password, // Use the dummy password from backend
             userRole: user.userRole,
             activationStatus: user.activationStatus
         });
@@ -357,7 +357,7 @@ const UsersModal = () => {
                                 name="password"
                                 value={formData.password}
                                 onChange={handleInputChange}
-                                placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"}
+                                placeholder={editingUser ? "Change password or leave as-is to keep current" : "Enter password"}
                                 maxLength="80"
                                 required={!editingUser}
                                 isInvalid={!!fieldErrors.password}
