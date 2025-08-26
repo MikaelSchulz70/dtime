@@ -61,7 +61,12 @@ export default class TaskDetails extends BaseDetails {
         this.clearErrors();
         const self = this;
         const service = new TaskService();
-        service.addOrUdate(this.state.task)
+        const isUpdate = this.state.task.id && this.state.task.id !== 0;
+        const serviceCall = isUpdate
+            ? service.update(this.state.task)
+            : service.create(this.state.task);
+
+        serviceCall
             .then(response => {
                 // Force a full reload by using replace with a timestamp
                 self.props.history.replace('/task?refresh=' + Date.now());

@@ -40,7 +40,12 @@ export default class UserDetails extends BaseDetails {
         this.clearErrors();
         const self = this;
         const userService = new UserService();
-        userService.addOrUdate(this.state.user)
+        const isUpdate = this.state.user.id && this.state.user.id !== 0;
+        const serviceCall = isUpdate
+            ? userService.update(this.state.user)
+            : userService.create(this.state.user);
+
+        serviceCall
             .then(response => {
                 self.props.history.push('/users');
             })

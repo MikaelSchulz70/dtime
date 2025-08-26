@@ -30,7 +30,7 @@ class UserRestControllerIT extends BaseRestControllerIT {
         mockMvc.perform(post("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(user)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -46,7 +46,7 @@ class UserRestControllerIT extends BaseRestControllerIT {
                 .activationStatus(ActivationStatus.INACTIVE)
                 .build();
 
-        mockMvc.perform(post("/api/users")
+        mockMvc.perform(put("/api/users")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(user)))
                 .andExpect(status().isOk());

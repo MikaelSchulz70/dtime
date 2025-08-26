@@ -22,12 +22,15 @@ public class TaskRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity<Void> add(@Valid @RequestBody Task task) {
-        if (task.getId() == null || task.getId() == 0) {
-            taskService.add(task);
-        } else {
-            taskService.update(task);
-        }
+    public ResponseEntity<Void> create(@Valid @RequestBody Task task) {
+        taskService.add(task);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping()
+    public ResponseEntity<Void> update(@Valid @RequestBody Task task) {
+        taskService.update(task);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -22,13 +22,16 @@ public class AccountRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity<Void> addOrUpdate(@Valid @RequestBody Account account) {
-        if (account.getId() == null || account.getId() == 0) {
-            accountService.add(account);
-        } else {
-            accountService.update(account);
-        }
+    public ResponseEntity<Void> create(@Valid @RequestBody Account account) {
+        accountService.add(account);
         return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping()
+    public ResponseEntity<Void> update(@Valid @RequestBody Account account) {
+        accountService.update(account);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

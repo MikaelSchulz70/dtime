@@ -23,12 +23,15 @@ public class UserRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity<Void> addOrUpdate(@Valid @RequestBody User user) {
-        if (user.getId() == null || user.getId() == 0) {
-            userService.add(user);
-        } else {
-            userService.update(user);
-        }
+    public ResponseEntity<Void> create(@Valid @RequestBody User user) {
+        userService.add(user);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @PutMapping(path = "")
+    public ResponseEntity<Void> update(@Valid @RequestBody User user) {
+        userService.update(user);
         return new ResponseEntity<>(HttpStatus.OK);
     }
 

@@ -11,6 +11,7 @@ const TasksModal = () => {
     const [editingTask, setEditingTask] = useState(null);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
     const [modalError, setModalError] = useState({ show: false, message: '' });
+    const [fieldErrors, setFieldErrors] = useState({});
     const [formData, setFormData] = useState({
         name: '',
         taskType: 'NORMAL',
@@ -67,6 +68,7 @@ const TasksModal = () => {
             activationStatus: 'ACTIVE'
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -79,6 +81,7 @@ const TasksModal = () => {
             activationStatus: task.activationStatus
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -101,6 +104,7 @@ const TasksModal = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         
         if (!formData.name || !formData.accountId) {
             setModalError({ show: true, message: 'Please fill in all required fields' });
@@ -113,19 +117,33 @@ const TasksModal = () => {
                 ...formData,
                 account: { id: formData.accountId }
             };
+            
             if (editingTask) {
                 taskData.id = editingTask.id;
+                await taskService.update(taskData);
+                showAlert('Task updated successfully');
+            } else {
+                await taskService.create(taskData);
+                showAlert('Task created successfully');
             }
-            
-            await taskService.addOrUdate(taskData);
-            showAlert(editingTask ? 'Task updated successfully' : 'Task created successfully');
 
             setShowModal(false);
             loadTasks();
         } catch (error) {
             console.error('Error saving task:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to save task';
-            setModalError({ show: true, message: errorMessage });
+            
+            if (error.response?.status === 400 && error.response?.data?.fieldErrors) {
+                // Handle field-level validation errors
+                const errors = {};
+                error.response.data.fieldErrors.forEach(fieldError => {
+                    errors[fieldError.fieldName] = fieldError.fieldError;
+                });
+                setFieldErrors(errors);
+            } else {
+                // Handle general errors
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to save task';
+                setModalError({ show: true, message: errorMessage });
+            }
         }
     };
 
@@ -158,6 +176,7 @@ const TasksModal = () => {
     const closeModal = () => {
         setShowModal(false);
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
     };
 
     const getAccountName = (accountId) => {
@@ -292,7 +311,13 @@ const TasksModal = () => {
                                 onChange={handleInputChange}
                                 placeholder="Enter task name"
                                 required
+                                isInvalid={!!fieldErrors.name}
                             />
+                            {fieldErrors.name && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.name}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Type *</Form.Label>
@@ -301,12 +326,18 @@ const TasksModal = () => {
                                 value={formData.taskType}
                                 onChange={handleInputChange}
                                 required
+                                isInvalid={!!fieldErrors.taskType}
                             >
                                 <option value="NORMAL">Normal</option>
                                 <option value="VACATION">Vacation</option>
                                 <option value="SICK_LEAVE">Sick Leave</option>
                                 <option value="PARENTAL_LEAVE">Parental Leave</option>
                             </Form.Select>
+                            {fieldErrors.taskType && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.taskType}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Account *</Form.Label>
@@ -315,6 +346,7 @@ const TasksModal = () => {
                                 value={formData.accountId}
                                 onChange={handleInputChange}
                                 required
+                                isInvalid={!!fieldErrors.accountId}
                             >
                                 <option value="">Select an account</option>
                                 {accounts.map(account => (
@@ -323,6 +355,11 @@ const TasksModal = () => {
                                     </option>
                                 ))}
                             </Form.Select>
+                            {fieldErrors.accountId && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.accountId}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Status *</Form.Label>
@@ -331,10 +368,16 @@ const TasksModal = () => {
                                 value={formData.activationStatus}
                                 onChange={handleInputChange}
                                 required
+                                isInvalid={!!fieldErrors.activationStatus}
                             >
                                 <option value="ACTIVE">Active</option>
                                 <option value="INACTIVE">Inactive</option>
                             </Form.Select>
+                            {fieldErrors.activationStatus && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.activationStatus}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>

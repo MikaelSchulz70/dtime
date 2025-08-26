@@ -9,6 +9,7 @@ const UsersModal = () => {
     const [editingUser, setEditingUser] = useState(null);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
     const [modalError, setModalError] = useState({ show: false, message: '' });
+    const [fieldErrors, setFieldErrors] = useState({});
     const [formData, setFormData] = useState({
         firstName: '',
         lastName: '',
@@ -57,6 +58,7 @@ const UsersModal = () => {
             activationStatus: 'ACTIVE'
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -71,6 +73,7 @@ const UsersModal = () => {
             activationStatus: user.activationStatus
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -93,6 +96,7 @@ const UsersModal = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         
         if (!formData.firstName || !formData.lastName || !formData.email) {
             setModalError({ show: true, message: 'Please fill in all required fields' });
@@ -106,16 +110,32 @@ const UsersModal = () => {
 
         try {
             const userService = new UserService();
-            const userData = editingUser ? { ...formData, id: editingUser.id } : formData;
-            await userService.addOrUdate(userData);
-            showAlert(editingUser ? 'User updated successfully' : 'User created successfully');
+            if (editingUser) {
+                const userData = { ...formData, id: editingUser.id };
+                await userService.update(userData);
+                showAlert('User updated successfully');
+            } else {
+                await userService.create(formData);
+                showAlert('User created successfully');
+            }
 
             setShowModal(false);
             loadUsers();
         } catch (error) {
             console.error('Error saving user:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to save user';
-            setModalError({ show: true, message: errorMessage });
+            
+            if (error.response?.status === 400 && error.response?.data?.fieldErrors) {
+                // Handle field-level validation errors
+                const errors = {};
+                error.response.data.fieldErrors.forEach(fieldError => {
+                    errors[fieldError.fieldName] = fieldError.fieldError;
+                });
+                setFieldErrors(errors);
+            } else {
+                // Handle general errors
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to save user';
+                setModalError({ show: true, message: errorMessage });
+            }
         }
     };
 
@@ -148,6 +168,7 @@ const UsersModal = () => {
     const closeModal = () => {
         setShowModal(false);
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
     };
 
     return (
@@ -281,7 +302,13 @@ const UsersModal = () => {
                                         placeholder="Enter first name"
                                         maxLength="30"
                                         required
+                                        isInvalid={!!fieldErrors.firstName}
                                     />
+                                    {fieldErrors.firstName && (
+                                        <Form.Control.Feedback type="invalid">
+                                            {fieldErrors.firstName}
+                                        </Form.Control.Feedback>
+                                    )}
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -295,7 +322,13 @@ const UsersModal = () => {
                                         placeholder="Enter last name"
                                         maxLength="30"
                                         required
+                                        isInvalid={!!fieldErrors.lastName}
                                     />
+                                    {fieldErrors.lastName && (
+                                        <Form.Control.Feedback type="invalid">
+                                            {fieldErrors.lastName}
+                                        </Form.Control.Feedback>
+                                    )}
                                 </Form.Group>
                             </Col>
                         </Row>
@@ -309,7 +342,13 @@ const UsersModal = () => {
                                 placeholder="Enter email address"
                                 maxLength="60"
                                 required
+                                isInvalid={!!fieldErrors.email}
                             />
+                            {fieldErrors.email && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.email}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Password {!editingUser && '*'}</Form.Label>
@@ -321,7 +360,13 @@ const UsersModal = () => {
                                 placeholder={editingUser ? "Leave blank to keep current password" : "Enter password"}
                                 maxLength="80"
                                 required={!editingUser}
+                                isInvalid={!!fieldErrors.password}
                             />
+                            {fieldErrors.password && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.password}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Row>
                             <Col md={6}>
@@ -332,10 +377,16 @@ const UsersModal = () => {
                                         value={formData.userRole}
                                         onChange={handleInputChange}
                                         required
+                                        isInvalid={!!fieldErrors.userRole}
                                     >
                                         <option value="USER">User</option>
                                         <option value="ADMIN">Admin</option>
                                     </Form.Select>
+                                    {fieldErrors.userRole && (
+                                        <Form.Control.Feedback type="invalid">
+                                            {fieldErrors.userRole}
+                                        </Form.Control.Feedback>
+                                    )}
                                 </Form.Group>
                             </Col>
                             <Col md={6}>
@@ -346,10 +397,16 @@ const UsersModal = () => {
                                         value={formData.activationStatus}
                                         onChange={handleInputChange}
                                         required
+                                        isInvalid={!!fieldErrors.activationStatus}
                                     >
                                         <option value="ACTIVE">Active</option>
                                         <option value="INACTIVE">Inactive</option>
                                     </Form.Select>
+                                    {fieldErrors.activationStatus && (
+                                        <Form.Control.Feedback type="invalid">
+                                            {fieldErrors.activationStatus}
+                                        </Form.Control.Feedback>
+                                    )}
                                 </Form.Group>
                             </Col>
                         </Row>

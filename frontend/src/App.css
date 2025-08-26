@@ -365,16 +365,172 @@ td .btn {
   display: block;
 }
 
-/* Form Controls */
-.form-control {
+/* Professional Form Controls & Dropdown Styling */
+.form-control, .form-select, select.form-control {
+  border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  border-color: var(--border-color);
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 0.875rem;
+  font-weight: 400;
+  padding: 0.5rem 0.75rem;
+  transition: all 0.2s ease-in-out;
   box-shadow: var(--box-shadow);
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
 }
 
-.form-control:focus {
+/* Custom dropdown arrow for select elements */
+select.form-control, .form-select {
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 16 16'%3e%3cpath fill='none' stroke='%23343a40' stroke-linecap='round' stroke-linejoin='round' stroke-width='2' d='m1 5 6.5 6.5L14 5'/%3e%3c/svg%3e");
+  background-repeat: no-repeat;
+  background-position: right 0.75rem center;
+  background-size: 16px 12px;
+  padding-right: 2.5rem;
+}
+
+/* Hover state */
+.form-control:hover, .form-select:hover, select.form-control:hover {
   border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15);
+}
+
+/* Focus state */
+.form-control:focus, .form-select:focus, select.form-control:focus {
+  border-color: var(--brand-primary);
+  outline: none;
   box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+  background-color: var(--bg-primary);
+}
+
+/* Small size variant (like Task contributor) */
+.form-control.input-sm, .form-select.input-sm, select.form-control.input-sm {
+  padding: 0.375rem 0.5rem;
+  font-size: 0.8125rem;
+  border-radius: calc(var(--border-radius) * 0.75);
+}
+
+select.form-control.input-sm, .form-select.input-sm {
+  padding-right: 2rem;
+  background-size: 14px 10px;
+  background-position: right 0.5rem center;
+}
+
+/* Data live search styling (Task contributor main dropdown) */
+.form-control.dataLiveSearch {
+  font-weight: 500;
+  font-size: 0.9375rem;
+  padding: 0.6rem 0.75rem;
+  background-color: var(--bg-secondary);
+  border: 2px solid var(--border-color);
+  color: var(--brand-dark);
+}
+
+select.form-control.dataLiveSearch {
+  padding-right: 2.5rem;
+  background-size: 16px 12px;
+  background-position: right 0.75rem center;
+}
+
+.form-control.dataLiveSearch:hover {
+  border-color: var(--brand-primary);
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 0 0.15rem rgba(40, 167, 69, 0.1);
+}
+
+.form-control.dataLiveSearch:focus {
+  border-color: var(--brand-primary);
+  background-color: var(--bg-primary);
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Disabled state */
+.form-control:disabled, .form-select:disabled, select.form-control:disabled {
+  background-color: var(--bg-secondary);
+  border-color: var(--text-secondary);
+  color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.7;
+}
+
+/* Invalid state */
+.form-control.is-invalid, .form-select.is-invalid, select.form-control.is-invalid {
+  border-color: var(--brand-danger);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+.form-control.is-invalid:focus, .form-select.is-invalid:focus, select.form-control.is-invalid:focus {
+  border-color: var(--brand-danger);
+  box-shadow: 0 0 0 0.2rem rgba(220, 53, 69, 0.25);
+}
+
+/* Valid state */
+.form-control.is-valid, .form-select.is-valid, select.form-control.is-valid {
+  border-color: var(--brand-success);
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+/* Bootstrap Form.Select specific styling */
+.form-select {
+  cursor: pointer;
+}
+
+.form-select option {
+  color: var(--text-primary);
+  background-color: var(--bg-primary);
+  padding: 0.5rem;
+}
+
+.form-select option:hover {
+  background-color: var(--bg-accent);
+}
+
+.form-select option:checked {
+  background-color: var(--brand-primary);
+  color: var(--text-white);
+}
+
+/* Table cell dropdown styling */
+.table td select.form-control,
+.table td .form-select {
+  margin: 0;
+  width: 100%;
+  min-width: 120px;
+}
+
+.table td select.form-control.input-sm,
+.table td .form-select.input-sm {
+  min-width: 100px;
+}
+
+/* Filter dropdowns styling */
+.row .form-control,
+.row .form-select {
+  margin-bottom: 0.5rem;
+}
+
+@media (min-width: 768px) {
+  .row .form-control,
+  .row .form-select {
+    margin-bottom: 0;
+  }
+}
+
+/* Consistent height for all form controls */
+.form-control, .form-select, select.form-control {
+  height: calc(1.5em + 1rem + 2px);
+  line-height: 1.5;
+}
+
+.form-control.input-sm, .form-select.input-sm, select.form-control.input-sm {
+  height: calc(1.5em + 0.75rem + 2px);
+  line-height: 1.5;
+}
+
+.form-control.dataLiveSearch {
+  height: calc(1.5em + 1.2rem + 4px);
+  line-height: 1.5;
 }
 
 /* Professional Card Styling */
@@ -585,6 +741,158 @@ footer a:hover {
 .badge {
   font-weight: 500;
   border-radius: calc(var(--border-radius) * 0.5);
+}
+
+/* Professional Checkbox Styling */
+input[type="checkbox"] {
+  position: relative;
+  width: 18px;
+  height: 18px;
+  border: 2px solid var(--border-color);
+  border-radius: calc(var(--border-radius) * 0.5);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  vertical-align: middle;
+  margin: 0;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+input[type="checkbox"]:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15);
+}
+
+input[type="checkbox"]:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+input[type="checkbox"]:checked {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+input[type="checkbox"]:checked:hover {
+  background-color: #218838;
+  border-color: #218838;
+}
+
+input[type="checkbox"]:disabled {
+  background-color: var(--bg-secondary);
+  border-color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+input[type="checkbox"]:disabled:checked {
+  background-color: var(--text-secondary);
+  border-color: var(--text-secondary);
+}
+
+/* Checkbox Label Styling */
+label:has(input[type="checkbox"]) {
+  display: inline-flex;
+  align-items: center;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 0;
+  user-select: none;
+}
+
+label:has(input[type="checkbox"]) span {
+  margin-left: 0.5rem;
+  color: var(--text-primary);
+  transition: color 0.2s ease-in-out;
+}
+
+label:has(input[type="checkbox"]):hover span {
+  color: var(--brand-primary);
+}
+
+/* Table checkbox alignment */
+.table td label:has(input[type="checkbox"]) {
+  margin-bottom: 0;
+  justify-content: flex-start;
+  white-space: nowrap;
+}
+
+.table td input[type="checkbox"] {
+  margin-right: 0.5rem;
+}
+
+/* Form group checkbox styling */
+.form-check {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1rem;
+  padding-left: 0;
+}
+
+.form-check-input {
+  width: 18px;
+  height: 18px;
+  margin: 0 0.5rem 0 0;
+  border: 2px solid var(--border-color);
+  border-radius: calc(var(--border-radius) * 0.5);
+  background-color: var(--bg-primary);
+  cursor: pointer;
+  transition: all 0.2s ease-in-out;
+  vertical-align: middle;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.form-check-input:hover {
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.1rem rgba(40, 167, 69, 0.15);
+}
+
+.form-check-input:focus {
+  outline: none;
+  border-color: var(--brand-primary);
+  box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
+}
+
+.form-check-input:checked {
+  background-color: var(--brand-primary);
+  border-color: var(--brand-primary);
+  background-image: url("data:image/svg+xml,%3csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 20 20'%3e%3cpath fill='none' stroke='%23fff' stroke-linecap='round' stroke-linejoin='round' stroke-width='3' d='m6 10 3 3 6-6'/%3e%3c/svg%3e");
+  background-size: 100% 100%;
+  background-position: center;
+  background-repeat: no-repeat;
+}
+
+.form-check-input:checked:hover {
+  background-color: #218838;
+  border-color: #218838;
+}
+
+.form-check-input:disabled {
+  background-color: var(--bg-secondary);
+  border-color: var(--text-secondary);
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.form-check-label {
+  color: var(--text-primary);
+  font-weight: 500;
+  cursor: pointer;
+  user-select: none;
+  margin-bottom: 0;
+}
+
+.form-check:hover .form-check-label {
+  color: var(--brand-primary);
 }
 
 /* Enhanced Pagination */

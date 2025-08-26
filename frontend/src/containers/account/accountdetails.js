@@ -41,7 +41,12 @@ export default class AccountDetails extends BaseDetails {
         this.clearErrors();
         const self = this;
         const service = new AccountService();
-        service.addOrUdate(this.state.account)
+        const isUpdate = this.state.account.id && this.state.account.id !== 0;
+        const serviceCall = isUpdate
+            ? service.update(this.state.account)
+            : service.create(this.state.account);
+
+        serviceCall
             .then(response => {
                 // Force a full reload by using replace with a timestamp
                 self.props.history.replace('/account?refresh=' + Date.now());

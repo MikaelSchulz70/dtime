@@ -22,9 +22,16 @@ export class BaseService {
         return axios.delete(this.url + '/' + id, Headers());
     }
 
-    addOrUdate(entity) {
+    create(entity) {
         const payLoad = JSON.stringify(entity);
         return axios.post(this.url,
+            payLoad,
+            Headers());
+    }
+
+    update(entity) {
+        const payLoad = JSON.stringify(entity);
+        return axios.put(`${this.url}`,
             payLoad,
             Headers());
     }

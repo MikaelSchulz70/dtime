@@ -9,6 +9,7 @@ const AccountsModal = () => {
     const [editingAccount, setEditingAccount] = useState(null);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
     const [modalError, setModalError] = useState({ show: false, message: '' });
+    const [fieldErrors, setFieldErrors] = useState({});
     const [formData, setFormData] = useState({
         name: '',
         activationStatus: 'ACTIVE'
@@ -48,6 +49,7 @@ const AccountsModal = () => {
             activationStatus: 'ACTIVE'
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -58,6 +60,7 @@ const AccountsModal = () => {
             activationStatus: account.activationStatus
         });
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
         setShowModal(true);
     };
 
@@ -88,16 +91,32 @@ const AccountsModal = () => {
 
         try {
             const accountService = new AccountService();
-            const accountData = editingAccount ? { ...formData, id: editingAccount.id } : formData;
-            await accountService.addOrUdate(accountData);
-            showAlert(editingAccount ? 'Account updated successfully' : 'Account created successfully');
+            if (editingAccount) {
+                const accountData = { ...formData, id: editingAccount.id };
+                await accountService.update(accountData);
+                showAlert('Account updated successfully');
+            } else {
+                await accountService.create(formData);
+                showAlert('Account created successfully');
+            }
 
             setShowModal(false);
             loadAccounts();
         } catch (error) {
             console.error('Error saving account:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to save account';
-            setModalError({ show: true, message: errorMessage });
+            
+            if (error.response?.status === 400 && error.response?.data?.fieldErrors) {
+                // Handle field-level validation errors
+                const errors = {};
+                error.response.data.fieldErrors.forEach(fieldError => {
+                    errors[fieldError.fieldName] = fieldError.fieldError;
+                });
+                setFieldErrors(errors);
+            } else {
+                // Handle general errors
+                const errorMessage = error.response?.data?.message || error.message || 'Failed to save account';
+                setModalError({ show: true, message: errorMessage });
+            }
         }
     };
 
@@ -129,6 +148,7 @@ const AccountsModal = () => {
     const closeModal = () => {
         setShowModal(false);
         setModalError({ show: false, message: '' });
+        setFieldErrors({});
     };
 
     return (
@@ -244,7 +264,13 @@ const AccountsModal = () => {
                                 onChange={handleInputChange}
                                 placeholder="Enter account name"
                                 required
+                                isInvalid={!!fieldErrors.name}
                             />
+                            {fieldErrors.name && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.name}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                         <Form.Group className="mb-3">
                             <Form.Label>Status *</Form.Label>
@@ -253,10 +279,16 @@ const AccountsModal = () => {
                                 value={formData.activationStatus}
                                 onChange={handleInputChange}
                                 required
+                                isInvalid={!!fieldErrors.activationStatus}
                             >
                                 <option value="ACTIVE">Active</option>
                                 <option value="INACTIVE">Inactive</option>
                             </Form.Select>
+                            {fieldErrors.activationStatus && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.activationStatus}
+                                </Form.Control.Feedback>
+                            )}
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>
