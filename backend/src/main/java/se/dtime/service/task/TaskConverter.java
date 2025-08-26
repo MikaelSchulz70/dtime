@@ -9,7 +9,6 @@ import se.dtime.service.BaseConverter;
 import se.dtime.service.account.AccountConverter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskConverter extends BaseConverter {
@@ -53,7 +52,9 @@ public class TaskConverter extends BaseConverter {
     }
 
     public Task[] toModel(List<TaskPO> taskPOList) {
-        List<Task> categories = taskPOList.stream().map(c -> toModel(c)).collect(Collectors.toList());
-        return categories.toArray(new Task[categories.size()]);
+        List<Task> categories = taskPOList.stream()
+                .map(this::toModel)
+                .toList();
+        return categories.toArray(new Task[0]);
     }
 }

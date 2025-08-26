@@ -6,7 +6,6 @@ import se.dtime.model.Account;
 import se.dtime.service.BaseConverter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class AccountConverter extends BaseConverter {
@@ -41,7 +40,9 @@ public class AccountConverter extends BaseConverter {
     }
 
     public Account[] toModel(List<AccountPO> accountPOList) {
-        List<Account> accounts = accountPOList.stream().map(o -> toModel(o)).collect(Collectors.toList());
-        return accounts.toArray(new Account[accounts.size()]);
+        List<Account> accounts = accountPOList.stream()
+                .map(this::toModel)
+                .toList();
+        return accounts.toArray(new Account[0]);
     }
 }

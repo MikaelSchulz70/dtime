@@ -22,8 +22,8 @@ public class TaskRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
-    public ResponseEntity add(@Valid @RequestBody Task task) {
-        if (task.getId() == 0) {
+    public ResponseEntity<Void> add(@Valid @RequestBody Task task) {
+        if (task.getId() == null || task.getId() == 0) {
             taskService.add(task);
         } else {
             taskService.update(task);

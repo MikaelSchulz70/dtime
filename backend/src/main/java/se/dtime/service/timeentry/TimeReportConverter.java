@@ -131,11 +131,15 @@ public class TimeReportConverter extends BaseConverter {
     }
 
     public List<UserVacation> convertToUserVacations(List<UserPO> userPOs, List<TimeEntryPO> timeEntryPOS, Day[] days) {
-        return userPOs.stream().map(u -> convertToUserVacation(u, timeEntryPOS, days)).collect(Collectors.toList());
+        return userPOs.stream()
+                .map(u -> convertToUserVacation(u, timeEntryPOS, days))
+                .toList();
     }
 
     private UserVacation convertToUserVacation(UserPO userPO, List<TimeEntryPO> timeEntryPOS, Day[] days) {
-        List<TimeEntryPO> timeForUser = timeEntryPOS.stream().filter(t -> t.getTaskContributor().getUser().getId().equals(userPO.getId())).collect(Collectors.toList());
+        List<TimeEntryPO> timeForUser = timeEntryPOS.stream()
+                .filter(t -> t.getTaskContributor().getUser().getId().equals(userPO.getId()))
+                .toList();
 
         VacationDay[] vacationDays = Arrays.stream(days).
                 map(d -> VacationDay.builder().day(d).isVacation(isVacation(d, timeForUser)).build()).

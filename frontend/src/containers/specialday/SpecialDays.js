@@ -10,6 +10,7 @@ const SpecialDays = () => {
     const [showModal, setShowModal] = useState(false);
     const [editingSpecialDay, setEditingSpecialDay] = useState(null);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
+    const [modalError, setModalError] = useState({ show: false, message: '' });
     const [formData, setFormData] = useState({
         name: '',
         dayType: 'PUBLIC_HOLIDAY',
@@ -66,6 +67,7 @@ const SpecialDays = () => {
             dayType: 'PUBLIC_HOLIDAY',
             date: ''
         });
+        setModalError({ show: false, message: '' });
         setShowModal(true);
     };
 
@@ -76,6 +78,7 @@ const SpecialDays = () => {
             dayType: specialDay.dayType,
             date: specialDay.date
         });
+        setModalError({ show: false, message: '' });
         setShowModal(true);
     };
 
@@ -118,9 +121,10 @@ const SpecialDays = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+        setModalError({ show: false, message: '' });
         
         if (!formData.name || !formData.date || !formData.dayType) {
-            showAlert('Please fill in all required fields', 'danger');
+            setModalError({ show: true, message: 'Please fill in all required fields' });
             return;
         }
 
@@ -141,7 +145,7 @@ const SpecialDays = () => {
         } catch (error) {
             console.error('Error saving special day:', error);
             const errorMessage = error.response?.data?.message || error.message || 'Failed to save special day';
-            showAlert(errorMessage, 'danger');
+            setModalError({ show: true, message: errorMessage });
         }
     };
 
@@ -330,7 +334,7 @@ const SpecialDays = () => {
                 </Card.Body>
             </Card>
 
-            <Modal show={showModal} onHide={() => setShowModal(false)}>
+            <Modal show={showModal} onHide={() => { setShowModal(false); setModalError({ show: false, message: '' }); }}>
                 <Modal.Header closeButton>
                     <Modal.Title>
                         {editingSpecialDay ? 'Edit Special Day' : 'Create Special Day'}
@@ -338,6 +342,11 @@ const SpecialDays = () => {
                 </Modal.Header>
                 <Form onSubmit={handleSubmit}>
                     <Modal.Body>
+                        {modalError.show && (
+                            <Alert variant="danger" className="mb-3">
+                                {modalError.message}
+                            </Alert>
+                        )}
                         <Form.Group className="mb-3">
                             <Form.Label>Name *</Form.Label>
                             <Form.Control
@@ -376,7 +385,7 @@ const SpecialDays = () => {
                         </Form.Group>
                     </Modal.Body>
                     <Modal.Footer>
-                        <Button variant="secondary" onClick={() => setShowModal(false)}>
+                        <Button variant="secondary" onClick={() => { setShowModal(false); setModalError({ show: false, message: '' }); }}>
                             Cancel
                         </Button>
                         <Button variant="primary" type="submit">

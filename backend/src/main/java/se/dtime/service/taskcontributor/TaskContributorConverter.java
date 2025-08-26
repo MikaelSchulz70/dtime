@@ -15,7 +15,6 @@ import se.dtime.service.user.UserConverter;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 @Service
 public class TaskContributorConverter extends BaseConverter {
@@ -37,7 +36,9 @@ public class TaskContributorConverter extends BaseConverter {
     }
 
     public List<TaskContributor> toModel(List<TaskContributorPO> taskContributorPOList) {
-        return taskContributorPOList.stream().map(p -> toModel(p)).collect(Collectors.toList());
+        return taskContributorPOList.stream()
+                .map(this::toModel)
+                .toList();
     }
 
     public TaskContributorPO toPO(TaskContributor taskContributor) {

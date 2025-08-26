@@ -8,7 +8,6 @@ import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import se.dtime.common.CommonData;
-import se.dtime.dbmodel.BasePO;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
@@ -23,10 +22,9 @@ import se.dtime.repository.UserRepository;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
-public class UserService extends BasePO {
+public class UserService {
 
     @Autowired
     private UserRepository userRepository;
@@ -55,7 +53,7 @@ public class UserService extends BasePO {
         UserPO currentUser = userRepository.findById(user.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
         UserPO userPO = userConverter.toPO(user, currentUser);
 
-        if (user.getActivationStatus() == ActivationStatus.INACTIVE && userPO.getActivationStatus() == ActivationStatus.ACTIVE) {
+        if (user.getActivationStatus() == ActivationStatus.INACTIVE && currentUser.getActivationStatus() == ActivationStatus.ACTIVE) {
             List<TaskContributorPO> taskContributorPOS = taskContributorRepository.findByUser(userPO);
             taskContributorPOS.forEach(a -> a.setActivationStatus(ActivationStatus.INACTIVE));
         }
@@ -73,7 +71,9 @@ public class UserService extends BasePO {
             userPOS = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE);
         }
 
-        userPOS = userPOS.stream().filter(u -> u.getId() != CommonData.SYSTEM_USER_ID).collect(Collectors.toList());
+        userPOS = userPOS.stream()
+                .filter(u -> u.getId() != CommonData.SYSTEM_USER_ID)
+                .toList();
 
         return userConverter.toModel(userPOS);
     }

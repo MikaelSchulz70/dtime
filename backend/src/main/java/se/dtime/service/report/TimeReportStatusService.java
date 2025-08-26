@@ -8,7 +8,10 @@ import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.CloseDatePO;
 import se.dtime.model.ReportDates;
 import se.dtime.model.error.NotFoundException;
-import se.dtime.model.report.*;
+import se.dtime.model.report.ReportView;
+import se.dtime.model.report.UnclosedUser;
+import se.dtime.model.report.UnclosedUserReport;
+import se.dtime.model.report.UserReport;
 import se.dtime.model.timereport.CloseDate;
 import se.dtime.model.timereport.Day;
 import se.dtime.repository.CloseDateRepository;
@@ -17,7 +20,6 @@ import se.dtime.service.calendar.CalendarService;
 
 import java.time.LocalDate;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -64,7 +66,7 @@ public class TimeReportStatusService {
         }
 
         ReportDates reportDates = ReportUtil.getReportDates(ReportView.MONTH, date);
-        
+
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
         int workableHours = calendarService.calcWorkableHours(days);
 
@@ -86,7 +88,7 @@ public class TimeReportStatusService {
                     if (nameComparison != 0) return nameComparison;
                     return a.getEmail().compareToIgnoreCase(b.getEmail());
                 })
-                .collect(Collectors.toList());
+                .toList();
 
         return UnclosedUserReport.builder()
                 .fromDate(reportDates.getFromDate())

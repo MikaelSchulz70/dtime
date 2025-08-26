@@ -23,7 +23,7 @@ public class AccountRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
     public ResponseEntity<Void> addOrUpdate(@Valid @RequestBody Account account) {
-        if (account.getId() == 0) {
+        if (account.getId() == null || account.getId() == 0) {
             accountService.add(account);
         } else {
             accountService.update(account);

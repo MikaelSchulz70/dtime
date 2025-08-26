@@ -15,7 +15,6 @@ import se.dtime.common.Messages;
 import se.dtime.model.error.*;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @ControllerAdvice
@@ -140,7 +139,8 @@ public class CustomizedResponseEntityExceptionHandler {
         BindingResult result = exception.getBindingResult();
 
         List<FieldError> fieldErrors = result.getFieldErrors().stream().
-                map(e -> new FieldError(e.getField(), e.getDefaultMessage())).collect(Collectors.toList());
+                map(e -> new FieldError(e.getField(), e.getDefaultMessage()))
+                .toList();
 
         ApiError apiError = new ApiError(fieldErrors);
         return new ResponseEntity<>(apiError, apiError.getStatus());

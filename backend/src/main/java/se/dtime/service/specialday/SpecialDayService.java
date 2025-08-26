@@ -16,7 +16,6 @@ import se.dtime.service.calendar.CalendarService;
 
 import java.io.IOException;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -38,7 +37,7 @@ public class SpecialDayService {
         List<SpecialDayPO> specialDayPOs = specialDayRepository.findAll();
         return specialDayPOs.stream()
                 .map(specialDayConverter::toModel)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public List<Integer> getAvailableYears() {
@@ -49,7 +48,7 @@ public class SpecialDayService {
         List<SpecialDayPO> specialDayPOs = specialDayRepository.findByYear(year);
         return specialDayPOs.stream()
                 .map(specialDayConverter::toModel)
-                .collect(Collectors.toList());
+                .toList();
     }
 
     public SpecialDay getSpecialDay(Long id) {
@@ -68,14 +67,14 @@ public class SpecialDayService {
 
     public SpecialDay updateSpecialDay(Long id, SpecialDay specialDay) {
         specialDayValidator.validateUpdate(specialDay);
-        
+
         SpecialDayPO existingPO = specialDayRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("special.day.not.found"));
-        
+
         existingPO.setName(specialDay.getName());
         existingPO.setDayType(specialDay.getDayType());
         existingPO.setDate(specialDay.getDate());
-        
+
         SpecialDayPO savedPO = specialDayRepository.save(existingPO);
         calendarService.resetSpecialDaysCache();
         return specialDayConverter.toModel(savedPO);
@@ -110,10 +109,11 @@ public class SpecialDayService {
         try {
             ObjectMapper objectMapper = new ObjectMapper();
             objectMapper.registerModule(new JavaTimeModule());
-            
+
             List<SpecialDay> specialDays = objectMapper.readValue(
-                file.getInputStream(), 
-                new TypeReference<List<SpecialDay>>() {}
+                    file.getInputStream(),
+                    new TypeReference<List<SpecialDay>>() {
+                    }
             );
 
             // Validate all special days
@@ -124,16 +124,16 @@ public class SpecialDayService {
             // Convert and save all special days
             List<SpecialDayPO> specialDayPOs = specialDays.stream()
                     .map(specialDayConverter::toPO)
-                    .collect(Collectors.toList());
+                    .toList();
 
             List<SpecialDayPO> savedPOs = specialDayRepository.saveAll(specialDayPOs);
             calendarService.resetSpecialDaysCache();
-            
+
             log.info("Successfully uploaded {} special days from JSON file", savedPOs.size());
-            
+
             return savedPOs.stream()
                     .map(specialDayConverter::toModel)
-                    .collect(Collectors.toList());
+                    .toList();
 
         } catch (IOException e) {
             log.error("Error reading JSON file: {}", e.getMessage());

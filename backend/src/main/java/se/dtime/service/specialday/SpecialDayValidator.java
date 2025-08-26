@@ -13,6 +13,9 @@ import java.util.Optional;
 @Service
 public class SpecialDayValidator {
 
+    private static final int MAX_NAME_LENGTH = 40;
+    private static final int MAX_YEARS_IN_PAST = 2;
+
     @Autowired
     private SpecialDayRepository specialDayRepository;
 
@@ -53,7 +56,7 @@ public class SpecialDayValidator {
             throw new ValidationException("special.day.name.required");
         }
 
-        if (specialDay.getName().length() > 40) {
+        if (specialDay.getName().length() > MAX_NAME_LENGTH) {
             throw new ValidationException("special.day.name.too.long");
         }
 
@@ -65,9 +68,9 @@ public class SpecialDayValidator {
             throw new ValidationException("special.day.date.required");
         }
 
-        // Validate date is not too old (allow dates up to 2 years in the past)
-        LocalDate twoYearsAgo = LocalDate.now().minusYears(2);
-        if (specialDay.getDate().isBefore(twoYearsAgo)) {
+        // Validate date is not too old
+        LocalDate cutoffDate = LocalDate.now().minusYears(MAX_YEARS_IN_PAST);
+        if (specialDay.getDate().isBefore(cutoffDate)) {
             throw new ValidationException("special.day.date.too.old");
         }
     }

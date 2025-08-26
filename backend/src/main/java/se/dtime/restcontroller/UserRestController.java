@@ -24,7 +24,7 @@ public class UserRestController {
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
     public ResponseEntity<Void> addOrUpdate(@Valid @RequestBody User user) {
-        if (user.getId() == 0) {
+        if (user.getId() == null || user.getId() == 0) {
             userService.add(user);
         } else {
             userService.update(user);

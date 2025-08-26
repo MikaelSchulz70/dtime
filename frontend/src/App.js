@@ -16,10 +16,13 @@ import NavigationMenu from './containers/menu/menu';
 import Times from './containers/timereport/time';
 import Users from './containers/user/users';
 import UserDetails from './containers/user/userdetails';
+import UsersModal from './containers/user/UsersModal';
 import Account from './containers/account/account';
 import AccountDetails from './containers/account/accountdetails';
+import AccountsModal from './containers/account/AccountsModal';
 import Task from './containers/task/task';
 import TaskDetails from './containers/task/taskdetails';
+import TasksModal from './containers/task/TasksModal';
 import TaskContributor from './containers/taskcontributor/taskcontributor';
 import AdminReports from './containers/report/AdminReports';
 import UserReports from './containers/report/UserReports';
@@ -70,11 +73,14 @@ const Main = () => (
           <Switch>
             <Route exact path='/' component={Times} />
             <Route exact path='/time' component={Times} />
-            <Route exact path='/users' component={Users} />
+            <Route exact path='/users' component={UsersModal} />
+            <Route exact path='/users-old' component={Users} />
             <Route exact path='/users/:userId' component={UserDetails} />
-            <Route exact path='/account' component={Account} />
+            <Route exact path='/account' component={AccountsModal} />
+            <Route exact path='/account-old' component={Account} />
             <Route exact path='/account/:accountId' component={AccountDetails} />
-            <Route exact path='/task' component={Task} />
+            <Route exact path='/task' component={TasksModal} />
+            <Route exact path='/task-old' component={Task} />
             <Route exact path='/task/:taskId' component={TaskDetails} />
             <Route exact path='/tasks/:taskId' component={TaskDetails} />
             <Route exact path='/taskcontributor' component={TaskContributor} />

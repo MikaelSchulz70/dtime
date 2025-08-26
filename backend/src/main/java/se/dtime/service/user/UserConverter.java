@@ -9,7 +9,6 @@ import se.dtime.model.User;
 import se.dtime.service.BaseConverter;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Service
 public class UserConverter extends BaseConverter {
@@ -79,7 +78,9 @@ public class UserConverter extends BaseConverter {
     }
 
     public User[] toModel(List<UserPO> userPOList) {
-        List<User> users = userPOList.stream().map(this::toModel).collect(Collectors.toList());
-        return users.toArray(new User[users.size()]);
+        List<User> users = userPOList.stream()
+                .map(this::toModel)
+                .toList();
+        return users.toArray(new User[0]);
     }
 }
