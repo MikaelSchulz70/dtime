@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col } from 'react-bootstrap';
+import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
 
@@ -23,18 +23,48 @@ const TasksModal = () => {
         status: 'ACTIVE',
         account: ''
     });
+    const [pagination, setPagination] = useState({
+        currentPage: 1,
+        itemsPerPage: 10,
+        totalPages: 0,
+        totalElements: 0
+    });
 
     useEffect(() => {
         loadTasks();
         loadAccounts();
     }, []);
+    
+    useEffect(() => {
+        loadTasks();
+    }, [pagination.currentPage, pagination.itemsPerPage]);
 
     const loadTasks = async () => {
         setLoading(true);
         try {
             const taskService = new TaskService();
-            const response = await taskService.getAll();
-            setTasks(response.data);
+            const activeFilter = filters.status === '' ? null : (filters.status === 'ACTIVE');
+            const accountFilter = filters.account === '' ? null : filters.account;
+            const response = await taskService.getAllPaged(
+                pagination.currentPage - 1, // Backend uses 0-based indexing
+                pagination.itemsPerPage,
+                'name',
+                'asc',
+                activeFilter,
+                filters.name,
+                accountFilter
+            );
+            
+            // Update pagination info from server response
+            const serverResponse = response.data;
+            setPagination(prev => ({
+                ...prev,
+                currentPage: serverResponse.currentPage + 1, // Convert to 1-based for UI
+                totalPages: serverResponse.totalPages,
+                totalElements: serverResponse.totalElements
+            }));
+            
+            setTasks(serverResponse.content);
         } catch (error) {
             console.error('Error loading tasks:', error);
             showAlert('Failed to load tasks', 'danger');
@@ -98,6 +128,23 @@ const TasksModal = () => {
         setFilters(prev => ({
             ...prev,
             [name]: value
+        }));
+        // Reset to first page and reload data when filters change
+        setPagination(prev => ({ ...prev, currentPage: 1 }));
+    };
+
+    const handlePageSizeChange = (e) => {
+        const newPageSize = parseInt(e.target.value, 10);
+        setPagination({
+            currentPage: 1,
+            itemsPerPage: newPageSize
+        });
+    };
+
+    const handlePageChange = (pageNumber) => {
+        setPagination(prev => ({
+            ...prev,
+            currentPage: pageNumber
         }));
     };
 
@@ -164,14 +211,11 @@ const TasksModal = () => {
         }
     };
 
-    // Filter tasks based on filter criteria
-    const filteredTasks = tasks.filter(task => {
-        return (
-            task.name.toLowerCase().includes(filters.name.toLowerCase()) &&
-            (filters.status === '' || task.activationStatus === filters.status) &&
-            (filters.account === '' || task.account?.id.toString() === filters.account)
-        );
-    });
+    // Server handles filtering and pagination, so we use tasks directly
+    const totalItems = pagination.totalElements;
+    const totalPages = pagination.totalPages;
+    const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
+    const endIndex = Math.min(startIndex + pagination.itemsPerPage, totalItems);
 
     const closeModal = () => {
         setShowModal(false);
@@ -234,6 +278,20 @@ const TasksModal = () => {
                                 ))}
                             </Form.Select>
                         </Col>
+                        <Col md={3} className="d-flex align-items-center">
+                            <span className="me-2">Show:</span>
+                            <Form.Select 
+                                size="sm" 
+                                style={{ width: 'auto' }} 
+                                value={pagination.itemsPerPage} 
+                                onChange={handlePageSizeChange}
+                            >
+                                <option value={10}>10</option>
+                                <option value={50}>50</option>
+                                <option value={100}>100</option>
+                            </Form.Select>
+                            <span className="ms-2">entries</span>
+                        </Col>
                     </Row>
 
                     {/* Tasks Table */}
@@ -252,12 +310,12 @@ const TasksModal = () => {
                                 <tr>
                                     <td colSpan="5" className="text-center">Loading...</td>
                                 </tr>
-                            ) : filteredTasks.length === 0 ? (
+                            ) : tasks.length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="text-center">No tasks found</td>
                                 </tr>
                             ) : (
-                                filteredTasks.map(task => (
+                                tasks.map(task => (
                                     <tr key={task.id}>
                                         <td>{task.name}</td>
                                         <td>{task.taskType}</td>
@@ -285,6 +343,36 @@ const TasksModal = () => {
                             )}
                         </tbody>
                     </Table>
+                    
+                    {/* Pagination */}
+                    {totalPages > 1 && (
+                        <Row className="mt-3">
+                            <Col className="d-flex justify-content-between align-items-center">
+                                <div className="text-muted">
+                                    Showing {Math.min(startIndex + 1, totalItems)} to {endIndex} of {totalItems} entries
+                                </div>
+                                <Pagination size="sm">
+                                    <Pagination.Prev 
+                                        disabled={pagination.currentPage === 1}
+                                        onClick={() => handlePageChange(pagination.currentPage - 1)}
+                                    />
+                                    {[...Array(totalPages)].map((_, index) => (
+                                        <Pagination.Item
+                                            key={index + 1}
+                                            active={index + 1 === pagination.currentPage}
+                                            onClick={() => handlePageChange(index + 1)}
+                                        >
+                                            {index + 1}
+                                        </Pagination.Item>
+                                    ))}
+                                    <Pagination.Next 
+                                        disabled={pagination.currentPage === totalPages}
+                                        onClick={() => handlePageChange(pagination.currentPage + 1)}
+                                    />
+                                </Pagination>
+                            </Col>
+                        </Row>
+                    )}
                 </Card.Body>
             </Card>
 

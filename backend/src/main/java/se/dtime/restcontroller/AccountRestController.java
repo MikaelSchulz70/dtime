@@ -2,12 +2,16 @@ package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import se.dtime.model.Account;
 import se.dtime.model.Attribute;
+import se.dtime.model.PagedResponse;
 import se.dtime.service.account.AccountService;
 import se.dtime.service.account.AccountValidator;
 
@@ -38,6 +42,23 @@ public class AccountRestController {
     @GetMapping(path = "")
     public ResponseEntity<Account[]> getAll(@RequestParam(value = "active", required = false) Boolean active) {
         return new ResponseEntity<>(accountService.getAll(active), HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/paged")
+    public ResponseEntity<PagedResponse<Account>> getAllPaged(
+            @RequestParam(value = "page", defaultValue = "0") int page,
+            @RequestParam(value = "size", defaultValue = "10") int size,
+            @RequestParam(value = "sort", defaultValue = "name") String sort,
+            @RequestParam(value = "direction", defaultValue = "asc") String direction,
+            @RequestParam(value = "active", required = false) Boolean active,
+            @RequestParam(value = "name", required = false) String name) {
+        
+        Sort.Direction sortDirection = Sort.Direction.fromString(direction);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        
+        PagedResponse<Account> response = accountService.getAllPaged(pageable, active, name);
+        return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")

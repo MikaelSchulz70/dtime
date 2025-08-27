@@ -2,6 +2,8 @@ package se.dtime.service.user;
 
 import org.apache.commons.lang3.StringUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -11,6 +13,7 @@ import se.dtime.common.CommonData;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
+import se.dtime.model.PagedResponse;
 import se.dtime.model.User;
 import se.dtime.model.UserPwd;
 import se.dtime.model.error.NotFoundException;
@@ -21,6 +24,7 @@ import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.Arrays;
 import java.util.List;
 
 @Service
@@ -76,6 +80,38 @@ public class UserService {
                 .toList();
 
         return userConverter.toModel(userPOS);
+    }
+
+    public PagedResponse<User> getAllPaged(Pageable pageable, Boolean active, String firstName, String lastName) {
+        Page<UserPO> page;
+        
+        if (active != null) {
+            ActivationStatus activationStatus = active ? ActivationStatus.ACTIVE : ActivationStatus.INACTIVE;
+            page = userRepository.findByActivationStatus(pageable, activationStatus);
+        } else {
+            page = userRepository.findAll(pageable);
+        }
+        
+        // Filter out system user and apply additional filters
+        List<UserPO> filteredUserPOS = page.getContent().stream()
+                .filter(u -> u.getId() != CommonData.SYSTEM_USER_ID)
+                .filter(u -> firstName == null || firstName.isEmpty() || 
+                    u.getFirstName().toLowerCase().contains(firstName.toLowerCase()))
+                .filter(u -> lastName == null || lastName.isEmpty() || 
+                    u.getLastName().toLowerCase().contains(lastName.toLowerCase()))
+                .toList();
+        
+        User[] users = userConverter.toModel(filteredUserPOS);
+        
+        return new PagedResponse<>(
+            Arrays.asList(users),
+            page.getNumber(),
+            page.getTotalPages(),
+            page.getTotalElements(),
+            page.getSize(),
+            page.isFirst(),
+            page.isLast()
+        );
     }
 
     public User get(long id) {

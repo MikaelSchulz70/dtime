@@ -145,6 +145,44 @@ class TaskRestControllerIT extends BaseRestControllerIT {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedTasksSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/task/paged")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.currentPage").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber())
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.pageSize").value(10));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedTasksWithFiltersSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/task/paged")
+                .param("page", "0")
+                .param("size", "10")
+                .param("active", "true")
+                .param("name", "Test")
+                .param("accountId", testAccount.getId().toString())
+                .param("sort", "name")
+                .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldReturnForbiddenForGetPagedWithUserRole() throws Exception {
+        mockMvc.perform(get("/api/task/paged"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "USER")
     void shouldReturnForbiddenForGetAllWithUserRole() throws Exception {
         mockMvc.perform(get("/api/task"))

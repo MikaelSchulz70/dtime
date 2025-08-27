@@ -1,6 +1,9 @@
 package se.dtime.repository;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 import se.dtime.dbmodel.AccountPO;
@@ -19,4 +22,12 @@ public interface TaskRepository extends JpaRepository<TaskPO, Long> {
     List<TaskPO> findByAccount(@Param("account") AccountPO account);
 
     List<TaskPO> findByTaskTypeAndAccount(@Param("taskType") TaskType taskType, @Param("account") AccountPO account);
+
+    Page<TaskPO> findByActivationStatus(Pageable pageable, ActivationStatus activationStatus);
+    
+    Page<TaskPO> findByAccountId(Pageable pageable, Long accountId);
+    
+    Page<TaskPO> findByActivationStatusAndAccountId(Pageable pageable, ActivationStatus activationStatus, Long accountId);
+    
+    Page<TaskPO> findAll(Pageable pageable);
 }

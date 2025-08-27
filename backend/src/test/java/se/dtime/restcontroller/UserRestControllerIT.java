@@ -144,6 +144,43 @@ class UserRestControllerIT extends BaseRestControllerIT {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedUsersSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/users/paged")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.currentPage").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber())
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.pageSize").value(10));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedUsersWithFiltersSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/users/paged")
+                .param("page", "0")
+                .param("size", "10")
+                .param("active", "true")
+                .param("firstName", "Test")
+                .param("sort", "firstName")
+                .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldReturnForbiddenForGetPagedWithUserRole() throws Exception {
+        mockMvc.perform(get("/api/users/paged"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
     @WithMockUser(roles = "USER")
     void shouldReturnForbiddenForGetAllWithUserRole() throws Exception {
         mockMvc.perform(get("/api/users"))

@@ -15,4 +15,17 @@ export default class UserService extends BaseService {
             payLoad,
             Headers());
     }
+
+    getAllPaged(page, size, sort, direction, active, firstName, lastName) {
+        const params = new URLSearchParams();
+        if (page !== undefined) params.append('page', page);
+        if (size !== undefined) params.append('size', size);
+        if (sort) params.append('sort', sort);
+        if (direction) params.append('direction', direction);
+        if (active !== null && active !== undefined && active !== '') params.append('active', active);
+        if (firstName) params.append('firstName', firstName);
+        if (lastName) params.append('lastName', lastName);
+
+        return axios.get(`${BASE_URL}/paged?${params.toString()}`, Headers());
+    }
 } 

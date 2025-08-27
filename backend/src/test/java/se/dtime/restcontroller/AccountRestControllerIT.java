@@ -36,10 +36,10 @@ class AccountRestControllerIT extends BaseRestControllerIT {
                 .activationStatus(ActivationStatus.ACTIVE) // Keep ACTIVE to avoid validation error
                 .build();
 
-        mockMvc.perform(post("/api/account")
+        mockMvc.perform(put("/api/account")
                 .contentType(MediaType.APPLICATION_JSON)
                 .content(asJsonString(account)))
-                .andExpect(status().isCreated());
+                .andExpect(status().isOk());
     }
 
     @Test
@@ -115,6 +115,43 @@ class AccountRestControllerIT extends BaseRestControllerIT {
         mockMvc.perform(get("/api/account").param("active", "true"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedAccountsSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/account/paged")
+                .param("page", "0")
+                .param("size", "10"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray())
+                .andExpect(jsonPath("$.currentPage").isNumber())
+                .andExpect(jsonPath("$.totalPages").isNumber())
+                .andExpect(jsonPath("$.totalElements").isNumber())
+                .andExpect(jsonPath("$.pageSize").value(10));
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedAccountsWithFiltersSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/account/paged")
+                .param("page", "0")
+                .param("size", "10")
+                .param("active", "true")
+                .param("name", "Test")
+                .param("sort", "name")
+                .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
+    @WithMockUser(roles = "USER")
+    void shouldReturnForbiddenForGetPagedWithUserRole() throws Exception {
+        mockMvc.perform(get("/api/account/paged"))
+                .andExpect(status().isForbidden());
     }
 
     @Test
