@@ -1,4 +1,5 @@
 import React from "react";
+import { Container, Card, Table, Row, Col, Alert } from 'react-bootstrap';
 import TaskContributorService from '../../service/TaskContributorService';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
@@ -30,7 +31,8 @@ class TaskcontributorTableRow extends React.Component {
                 self.props.activationStatusChanged(taskcontributor);
             })
             .catch(error => {
-                alert('Failed to update');
+                console.error('Failed to update task contributor:', error);
+                // Note: We could pass a callback here to show alerts in the parent component
             });
     }
 
@@ -88,16 +90,16 @@ class TaskContributorTable extends React.Component {
         }
 
         return (
-            <table className="table table-striped">
-                <thead className="thead-inverse bg-success">
-                    <tr className="text-white">
-                        <th>account</th>
-                        <th>task</th>
+            <Table striped bordered hover responsive>
+                <thead>
+                    <tr>
+                        <th>Account</th>
+                        <th>Task</th>
                         <th>Status</th>
                     </tr>
                 </thead>
                 <tbody>{rows}</tbody>
-            </table>
+            </Table>
         );
     }
 };
@@ -108,14 +110,31 @@ export default class TaskContributor extends React.Component {
         this.loadFromServer = this.loadFromServer.bind(this);
         this.filterChanged = this.filterChanged.bind(this);
         this.handleUserChange = this.handleUserChange.bind(this);
+        this.handleUserSearch = this.handleUserSearch.bind(this);
+        this.handleUserSelect = this.handleUserSelect.bind(this);
+        this.handleKeyDown = this.handleKeyDown.bind(this);
         this.activationStatusChanged = this.activationStatusChanged.bind(this);
 
-        this.state = { accountNameFilter: '', taskNameFilter: '', statusFilter: Constants.ACTIVE_STATUS };
+        this.state = {
+            accountNameFilter: '',
+            taskNameFilter: '',
+            statusFilter: Constants.ACTIVE_STATUS,
+            userSearchTerm: '',
+            selectedUserId: 0,
+            showUserDropdown: false,
+            highlightedIndex: -1,
+            alert: { show: false, message: '', type: 'success' }
+        };
     }
 
     componentDidMount() {
         this.loadFromServer();
     }
+
+    showAlert = (message, type = 'success') => {
+        this.setState({ alert: { show: true, message, type } });
+        setTimeout(() => this.setState({ alert: { show: false, message: '', type: 'success' } }), 5000);
+    };
 
     loadFromServer() {
         console.log('TaskContributor loadFromServer called');
@@ -127,7 +146,7 @@ export default class TaskContributor extends React.Component {
             })
             .catch(error => {
                 console.error('Failed to load users:', error);
-                alert('Failed to load users');
+                this.showAlert('Failed to load users', 'danger');
             });
     }
 
@@ -150,12 +169,87 @@ export default class TaskContributor extends React.Component {
         this.setState({ [name]: value });
     }
 
-    handleUserChange(event) {
-        const userId = parseInt(event.target.value, 10);
+    handleUserSearch(event) {
+        const value = event.target.value;
+        this.setState({
+            userSearchTerm: value,
+            showUserDropdown: value.length > 0,
+            highlightedIndex: -1 // Reset highlighting when typing
+        });
+
+        // If search is cleared, reset selection
+        if (value === '') {
+            this.handleUserSelection(0);
+        }
+    }
+
+    handleUserSelect(user) {
+        this.setState({
+            userSearchTerm: `${user.firstName} ${user.lastName} (${user.email})`,
+            showUserDropdown: false,
+            highlightedIndex: -1
+        });
+        this.handleUserSelection(user.id);
+    }
+
+    handleKeyDown(event) {
+        if (!this.state.showUserDropdown) return;
+
+        const filteredUsers = this.state.users.filter(user => {
+            if (!this.state.userSearchTerm) return true;
+            const fullName = `${user.firstName} ${user.lastName} ${user.email}`.toLowerCase();
+            return fullName.includes(this.state.userSearchTerm.toLowerCase());
+        });
+
+        const maxIndex = Math.min(filteredUsers.length - 1, 9); // Limit to 10 items
+
+        switch (event.key) {
+            case 'ArrowDown':
+                event.preventDefault();
+                this.setState(prevState => ({
+                    highlightedIndex: prevState.highlightedIndex < maxIndex ? prevState.highlightedIndex + 1 : 0
+                }));
+                break;
+
+            case 'ArrowUp':
+                event.preventDefault();
+                this.setState(prevState => ({
+                    highlightedIndex: prevState.highlightedIndex > 0 ? prevState.highlightedIndex - 1 : maxIndex
+                }));
+                break;
+
+            case 'Enter':
+                event.preventDefault();
+                if (this.state.highlightedIndex >= 0 && this.state.highlightedIndex <= maxIndex) {
+                    const selectedUser = filteredUsers[this.state.highlightedIndex];
+                    this.handleUserSelect(selectedUser);
+                }
+                break;
+
+            case 'Escape':
+                event.preventDefault();
+                this.setState({ 
+                    showUserDropdown: false, 
+                    highlightedIndex: -1 
+                });
+                break;
+
+            default:
+                break;
+        }
+    }
+
+    handleUserSelection(userId) {
         console.log('User selected:', userId);
+        this.setState({ selectedUserId: userId });
 
         if (userId === 0) {
-            this.setState({ accountNameFilter: '', taskNameFilter: '', statusFilter: Constants.ACTIVE_STATUS, taskcontributors: null });
+            this.setState({
+                accountNameFilter: '',
+                taskNameFilter: '',
+                statusFilter: Constants.ACTIVE_STATUS,
+                taskcontributors: null
+            });
             return;
         }
 
@@ -169,54 +263,138 @@ export default class TaskContributor extends React.Component {
             .catch(error => {
                 console.error('Failed to load taskcontributors:', error.response?.status, error.response?.data);
                 if (error.response?.status === 403) {
-                    alert('Access denied: You need admin privileges to view task contributors');
+                    this.showAlert('Access denied: You need admin privileges to view task contributors', 'danger');
                 } else {
-                    alert('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message));
+                    this.showAlert('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message), 'danger');
                 }
             });
     }
 
+    handleUserChange(event) {
+        const userId = parseInt(event.target.value, 10);
+        this.handleUserSelection(userId);
+    }
+
     render() {
-        if (this.state == null || this.state.users == null) return null;
+        if (this.state == null || this.state.users == null) {
+            return (
+                <Container fluid className="mt-4">
+                    <div className="text-center">
+                        <div className="spinner-border" role="status">
+                            <span className="visually-hidden">Loading...</span>
+                        </div>
+                    </div>
+                </Container>
+            );
+        }
 
-
-        let userOptions = this.state.users.map(u => (
-            <option value={u.id} key={u.id} >{u.firstName + ' ' + u.lastName}</option>
-        ));
-
-        userOptions.unshift(<option value={0} key={0}>{'Select a user...'}</option>);
+        // Filter users based on search term
+        const filteredUsers = this.state.users.filter(user => {
+            if (!this.state.userSearchTerm) return true;
+            const fullName = `${user.firstName} ${user.lastName} ${user.email}`.toLowerCase();
+            return fullName.includes(this.state.userSearchTerm.toLowerCase());
+        });
 
         return (
-            <div className="container">
-                <h2>Task Contributor</h2>
-                <div className="row mb-3">
-                    <div className="col-sm-3">
-                        <select className="form-control dataLiveSearch" value={this.state.userId} name="user.id" onChange={this.handleUserChange}>
-                            {userOptions}
-                        </select>
-                    </div>
-                    <div className="col-sm-2">
-                        <input className="form-control input-sm" type="text" placeholder="account" name="accountNameFilter" onChange={this.filterChanged} />
-                    </div>
-                    <div className="col-sm-2">
-                        <input className="form-control input-sm" type="text" placeholder="task" name="taskNameFilter" onChange={this.filterChanged} />
-                    </div>
-                    <div className="col-sm-2">
-                        <select className="form-control input-sm" name="statusFilter" onChange={this.filterChanged}>
-                            <option value={Constants.ACTIVE_STATUS}>Active</option>
-                            <option value={Constants.INACTIVE_STATUS}>Inactive</option>
-                        </select>
-                    </div>
-                </div>
-                <div className="row">
-                    <TaskContributorTable
-                        taskcontributors={this.state.taskcontributors}
-                        accountNameFilter={this.state.accountNameFilter}
-                        taskNameFilter={this.state.taskNameFilter}
-                        statusFilter={this.state.statusFilter}
-                        activationStatusChanged={this.activationStatusChanged} />
-                </div>
-            </div>
+            <Container fluid className="mt-4">
+                <Card>
+                    <Card.Header>
+                        <Row>
+                            <Col sm={6}>
+                                <h4>Task Contributors</h4>
+                            </Col>
+                        </Row>
+                    </Card.Header>
+                    <Card.Body>
+                        {this.state.alert.show && (
+                            <Alert variant={this.state.alert.type} dismissible onClose={() => this.setState({ alert: { show: false, message: '', type: 'success' } })}>
+                                {this.state.alert.message}
+                            </Alert>
+                        )}
+
+                        {/* Filters */}
+                        <Row className="mb-3">
+                            <Col md={3} style={{ position: 'relative' }}>
+                                <input
+                                    type="text"
+                                    className="form-control input-sm dataLiveSearch"
+                                    placeholder="Search for a user..."
+                                    value={this.state.userSearchTerm}
+                                    onChange={this.handleUserSearch}
+                                    onKeyDown={this.handleKeyDown}
+                                    onFocus={() => this.setState({ showUserDropdown: true })}
+                                    onBlur={() => setTimeout(() => this.setState({ showUserDropdown: false }), 200)}
+                                />
+                                {this.state.showUserDropdown && filteredUsers.length > 0 && (
+                                    <div className="dropdown-menu show" style={{
+                                        position: 'absolute',
+                                        top: '100%',
+                                        left: 0,
+                                        right: 0,
+                                        maxHeight: '300px',
+                                        overflowY: 'auto',
+                                        zIndex: 1000
+                                    }}>
+                                        {filteredUsers.slice(0, 10).map((user, index) => (
+                                            <button
+                                                key={user.id}
+                                                type="button"
+                                                className={`dropdown-item ${index === this.state.highlightedIndex ? 'active' : ''}`}
+                                                onClick={() => this.handleUserSelect(user)}
+                                                style={{ textAlign: 'left', whiteSpace: 'nowrap' }}
+                                            >
+                                                <strong>{user.firstName} {user.lastName}</strong>
+                                                <br />
+                                                <small className="text-muted">{user.email}</small>
+                                            </button>
+                                        ))}
+                                    </div>
+                                )}
+                            </Col>
+                            <Col md={2}>
+                                <input 
+                                    className="form-control input-sm" 
+                                    type="text" 
+                                    placeholder="Filter by account" 
+                                    name="accountNameFilter" 
+                                    value={this.state.accountNameFilter}
+                                    onChange={this.filterChanged} 
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <input 
+                                    className="form-control input-sm" 
+                                    type="text" 
+                                    placeholder="Filter by task" 
+                                    name="taskNameFilter" 
+                                    value={this.state.taskNameFilter}
+                                    onChange={this.filterChanged} 
+                                />
+                            </Col>
+                            <Col md={2}>
+                                <select 
+                                    className="form-control input-sm" 
+                                    name="statusFilter" 
+                                    value={this.state.statusFilter}
+                                    onChange={this.filterChanged}
+                                >
+                                    <option value={Constants.ACTIVE_STATUS}>Active</option>
+                                    <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                                </select>
+                            </Col>
+                        </Row>
+
+                        {/* Task Contributors Table */}
+                        <TaskContributorTable
+                            taskcontributors={this.state.taskcontributors}
+                            accountNameFilter={this.state.accountNameFilter}
+                            taskNameFilter={this.state.taskNameFilter}
+                            statusFilter={this.state.statusFilter}
+                            activationStatusChanged={this.activationStatusChanged} 
+                        />
+                    </Card.Body>
+                </Card>
+            </Container>
         );
     }
 };

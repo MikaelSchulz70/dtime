@@ -24,7 +24,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
         mockMvc.perform(post("/api/task")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(task)))
-                .andExpect(status().isOk());
+                .andExpect(status().isCreated());
     }
 
     @Test
@@ -38,7 +38,7 @@ class TaskRestControllerIT extends BaseRestControllerIT {
                 .account(Account.builder().id(testAccount.getId()).build())
                 .build();
 
-        mockMvc.perform(post("/api/task")
+        mockMvc.perform(put("/api/task")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(asJsonString(task)))
                 .andExpect(status().isOk());
