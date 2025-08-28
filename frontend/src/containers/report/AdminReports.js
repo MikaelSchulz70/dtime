@@ -73,35 +73,48 @@ export default class AdminReports extends React.Component {
             return null;
 
         return (
-            <div className="container-fluid ml-4">
-                <h2>Reports</h2>
-                <div className="row mb-3">
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.report.fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>
+            <div className="container-fluid p-4">
+                <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-success text-white">
+                        <h2 className="mb-0 fw-bold">📊 Administrative Reports</h2>
                     </div>
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.report.toDate} onClick={this.handleNextReport}>&gt;&gt;</button>
+                    <div className="card-body">
+                        <div className="row mb-3 align-items-center">
+                            <div className="col-sm-2">
+                                <div className="btn-group" role="group" aria-label="Navigation">
+                                    <button className="btn btn-outline-success" name={this.state.report.fromDate} onClick={this.handlePreviousReport} title="Previous Period">
+                                        ← Previous
+                                    </button>
+                                    <button className="btn btn-outline-success" name={this.state.report.toDate} onClick={this.handleNextReport} title="Next Period">
+                                        Next →
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="col-sm-2">
+                                <label className="form-label fw-bold text-muted small">Period Type</label>
+                                <select className="form-select form-select-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
+                                    <option value="MONTH">📅 Monthly</option>
+                                    <option value="YEAR">📆 Yearly</option>
+                                </select>
+                            </div>
+                            <div className="col-sm-3">
+                                <label className="form-label fw-bold text-muted small">Report Type</label>
+                                <select className="form-select form-select-sm" value={this.state.reportType} name="reportType" onChange={this.typeChange}>
+                                    <option value={Constants.USER_TASK_REPORT}>👥 User Task Report</option>
+                                    <option value={Constants.ACCOUNT_REPORT}>🏢 Account Report</option>
+                                    <option value={Constants.TASK_REPORT}>📋 Task Report</option>
+                                    <option value={Constants.USER_REPORT}>👤 User Report</option>
+                                </select>
+                            </div>
+                            <div className="col-sm-5">
+                                <div className="text-end">
+                                    <span className="badge bg-secondary fs-6 py-2 px-3">
+                                        📅 {this.state.report.fromDate} - {this.state.report.toDate}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
-                    <div className="col-sm-2">
-                        <select className="form-control input-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
-                            <option value="MONTH">Month</option>
-                            <option value="YEAR">Year</option>
-                        </select>
-                    </div>
-                    <div className="col-sm-3">
-                        <select className="form-control input-sm" value={this.state.reportType} name="reportType" onChange={this.typeChange}>
-                            <option value={Constants.USER_TASK_REPORT}>User task report</option>
-                            <option value={Constants.ACCOUNT_REPORT}>Account report</option>
-                            <option value={Constants.TASK_REPORT}>Task report</option>
-                            <option value={Constants.USER_REPORT}>User report</option>
-                        </select>
-                    </div>
-                    <div className="col-sm-5">
-                        <span className=" float-right">
-                            <b>{this.state.report.fromDate} - {this.state.report.toDate}</b>
-                        </span>
-                    </div>
-
                 </div>
                 <div className="row">
                     {this.state.reportType === Constants.USER_TASK_REPORT ? (

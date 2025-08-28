@@ -60,20 +60,21 @@ class UserReportSummaryTable extends React.Component {
         var rows = [];
         rows.push(
             <tr key={'summary-header'} className="bg-success text-white">
-                <th>Summary</th>
-                <th>Workable hours mounth</th>
-                <th>Total workable hours</th>
-                <th>Total hours worked</th>
+                <th className="fw-bold fs-6">Summary</th>
+                <th className="fw-bold fs-6">Workable Hours (Month)</th>
+                <th className="fw-bold fs-6">Total Workable Hours</th>
+                <th className="fw-bold fs-6">Total Hours Worked</th>
                 <th></th>
             </tr>
         );
 
         rows.push(
-            <tr key={'summary-info'}>
+            <tr key={'summary-info'} className="table-light">
+                <td className="fw-bold text-muted">Totals</td>
+                <td className="fw-bold">{this.state.report.workableHours}</td>
+                <td className="fw-bold">{this.state.report.totalWorkableHours}</td>
+                <td className="fw-bold text-success">{this.state.report.totalHoursWorked}</td>
                 <td></td>
-                <td>{this.state.report.workableHours}</td>
-                <td>{this.state.report.totalWorkableHours}</td>
-                <td>{this.state.report.totalHoursWorked}</td>
             </tr>
         );
 
@@ -176,11 +177,11 @@ class UserReportRows extends React.Component {
         var rows = [];
         var keyBase = this.state.userReport.userId + '_';
         var keyHeader = keyBase + '0';
-        rows.push(<tr key={keyHeader} className="bg-success text-white">
-            <th>{this.state.userReport.fullName}</th>
-            <th>Account</th>
-            <th>Task</th>
-            <th>Total</th>
+        rows.push(<tr key={keyHeader} className="bg-success text-white">)
+            <th className="fw-bold">{this.state.userReport.fullName}</th>
+            <th className="fw-bold">Account</th>
+            <th className="fw-bold">Task</th>
+            <th className="fw-bold">Total Hours</th>
             <th></th>
             <th></th>
         </tr>);
@@ -210,11 +211,11 @@ class UserReportRows extends React.Component {
         }
 
         var key = keyBase + "_footer";
-        rows.push(<tr key={key}>
+        rows.push(<tr key={key} className="table-light border-top border-2">
+            <th className="text-muted"></th>
+            <th className="fw-bold text-dark">Total Time</th>
             <th></th>
-            <th>Total time</th>
-            <th></th>
-            <th className={textColor}>{this.state.userReport.totalTime}</th>
+            <th className={`fw-bold fs-6 ${textColor}`}>{this.state.userReport.totalTime} hrs</th>
             <th></th>
             <th>
                 {this.state.reportView === Constants.MONTH_VIEW ? (
@@ -346,7 +347,9 @@ class UserDetailReport extends React.Component {
 
         return (
             <div>
-                <button className="btn btn-primary" onClick={this.showDetails}>Details</button>
+                <button className="btn btn-outline-success btn-sm" onClick={this.showDetails}>
+                    📋 View Details
+                </button>
                 {this.state.isOpen ? (
                     <Modal
                         isOpen={this.state.isOpen}
@@ -365,15 +368,15 @@ class UserDetailReport extends React.Component {
                         }}
                     >
                         <div>
-                            <div className="d-flex justify-content-between align-items-center mb-3">
-                                <h4>Time Report Details</h4>
-                                <button type="button" className="btn btn-secondary" onClick={this.closeDetails}>
-                                    Close
+                            <div className="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                                <h4 className="mb-0 text-success fw-bold">📊 Time Report Details</h4>
+                                <button type="button" className="btn btn-outline-secondary btn-sm" onClick={this.closeDetails}>
+                                    ✕ Close
                                 </button>
                             </div>
                             <div className="table-responsive">
-                                <table className="table table-sm">
-                                    <thead className="bg-success">
+                                <table className="table table-sm table-striped table-hover">
+                                    <thead className="bg-success text-white">
                                         {headerRow}
                                     </thead>
                                     <tbody>
@@ -420,10 +423,19 @@ export default class UserTaskReportTable extends React.Component {
         }
 
         return (
-            <div className="table-responsive">
-                <table className="table">
-                    {rows}
-                </table>
+            <div className="col-12">
+                <div className="card shadow-sm">
+                    <div className="card-header bg-success text-white">
+                        <h5 className="mb-0 fw-bold">👥 User Task Time Summary</h5>
+                    </div>
+                    <div className="card-body p-0">
+                        <div className="table-responsive">
+                            <table className="table table-hover table-striped mb-0">
+                                {rows}
+                            </table>
+                        </div>
+                    </div>
+                </div>
             </div>
         );
     }

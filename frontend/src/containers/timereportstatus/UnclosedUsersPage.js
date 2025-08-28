@@ -81,13 +81,13 @@ class UnclosedUsersTable extends React.Component {
         const fromDate = this.state.report.fromDate || '';
 
         rows.push(
-            <tr key={0} className="bg-success text-white">
-                <th>User</th>
-                <th>Email</th>
-                <th>Total Hours</th>
-                <th>Workable Hours</th>
-                <th>Report Status</th>
-                <th>Action</th>
+            <tr key={0} className="bg-primary text-white">
+                <th className="fw-bold">👤 User</th>
+                <th className="fw-bold">📧 Email</th>
+                <th className="fw-bold">⏱️ Total Hours</th>
+                <th className="fw-bold">📊 Workable Hours</th>
+                <th className="fw-bold">📋 Status</th>
+                <th className="fw-bold">⚙️ Action</th>
             </tr>);
 
         var key = 1;
@@ -101,26 +101,29 @@ class UnclosedUsersTable extends React.Component {
 
                 rows.push(
                     <tr key={key}>
-                        <td>{user.fullName || 'Unknown User'}</td>
-                        <td>{user.email || 'No Email'}</td>
-                        <td className={textColor}>{totalTime}</td>
-                        <td>{workableHours}</td>
+                        <td className="fw-medium">{user.fullName || 'Unknown User'}</td>
+                        <td className="text-muted">{user.email || 'No Email'}</td>
+                        <td className={`fw-bold ${textColor}`}>{totalTime} hrs</td>
+                        <td className="fw-bold text-primary">{workableHours} hrs</td>
                         <td>
-                            <span style={{ color: closeTextColor }}>
-                                {user.closed ? 'Closed' : 'Open'}
+                            <span className={`badge ${user.closed ? 'bg-primary' : 'bg-warning text-dark'} py-1 px-2`}>
+                                {user.closed ? '✅ Closed' : '⏳ Open'}
                             </span>
                         </td>
                         <td>
-                            <label>
+                            <div className="form-check">
                                 <input
+                                    className="form-check-input"
                                     type="checkbox"
                                     id={user.userId}
                                     name={fromDate}
                                     checked={user.closed || false}
                                     onChange={this.handleOpenCloseReport}
                                 />
-                                <span className="ml-2">{user.closed ? 'Open' : 'Close'}</span>
-                            </label>
+                                <label className="form-check-label fw-medium" htmlFor={user.userId}>
+                                    {user.closed ? '🔓 Reopen' : '🔒 Close'}
+                                </label>
+                            </div>
                         </td>
                     </tr>);
                 key++;
@@ -139,12 +142,19 @@ class UnclosedUsersTable extends React.Component {
         }
 
         return (
-            <div className="table-responsive">
-                <table className="table">
-                    <tbody>
-                        {rows}
-                    </tbody>
-                </table>
+            <div className="card shadow-sm">
+                <div className="card-header bg-light">
+                    <h5 className="mb-0 fw-bold text-muted">👥 User Status Overview</h5>
+                </div>
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover table-striped mb-0">
+                            <tbody>
+                                {rows}
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
             </div>
         );
     }
@@ -269,28 +279,42 @@ export default class UnclosedUsersPage extends React.Component {
         const toDate = this.state.report.toDate || '';
 
         return (
-            <div className="container-fluid ml-4">
-                <div className="row mb-3 align-items-center">
-                    <div className="col-sm-2">
-                        <button className="btn btn-success me-2" name={fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>
-                        <button className="btn btn-success" name={toDate} onClick={this.handleNextReport}>&gt;&gt;</button>
+            <div className="container-fluid p-4">
+                <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-warning text-dark">
+                        <div className="row align-items-center">
+                            <div className="col-sm-6">
+                                <h2 className="mb-0 fw-bold">⚠️ Unclosed Time Reports</h2>
+                            </div>
+                            <div className="col-sm-6 text-end">
+                                {this.state.mailEnabled && (
+                                    <button
+                                        className="btn btn-primary btn-sm me-3"
+                                        onClick={this.handleSendEmailReminder}
+                                        title="Send email reminders to users with unclosed time reports"
+                                    >
+                                        📧 Send Reminders
+                                    </button>
+                                )}
+                                <span className="badge bg-secondary fs-6 py-2 px-3">
+                                    📅 {fromDate} - {toDate}
+                                </span>
+                            </div>
+                        </div>
                     </div>
-                    <div className="col-sm-6">
-                        <h2>Users with Unclosed Time Reports</h2>
-                    </div>
-                    <div className="col-sm-4 text-end">
-                        {this.state.mailEnabled && (
-                            <button
-                                className="btn btn-primary btn-sm me-3"
-                                onClick={this.handleSendEmailReminder}
-                                title="Send email reminders to users with unclosed time reports"
-                            >
-                                📧 Send Email Reminders
-                            </button>
-                        )}
-                        <span>
-                            <b>{fromDate} - {toDate}</b>
-                        </span>
+                    <div className="card-body">
+                        <div className="row mb-3">
+                            <div className="col-sm-2">
+                                <div className="btn-group" role="group" aria-label="Navigation">
+                                    <button className="btn btn-outline-primary" name={fromDate} onClick={this.handlePreviousReport} title="Previous Period">
+                                        ← Previous
+                                    </button>
+                                    <button className="btn btn-outline-primary" name={toDate} onClick={this.handleNextReport} title="Next Period">
+                                        Next →
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="row">

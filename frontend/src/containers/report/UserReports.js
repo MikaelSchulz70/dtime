@@ -21,10 +21,10 @@ class UserReportRows extends React.Component {
             return null;
 
         var rows = [];
-        rows.push(<tr key={0} className="bg-success text-white">
-            <th>Account</th>
-            <th>Task</th>
-            <th>Total hours</th>
+        rows.push(<tr key={0} className="bg-light">
+            <th className="fw-bold text-success">🏢 Account</th>
+            <th className="fw-bold text-success">📋 Task</th>
+            <th className="fw-bold text-success text-end">⏱️ Total Hours</th>
         </tr>);
 
         var i = 0;
@@ -34,19 +34,18 @@ class UserReportRows extends React.Component {
             var key = 'row-' + i;
             rows.push(
                 <tr key={key}>
-                    <td>{taskReport.accountName}</td>
-                    <td>{taskReport.taskName}</td>
-                    <td>{taskReport.totalHours}</td>
-                    <td></td>
+                    <td className="fw-medium">{taskReport.accountName}</td>
+                    <td className="fw-medium">{taskReport.taskName}</td>
+                    <td className="text-end fw-bold text-success">{taskReport.totalHours} hrs</td>
                 </tr>);
             i++;
         });
 
         var key = 'row-' + i;
-        rows.push(<tr key={key}>
+        rows.push(<tr key={key} className="table-primary border-top border-2">
             <th></th>
-            <th>Total time</th>
-            <th>{this.state.userReport.totalTime}</th>
+            <th className="fw-bold fs-6">📊 Total Time</th>
+            <th className="text-end fw-bold fs-6 text-success">{this.state.userReport.totalTime} hrs</th>
         </tr>);
 
         return (
@@ -83,11 +82,16 @@ class UserReportTable extends React.Component {
         }
 
         return (
-            <div className="row">
-                <div className="table-responsive">
-                    <table className="table">
-                        {rows}
-                    </table>
+            <div className="card shadow-sm">
+                <div className="card-header bg-primary text-white">
+                    <h5 className="mb-0 fw-bold">📋 Task Breakdown</h5>
+                </div>
+                <div className="card-body p-0">
+                    <div className="table-responsive">
+                        <table className="table table-hover table-striped mb-0">
+                            {rows}
+                        </table>
+                    </div>
                 </div>
             </div>
         );
@@ -155,27 +159,41 @@ export default class UserReports extends React.Component {
             return null;
 
         return (
-            <div>
-                <div className="row mb-3">
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.report.fromDate} onClick={this.handlePreviousReport}>&lt;&lt;</button>
+            <div className="container-fluid p-4">
+                <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-success text-white">
+                        <h2 className="mb-0 fw-bold">👤 My Time Report</h2>
                     </div>
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.report.toDate} onClick={this.handleNextReport}>&gt;&gt;</button>
-                    </div>
-                    <div className="col-sm-2">
-                        <select className="form-control input-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
-                            <option value={Constants.MONTH_VIEW}>Month</option>
-                            <option value={Constants.YEAR_VIEW}>Year</option>
-                        </select>
-                    </div>
-                    <div className="col-sm-3">
-                        {this.state.report.fromDate} - {this.state.report.toDate}
-                    </div>
-                    <div className="col-sm-5">
-                        <span className=" float-right">
-                            <b>Workable hours: {this.state.report.workableHours} </b>
-                        </span>
+                    <div className="card-body">
+                        <div className="row mb-3 align-items-center">
+                            <div className="col-sm-2">
+                                <div className="btn-group" role="group" aria-label="Navigation">
+                                    <button className="btn btn-outline-success" name={this.state.report.fromDate} onClick={this.handlePreviousReport} title="Previous Period">
+                                        ← Previous
+                                    </button>
+                                    <button className="btn btn-outline-success" name={this.state.report.toDate} onClick={this.handleNextReport} title="Next Period">
+                                        Next →
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="col-sm-2">
+                                <label className="form-label fw-bold text-muted small">Period Type</label>
+                                <select className="form-select form-select-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
+                                    <option value={Constants.MONTH_VIEW}>📅 Monthly</option>
+                                    <option value={Constants.YEAR_VIEW}>📆 Yearly</option>
+                                </select>
+                            </div>
+                            <div className="col-sm-4">
+                                <span className="badge bg-secondary fs-6 py-2 px-3">
+                                    📅 {this.state.report.fromDate} - {this.state.report.toDate}
+                                </span>
+                            </div>
+                            <div className="col-sm-4 text-end">
+                                <div className="alert alert-info py-2 px-3 mb-0 d-inline-block">
+                                    <strong>🕰️ Workable Hours: {this.state.report.workableHours}</strong>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <UserReportTable report={this.state.report} />

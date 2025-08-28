@@ -71,8 +71,8 @@ class VacationTableRow extends React.Component {
 
         return (
             <tr key={keyBase}>
-                <th key={keyBase + '-0'} className="text-nowrap" title={userName}>{userNameShort}</th>
-                <td key={keyBase + '-1'} className="text-nowrap" >{this.state.userVacation.noVacationDays}</td>
+                <th key={keyBase + '-0'} className="text-nowrap fw-medium" title={userName}>{userNameShort}</th>
+                <td key={keyBase + '-1'} className="text-center fw-bold text-primary">{this.state.userVacation.noVacationDays}</td>
                 {entries}
             </tr>
         );
@@ -117,8 +117,8 @@ class VacationTableHeaderRow extends React.Component {
 
         return (
             <tr key="0">
-                <th key="header-0"><font color={Constants.DAY_COLOR}>Name</font></th>
-                <th key="header-1"><font color={Constants.DAY_COLOR}>Days</font></th>
+                <th key="header-0" className="fw-bold">👤 Employee</th>
+                <th key="header-1" className="fw-bold">📊 Vacation Days</th>
                 {columns}
             </tr>
         );
@@ -149,8 +149,8 @@ class VacationTable extends React.Component {
         }
 
         return (
-            <table className="table-sm table-bordered time-report-table mb5">
-                <thead className="bg-success">
+            <table className="table table-sm table-bordered table-hover mb-0">
+                <thead className="bg-primary text-white">
                     <VacationTableHeaderRow days={this.state.vacations.days} />
                 </thead>
                 <tbody>
@@ -220,24 +220,42 @@ export default class Vacations extends React.Component {
         if (this.state == null || this.state.vacations == null) return null;
 
         return (
-            <div className="container-fluid ml-4 mr-4">
-                <h2>Vacations</h2>
-                <div className="row mb-3">
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.vacations.firstDate} onClick={this.loadPreviousVacations}>&lt;&lt;</button>
+            <div className="container-fluid p-4">
+                <div className="card shadow-sm mb-4">
+                    <div className="card-header bg-primary text-white">
+                        <h2 className="mb-0 fw-bold">🏖️ Vacation Calendar</h2>
                     </div>
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.vacations.lastDate} onClick={this.loadNextVacations}>&gt;&gt;</button>
-                    </div>
-                    <div className="col-sm-10">
-                        <span className="float-right">
-                            <b>{this.state.vacations.firstDate} - {this.state.vacations.lastDate}</b>
-                        </span>
+                    <div className="card-body">
+                        <div className="row mb-3 align-items-center">
+                            <div className="col-sm-2">
+                                <div className="btn-group" role="group" aria-label="Navigation">
+                                    <button className="btn btn-outline-primary" name={this.state.vacations.firstDate} onClick={this.loadPreviousVacations} title="Previous Month">
+                                        ← Previous
+                                    </button>
+                                    <button className="btn btn-outline-primary" name={this.state.vacations.lastDate} onClick={this.loadNextVacations} title="Next Month">
+                                        Next →
+                                    </button>
+                                </div>
+                            </div>
+                            <div className="col-sm-10">
+                                <div className="text-end">
+                                    <span className="badge bg-secondary fs-6 py-2 px-3">
+                                        📅 {this.state.vacations.firstDate} - {this.state.vacations.lastDate}
+                                    </span>
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
                 <div className="row">
-                    <div className="table-responsive">
-                        <VacationTable vacations={this.state.vacations} />
+                    <div className="col-12">
+                        <div className="card shadow-sm">
+                            <div className="card-body">
+                                <div className="table-responsive">
+                                    <VacationTable vacations={this.state.vacations} />
+                                </div>
+                            </div>
+                        </div>
                     </div>
                 </div>
             </div >
