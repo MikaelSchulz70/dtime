@@ -44,7 +44,7 @@ module.exports = {
     },
     proxy: [
       {
-        context: ['/api', '/login', '/logout', '/perform_login', '/pub'],
+        context: ['/api', '/logout', '/perform_login', '/pub'],
         target: 'http://localhost:8080',
         secure: false,
         changeOrigin: true,

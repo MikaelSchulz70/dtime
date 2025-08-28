@@ -51,7 +51,7 @@ public class WebSecurityConfig {
         http
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/pub/**", "/login", "/perform_login", "/error").permitAll()
+                        .requestMatchers("/perform_login", "/error").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -62,17 +62,14 @@ public class WebSecurityConfig {
                         )
                 )
                 .formLogin(form -> form
-                        .loginPage("/login")
                         .loginProcessingUrl("/perform_login")
                         .usernameParameter("username")
                         .passwordParameter("password")
                         .successHandler(successHandler)
-                        .failureUrl("/login?error")
                         .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
-                        .logoutSuccessUrl("/login")
                         .permitAll()
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)

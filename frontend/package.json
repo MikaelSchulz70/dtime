@@ -8,6 +8,7 @@
     "@babel/preset-react": "7.9.0",
     "axios": "^1.7.9",
     "babel-loader": "^8.1.0",
+    "bootstrap": "^5.3.8",
     "core-js": "^3.44.0",
     "jquery": "^3.7.1",
     "moment-range": "^4.0.2",

@@ -44,8 +44,8 @@ export function handleApiError(error, customMessage = null) {
         const data = error.response.data;
         
         if (status === 401) {
-            // Unauthorized - redirect to login
-            window.location.href = '/login';
+            // Unauthorized - reload the page to show login component
+            window.location.reload();
             return;
         }
         

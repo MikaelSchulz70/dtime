@@ -13,6 +13,7 @@ import LoadingSpinner from './components/LoadingSpinner';
 
 // Components
 import NavigationMenu from './containers/menu/menu';
+import Login from './components/Login';
 import Times from './containers/timereport/time';
 import Users from './containers/user/users';
 import UserDetails from './containers/user/userdetails';
@@ -120,10 +121,12 @@ const AppContent = () => {
     return <LoadingSpinner fullPage text="Loading session..." />;
   }
 
-  if (!isAuthenticated()) {
-    // Redirect to backend login page
-    window.location.href = '/login';
-    return <LoadingSpinner fullPage text="Redirecting to login..." />;
+  // Check if current path is /login
+  const isLoginPage = window.location.pathname === '/login';
+
+  if (!isAuthenticated() || isLoginPage) {
+    // Show React login component for unauthenticated users or /login path
+    return <Login />;
   }
 
   console.log('User authenticated, loading app');
