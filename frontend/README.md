@@ -1,68 +1,156 @@
-This task was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+# DTime Frontend
 
-## Available Scripts
+React-based frontend for the DTime time tracking application with runtime environment configuration and Docker support.
 
-In the task directory, you can run:
+## 🚀 Quick Start
+
+### Development Mode
+```bash
+npm install
+npm start
+```
+Opens [http://localhost:3000](http://localhost:3000) with hot reload.
+
+### Production Build
+```bash
+npm run build
+```
+Builds optimized production bundle in `build/` folder.
+
+### Docker Development
+```bash
+# From project root
+docker-compose --profile full-stack up -d
+```
+
+## 🐳 Docker Support
+
+### Development Image
+```bash
+# Build development image (from project root)
+./build-frontend-docker.sh --dev-only
+
+# Run development container
+docker run -p 3000:3000 dtime-frontend-dev:latest
+```
+
+### Production Image
+```bash
+# Build production image (from project root)  
+./build-frontend-docker.sh --prod-only
+
+# Run production container
+docker run -p 3000:80 dtime-frontend:latest
+```
+
+## ⚙️ Environment Configuration
+
+### Runtime Environment Variables
+
+The application uses **runtime environment injection** - no secrets are baked into the build:
+
+```bash
+# Backend API URL
+REACT_APP_BACKEND_URL=http://localhost:8080
+
+# Environment mode
+NODE_ENV=production
+```
+
+### Development Proxy
+
+The webpack dev server proxies API calls to the backend:
+- `/api/*` → Backend at port 8080
+- `/perform_login` → Backend authentication
+- `/logout` → Backend logout
+
+## 📁 Project Structure
+
+```
+frontend/
+├── src/
+│   ├── components/         # Reusable components
+│   │   └── Login.js       # Login component
+│   ├── containers/        # Page components
+│   │   ├── menu/          # Navigation
+│   │   ├── report/        # Reporting pages
+│   │   └── timereportstatus/
+│   ├── assets/            # Images and static files
+│   ├── index.js           # Application entry point
+│   └── App.js             # Main app component
+├── public/
+│   ├── index.html
+│   └── config.js          # Runtime config (injected by Docker)
+├── Dockerfile             # Production build
+├── Dockerfile.dev         # Development build  
+├── docker-entrypoint.sh   # Runtime config injection
+├── package.json
+└── webpack.config.js      # Development server config
+```
+
+## 🔧 Available Scripts
 
 ### `npm start`
-
-Runs the app in the development mode.<br>
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
-
-The page will reload if you make edits.<br>
-You will also see any lint errors in the console.
+Development server with hot reload at [http://localhost:3000](http://localhost:3000).
 
 ### `npm test`
-
-Launches the test runner in the interactive watch mode.<br>
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+Runs tests in watch mode.
 
 ### `npm run build`
-
-Builds the app for production to the `build` folder.<br>
-It correctly bundles React in production mode and optimizes the build for the best performance.
-
-The build is minified and the filenames include the hashes.<br>
-Your app is ready to be deployed!
-
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Production build with optimized bundle.
 
 ### `npm run eject`
+**⚠️ One-way operation!** Exposes all configuration files.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
+## 🎨 Technology Stack
 
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your task.
+- **React 18.3.1** - UI library
+- **Webpack 5.97.1** - Module bundler  
+- **Bootstrap 5.3.8** - CSS framework
+- **Axios** - HTTP client
+- **React Router 5.3.4** - Routing
+- **Nginx** - Production web server
 
-Instead, it will copy all the configuration files and the transitive dependencies (Webpack, Babel, ESLint, etc) right into your task so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
+## 🔐 Authentication
 
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
+The frontend handles login UI while delegating authentication to the Spring Boot backend:
 
-## Learn More
+1. User submits credentials via React login form
+2. Form posts to `/perform_login` endpoint
+3. Backend validates and creates session
+4. Frontend redirects on successful authentication
 
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
+## 🚀 Deployment
 
-To learn React, check out the [React documentation](https://reactjs.org/).
+### Docker Production Deployment
+```bash
+# From project root
+./build-docker.sh --frontend-only
+./deploy.sh --env production
+```
 
-### Code Splitting
+### Manual Production Deployment
+```bash
+npm run build
+# Serve build/ folder with web server
+```
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/code-splitting
+## 🛠️ Development
 
-### Analyzing the Bundle Size
+### Prerequisites
+- Node.js 16+
+- npm or yarn
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/analyzing-the-bundle-size
+### Setup
+```bash
+npm install
+```
 
-### Making a Progressive Web App
+### Environment Setup
+Backend must be running on port 8080 for API calls to work in development mode.
 
-This section has moved here: https://facebook.github.io/create-react-app/docs/making-a-progressive-web-app
+## 📚 Learn More
 
-### Advanced Configuration
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/advanced-configuration
-
-### Deployment
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/deployment
-
-### `npm run build` fails to minify
-
-This section has moved here: https://facebook.github.io/create-react-app/docs/troubleshooting#npm-run-build-fails-to-minify
+- [Create React App Documentation](https://facebook.github.io/create-react-app/docs/getting-started)
+- [React Documentation](https://reactjs.org/)
+- [Bootstrap Documentation](https://getbootstrap.com/docs/5.3/)

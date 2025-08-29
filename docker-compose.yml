@@ -9,8 +9,8 @@ services:
     container_name: dtime-postgres
     restart: unless-stopped
     environment:
-      POSTGRES_DB: dtime
-      POSTGRES_USER: dtime
+      POSTGRES_DB: ${DATABASE_NAME:-dtime}
+      POSTGRES_USER: ${DATABASE_USERNAME:-dtime}
       POSTGRES_PASSWORD: ${DATABASE_PASSWORD:-dtime_dev_password}
       PGDATA: /var/lib/postgresql/data/pgdata
     ports:
@@ -22,7 +22,7 @@ services:
     networks:
       - dtime-network
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U dtime -d dtime"]
+      test: ["CMD-SHELL", "pg_isready -U ${DATABASE_USERNAME:-dtime} -d ${DATABASE_NAME:-dtime}"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -37,8 +37,8 @@ services:
     restart: unless-stopped
     environment:
       SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      DATABASE_URL: jdbc:postgresql://dtime-db:5432/dtime
-      DATABASE_USERNAME: dtime
+      DATABASE_URL: jdbc:postgresql://dtime-db:5432/${DATABASE_NAME:-dtime}
+      DATABASE_USERNAME: ${DATABASE_USERNAME:-dtime}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-dtime_dev_password}
       MAIL_USERNAME: ${MAIL_USERNAME}
       MAIL_PASSWORD: ${MAIL_PASSWORD}
@@ -68,7 +68,7 @@ services:
     restart: unless-stopped
     environment:
       NODE_ENV: development
-      REACT_APP_API_URL: http://localhost:8080
+      REACT_APP_BACKEND_URL: ${FRONTEND_BACKEND_URL:-http://localhost:8080}
     ports:
       - "3000:3000"
     volumes:
@@ -80,6 +80,25 @@ services:
       - dtime-network
     profiles:
       - full-stack
+
+  # Frontend Production Server
+  dtime-frontend-prod:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    container_name: dtime-frontend-prod
+    restart: unless-stopped
+    environment:
+      REACT_APP_BACKEND_URL: ${FRONTEND_BACKEND_URL:-http://localhost:8080}
+      NODE_ENV: production
+    ports:
+      - "3000:80"
+    depends_on:
+      - dtime-backend
+    networks:
+      - dtime-network
+    profiles:
+      - production
 
 volumes:
   postgres_data:

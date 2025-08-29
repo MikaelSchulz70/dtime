@@ -1,0 +1,81 @@
+spring:
+  # Database Configuration for Docker
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://dtime-db:5432/dtime}
+    username: ${DATABASE_USERNAME:dtime}
+    password: ${DATABASE_PASSWORD:dtime_dev_password}
+    driver-class-name: org.postgresql.Driver
+
+  # JPA/Hibernate Configuration
+  jpa:
+    database-platform: org.hibernate.dialect.PostgreSQLDialect
+    hibernate:
+      ddl-auto: update
+    properties:
+      hibernate:
+        default_schema: dtime
+        jdbc:
+          lob:
+            non_contextual_creation: true
+
+  # Liquibase Configuration
+  liquibase:
+    change-log: classpath:db/changelog/db.changelog.xml
+    url: ${DATABASE_URL:jdbc:postgresql://dtime-db:5432/dtime}
+    user: ${DATABASE_USERNAME:dtime}
+    password: ${DATABASE_PASSWORD:dtime_dev_password}
+
+  # Mail Configuration
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    transport:
+      protocol: smtp
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
+          ssl:
+            enable: false
+
+# Server Configuration
+server:
+  port: 8080
+  address: 0.0.0.0
+
+# Security Configuration
+security:
+  enable-csrf: ${SECURITY_CSRF_ENABLED:false}
+
+# Email Configuration
+mail:
+  enabled: ${MAIL_ENABLED:false}
+  username: ${MAIL_USERNAME:dummy@example.com}
+  password: ${MAIL_PASSWORD:dummy-password}
+
+# Application Configuration
+dtime:
+  hours_per_day: 8
+  system:
+    start-date: 2025-01-01
+
+# Logging Configuration
+logging:
+  level:
+    org.springframework.web: INFO
+    web: INFO
+    se.dtime: INFO
+  file:
+    name: /app/logs/server.log
+
+# Management endpoints for health checks
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when_authorized

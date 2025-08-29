@@ -1,55 +1,152 @@
 # DTime Application
 
-This project has been restructured with separate frontend and backend directories.
+A modern time tracking application with completely separated frontend and backend services, designed for Docker deployment.
 
 ## Project Structure
 
 ```
 dtime/
-├── backend/          # Spring Boot application
-│   ├── src/
-│   │   ├── main/java/
-│   │   ├── main/resources/
-│   │   └── test/
+├── backend/                 # Spring Boot API service
+│   ├── src/main/java/
+│   ├── src/main/resources/
+│   ├── Dockerfile
 │   └── pom.xml
-├── frontend/         # React application
+├── frontend/                # React application
 │   ├── src/
 │   ├── public/
+│   ├── Dockerfile           # Production build
+│   ├── Dockerfile.dev       # Development build
+│   ├── docker-entrypoint.sh # Runtime config injection
 │   ├── package.json
 │   └── webpack.config.js
-├── database/         # PostgreSQL Docker setup
+├── database/                # PostgreSQL setup
 │   ├── Dockerfile
 │   ├── scripts/
-│   ├── backups/
-│   └── Makefile
-├── docker-compose.yml      # Full stack
-├── docker-compose.db.yml   # Database only
+│   └── backups/
+├── build-docker.sh          # Main build script
+├── build-backend-docker.sh  # Backend-only build
+├── build-frontend-docker.sh # Frontend-only build
+├── deploy.sh                # Deployment script
+├── package.sh               # Distribution packaging
+├── docker-compose.yml       # Complete stack with profiles
+├── .env.example             # Environment template
 └── README.md
 ```
 
-## Building the Application
+## Quick Start
 
-### Backend (Spring Boot)
+### 🐳 Docker Deployment (Recommended)
 
-**Option A: Use startup script (Recommended - no Maven required)**
+**1. Setup Environment**
 ```bash
-# Build once, then run with Java
-./build-backend.sh        # Build JAR file
-./start-backend.sh        # Run the application
+cp .env.example .env
+# Edit .env with your configuration
 ```
 
-**Option B: Maven development mode**
+**2. Build and Deploy**
 ```bash
-cd backend
-mvn spring-boot:run       # Requires Maven
+# Build all Docker images
+./build-docker.sh
+
+# Deploy development environment
+./deploy.sh --env development
+
+# Deploy production environment  
+./deploy.sh --env production
 ```
 
-### Frontend (React)
+**3. Access Application**
+- Frontend: http://localhost:3000
+- Backend API: http://localhost:8080
+- Database: localhost:5432
+
+### 🔧 Development Mode
+
+**Option A: Docker Development Stack**
 ```bash
-cd frontend
-npm install
-npm run build    # Production build
-npm start        # Development server
+# Start full development environment
+docker-compose --profile full-stack up -d
+
+# View logs
+docker-compose logs -f
+
+# Stop services
+docker-compose down
+```
+
+**Option B: Local Development**
+```bash
+# 1. Start database only
+docker-compose up -d dtime-db
+
+# 2. Start backend
+cd backend && mvn spring-boot:run
+
+# 3. Start frontend
+cd frontend && npm install && npm start
+```
+
+## Build Scripts
+
+### 🔨 Main Build Script
+```bash
+./build-docker.sh [OPTIONS]
+
+# Examples:
+./build-docker.sh                    # Build all images
+./build-docker.sh --backend-only     # Build only backend
+./build-docker.sh --frontend-only    # Build only frontend
+./build-docker.sh --tag v1.0.0       # Tag images with version
+./build-docker.sh --push             # Push to registry
+```
+
+### 🚀 Deployment Script
+```bash
+./deploy.sh [OPTIONS]
+
+# Examples:
+./deploy.sh --env production         # Production deployment
+./deploy.sh --env development        # Development deployment
+./deploy.sh --backup-db              # Backup database first
+./deploy.sh --no-build               # Skip building images
+```
+
+### 📦 Packaging Script
+```bash
+./package.sh [OPTIONS]
+
+# Examples:
+./package.sh --version v1.0.0       # Create distribution package
+./package.sh --no-source            # Package only Docker images
+./package.sh --output ./releases    # Custom output directory
+```
+
+## Environment Configuration
+
+All configuration is handled via runtime environment variables (no build-time secrets).
+
+### Backend Environment Variables
+```bash
+# Database
+POSTGRES_DB=dtime
+POSTGRES_USER=dtime
+POSTGRES_PASSWORD=your_secure_password
+
+# Email Configuration
+MAIL_USERNAME=your-email@example.com
+MAIL_PASSWORD=your_email_app_password
+
+# Security
+SECURITY_CSRF_ENABLED=true
+```
+
+### Frontend Environment Variables
+```bash
+# Backend API URL
+REACT_APP_BACKEND_URL=http://localhost:8080
+
+# Environment
+NODE_ENV=production
 ```
 
 ## Technology Stack
@@ -57,165 +154,78 @@ npm start        # Development server
 ### Backend
 - Spring Boot 3.4.7
 - Java 21
-- PostgreSQL
+- PostgreSQL 14
 - Hibernate/JPA
 - Maven
+- Docker multi-stage builds
 
 ### Frontend
 - React 18.3.1
 - Webpack 5.97.1
-- Axios
-- React Router 5.3.4
-- React Bootstrap
+- Bootstrap 5.3.8
+- Axios for API calls
+- Runtime environment injection
+- Nginx for production serving
 
-## Environment Setup
+### Infrastructure
+- Docker & Docker Compose
+- PostgreSQL official image
+- Multi-stage Docker builds
+- Runtime configuration injection
+- Comprehensive build automation
 
-### Required Environment Variables
+## Default Admin Credentials
 
-Copy `.env.example` to `.env.local` and configure:
-
-```bash
-# Database
-DATABASE_URL=jdbc:postgresql://localhost:5432/dtime
-DATABASE_USERNAME=dtime
-DATABASE_PASSWORD=your_secure_password
-
-# Email
-MAIL_USERNAME=your-email@example.com
-MAIL_PASSWORD=your_email_app_password
-
-# Security (recommended for production)
-SECURITY_CSRF_ENABLED=true
-```
-
-## Development
-
-### Prerequisites
-- Java 21
-- Node.js 16+
-- PostgreSQL
-- Maven
-
-### Setup Steps
-
-1. **Database Setup (Recommended: Docker)**
-   ```bash
-   # Copy environment template
-   cp .env.example .env.local
-   # Edit .env.local with your credentials
-   
-   # Start PostgreSQL with Docker
-   docker-compose -f docker-compose.db.yml up -d
-   
-   # Or use the database Makefile
-   cd database && make start
-   ```
-
-   **Alternative: Local PostgreSQL**
-   ```bash
-   createdb dtime
-   ```
-
-2. **Backend Setup**
-   
-   **Option A: Use the startup script (Recommended - minimal Maven dependency)**
-   ```bash
-   # Build once (requires Maven)
-   ./build-backend.sh
-   
-   # Run anytime (only requires Java)
-   ./start-backend.sh
-   
-   # Or build and run together
-   ./start-backend.sh --clean    # Builds if needed
-   ```
-
-   **Option B: Direct JAR execution (no startup script)**
-   ```bash
-   # Build first
-   ./build-backend.sh
-   
-   # Set environment and run
-   cd backend
-   export DATABASE_PASSWORD=dtime_dev_password
-   export MAIL_PASSWORD=dummy_password
-   java -jar target/dtime-1.0.0.jar
-   ```
-
-   **Option C: Maven development mode (requires Maven always)**
-   ```bash
-   cd backend
-   export DATABASE_PASSWORD=dtime_dev_password
-   export MAIL_PASSWORD=dummy_password
-   mvn spring-boot:run
-   ```
-
-3. **Frontend Setup**
-   ```bash
-   cd frontend
-   npm install
-   npm start
-   ```
-
-The database runs on port 5432, backend on port 8080, frontend development server on port 3000.
-
-### Default Admin Credentials
-
-After starting the application for the first time, you can log in with:
+After first deployment:
 - **Username**: `admin@dtime.se`
 - **Password**: `admin123`
 
-**Note**: Change the admin password immediately after first login for security.
-
-### Quick Start with Docker
-
-```bash
-# Database only (recommended for development)
-docker-compose -f docker-compose.db.yml up -d
-
-# Full stack (all services)
-docker-compose --profile full-stack up -d
-```
+⚠️ **Change the admin password immediately after first login for security.**
 
 ## Production Deployment
 
+### Prerequisites
+- Docker & Docker Compose
+- 2GB+ RAM
+- 10GB+ disk space
+
 ### Security Checklist
-- ✅ Set all environment variables
+- ✅ Change default admin password
+- ✅ Set secure database passwords
 - ✅ Enable CSRF protection (`SECURITY_CSRF_ENABLED=true`)
-- ✅ Use HTTPS in production
-- ✅ Secure database credentials
+- ✅ Use HTTPS with reverse proxy
 - ✅ Configure firewall rules
+- ✅ Regular database backups
 
-### Deployment Steps
+### Deployment Options
 
-1. **Build Frontend**
-   ```bash
-   cd frontend
-   npm run build
-   ```
+**Option 1: Full Docker Stack**
+```bash
+# Production deployment
+./deploy.sh --env production --backup-db
 
-2. **Copy Assets to Backend**
-   ```bash
-   ./build-frontend.sh
-   ```
+# Monitor deployment
+docker-compose logs -f
+docker-compose ps
+```
 
-3. **Build Backend**
-   ```bash
-   cd backend
-   mvn clean package -DskipTests
-   ```
+**Option 2: Custom Registry**
+```bash
+# Build and push to registry
+./build-docker.sh --registry registry.company.com/ --push
 
-4. **Run Application**
-   ```bash
-   java -jar backend/target/dtime-1.0.0.jar
-   ```
+# Deploy from registry
+./deploy.sh --registry registry.company.com/ --no-build
+```
 
-### Docker Deployment (Recommended)
+**Option 3: Distribution Package**
+```bash
+# Create distribution package
+./package.sh --version v1.0.0
 
-```dockerfile
-# Example Dockerfile for production
-FROM openjdk:21-jre-slim
-COPY backend/target/dtime-1.0.0.jar app.jar
-EXPOSE 8080
-CMD ["java", "-jar", "app.jar"]
+# Deploy on target system
+tar -xzf dist/dtime-v1.0.0.tar.gz
+cd dtime-v1.0.0
+./load-images.sh
+./scripts/deploy.sh
 ```
