@@ -7,7 +7,6 @@ export function Headers() {
     if (cookieMatch) {
         // Decode the URL-encoded token
         const token = decodeURIComponent(cookieMatch[1]);
-        console.log('Using CSRF token from cookie:', token.substring(0, 8) + '...');
         const headers = {
             'Content-Type': 'application/json',
             'X-XSRF-TOKEN': token

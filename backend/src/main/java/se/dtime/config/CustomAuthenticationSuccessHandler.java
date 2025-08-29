@@ -3,6 +3,8 @@ package se.dtime.config;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
@@ -12,6 +14,8 @@ import java.io.IOException;
 
 @Component
 public class CustomAuthenticationSuccessHandler implements AuthenticationSuccessHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(CustomAuthenticationSuccessHandler.class);
 
     @Value("${app.frontend.dev-server.url:}")
     private String frontendDevServerUrl;
@@ -23,26 +27,23 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
         
-        System.out.println("=== CustomAuthenticationSuccessHandler called ===");
-        System.out.println("devServerEnabled: " + devServerEnabled);
-        System.out.println("frontendDevServerUrl: " + frontendDevServerUrl);
+        logger.debug("CustomAuthenticationSuccessHandler called - devServerEnabled: {}, frontendDevServerUrl: {}", 
+                    devServerEnabled, frontendDevServerUrl);
         
         // Check if request comes from development server
         String referer = request.getHeader("Referer");
         String origin = request.getHeader("Origin");
         String accept = request.getHeader("Accept");
         
-        System.out.println("Referer: " + referer);
-        System.out.println("Origin: " + origin);
-        System.out.println("Accept: " + accept);
+        logger.debug("Request headers - Referer: {}, Origin: {}, Accept: {}", referer, origin, accept);
         
         // If development server is enabled and request comes from dev server
         if (devServerEnabled && (isFromDevServer(referer) || isFromDevServer(origin))) {
-            System.out.println("Detected dev server request, redirecting to frontend");
+            logger.info("Detected dev server request, redirecting to frontend");
             
             // For AJAX requests, return JSON success response
             if (accept != null && accept.contains("application/json")) {
-                System.out.println("Returning JSON response");
+                logger.debug("Returning JSON response for AJAX request");
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write("{\"success\": true, \"redirectUrl\": \"" + 
@@ -53,13 +54,13 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
             // For form submissions, redirect back to dev server with login success parameter
             String baseUrl = frontendDevServerUrl.isEmpty() ? "http://localhost:9000" : frontendDevServerUrl;
             String redirectUrl = baseUrl + "?loginSuccess=true";
-            System.out.println("Redirecting to: " + redirectUrl);
+            logger.info("Redirecting to dev server: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
             return;
         }
         
         // Default behavior for production - redirect to backend index
-        System.out.println("Using default redirect to /index");
+        logger.debug("Using default redirect to /index");
         response.sendRedirect("/index");
     }
     

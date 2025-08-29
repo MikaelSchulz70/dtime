@@ -1,7 +1,5 @@
 import React, { Suspense } from 'react';
-import { Switch, Route } from 'react-router-dom';
-import { BrowserRouter, Redirect } from 'react-router-dom';
-import { Link } from 'react-router-dom';
+import { Switch, Route, BrowserRouter, Redirect, Link } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
@@ -129,7 +127,6 @@ const AppContent = () => {
     return <Login />;
   }
 
-  console.log('User authenticated, loading app');
 
   return (
     <div className="d-flex flex-column min-vh-100">
