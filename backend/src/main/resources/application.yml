@@ -42,6 +42,7 @@ spring:
           ssl:
             enable: false
 
+
 # Logging Configuration
 logging:
   level:
@@ -52,6 +53,13 @@ logging:
 # Security Configuration
 security:
   enable-csrf: ${SECURITY_CSRF_ENABLED:true}
+
+# OAuth Configuration
+oauth:
+  google:
+    enabled: ${OAUTH_GOOGLE_ENABLED:false}
+    client-id: ${OAUTH_GOOGLE_CLIENT_ID:}
+    client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:}
 
 # Email Configuration
 mail:

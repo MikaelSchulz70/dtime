@@ -1,6 +1,6 @@
 MIT License
 
-Copyright (c) 2025 YOUR NAME OR ORG
+Copyright (c) 2025 Mikael Schulz
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
@@ -20,12 +20,3 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
--------------------------------------------------------------------------------
-Donation Notice (Non‑Binding)
--------------------------------------------------------------------------------
-If you find DTime useful and would like to support its development, you are
-welcome (but NOT required) to donate here:
-PayPal: https://paypal.me/YOURPAYPAL or you@example.com
-
-This donation note is purely voluntary and does NOT impose any additional
-terms or conditions beyond the MIT License above.

@@ -15,7 +15,10 @@ import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
 import org.springframework.http.HttpStatus;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import se.dtime.service.user.UserLoginService;
+import se.dtime.service.user.CustomOAuth2UserService;
 
 @Configuration
 @EnableWebSecurity
@@ -24,13 +27,23 @@ public class WebSecurityConfig {
 
     private final UserLoginService userLoginService;
     private final CustomAuthenticationSuccessHandler successHandler;
+    private final CustomOAuth2UserService customOAuth2UserService;
+    
+    @Autowired(required = false)
+    private ClientRegistrationRepository clientRegistrationRepository;
 
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
 
-    public WebSecurityConfig(UserLoginService userLoginService, CustomAuthenticationSuccessHandler successHandler) {
+    @Value("${oauth.google.enabled:false}")
+    private boolean googleOAuthEnabled;
+
+    public WebSecurityConfig(UserLoginService userLoginService, 
+                             CustomAuthenticationSuccessHandler successHandler,
+                             CustomOAuth2UserService customOAuth2UserService) {
         this.userLoginService = userLoginService;
         this.successHandler = successHandler;
+        this.customOAuth2UserService = customOAuth2UserService;
     }
 
     @Bean
@@ -51,7 +64,7 @@ public class WebSecurityConfig {
         http
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/perform_login", "/error").permitAll()
+                        .requestMatchers("/perform_login", "/error", "/api/auth/google/status").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -73,8 +86,24 @@ public class WebSecurityConfig {
                         .permitAll()
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
-                )
-                .sessionManagement(session -> session
+                );
+
+        // Configure OAuth2 login if enabled and client registration is available
+        if (googleOAuthEnabled && clientRegistrationRepository != null) {
+            http.oauth2Login(oauth2 -> oauth2
+                    .loginPage("/login")
+                    .successHandler(successHandler)
+                    .failureHandler((request, response, exception) -> {
+                        response.sendRedirect("/login?error=oauth");
+                    })
+                    .userInfoEndpoint(userInfo -> userInfo
+                            .userService(customOAuth2UserService)
+                    )
+                    .clientRegistrationRepository(clientRegistrationRepository)
+            );
+        }
+
+        http.sessionManagement(session -> session
                         .maximumSessions(1)
                         .maxSessionsPreventsLogin(false)
                 )
