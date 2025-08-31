@@ -38,7 +38,7 @@ public class SystemValidator extends ValidatorBase<SystemPropertyDB>  {
 
         switch (systemPropertyType) {
             case BOOL:
-                check(value.equals("true") || value.equals("false"), "system.property.not.boolean");
+                check("true".equals(value) || "false".equals(value), "system.property.not.boolean");
                 break;
             case FLOAT:
                 try {

@@ -108,12 +108,12 @@ public class WebSecurityConfig {
                         .maxSessionsPreventsLogin(false)
                 )
                 .headers(headers -> headers
-                        .frameOptions().deny()
-                        .contentTypeOptions().and()
+                        .frameOptions(frame -> frame.deny())
+                        .contentTypeOptions(content -> {})
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .maxAgeInSeconds(31536000)
                         )
-                        .referrerPolicy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN)
+                        .referrerPolicy(ref -> ref.policy(ReferrerPolicyHeaderWriter.ReferrerPolicy.STRICT_ORIGIN_WHEN_CROSS_ORIGIN))
                 );
 
         if (csrfEnabled) {

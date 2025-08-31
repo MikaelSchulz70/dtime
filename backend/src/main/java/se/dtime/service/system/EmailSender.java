@@ -19,8 +19,11 @@ public class EmailSender {
     private final static String REMINDER_SUBJECT = "Dtime!";
     private final static String REMINDER_TEXT = "En vänlig påminnelse att rapporera månadens tid J.\n\nMvh\nDtime";
 
-    @Autowired
-    public EmailSendConfig emailSendConfig;
+    private final EmailSendConfig emailSendConfig;
+
+    public EmailSender(EmailSendConfig emailSendConfig) {
+        this.emailSendConfig = emailSendConfig;
+    }
 
     public void sendReminderEmail(String to) {
         if (StringUtils.isEmpty(to)) {
@@ -60,8 +63,8 @@ public class EmailSender {
 
     private boolean isDummyEmailConfiguration() {
         return emailSendConfig.getReminderMailUsername().contains("@example.com") ||
-                emailSendConfig.getReminderMailPassword().equals("dummy-password") ||
-                emailSendConfig.getReminderMailPassword().equals("dev-password");
+                "dummy-password".equals(emailSendConfig.getReminderMailPassword()) ||
+                "dev-password".equals(emailSendConfig.getReminderMailPassword());
     }
 
     private JavaMailSenderImpl createMailSender() {

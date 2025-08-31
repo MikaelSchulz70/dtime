@@ -13,10 +13,17 @@ spring:
           starttls:
             enable: false
 
-# Server Configuration for IntelliJ
+# Server Configuration for Development (HTTPS enabled)
 server:
-  port: 8080
+  port: 8443
+  http:
+    port: 8080
   address: localhost
+  ssl:
+    key-store-type: PKCS12
+    key-store: classpath:keystore/dtime_new.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:dt2020}
+    key-alias: dtime
 
 # Security Configuration (disabled for development)
 security:
@@ -27,7 +34,7 @@ app:
   frontend:
     dev-server:
       enabled: true
-      url: http://localhost:9000
+      url: https://localhost:9000
 
 # Email Configuration (disabled for development)
 mail:

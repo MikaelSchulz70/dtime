@@ -47,12 +47,12 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write("{\"success\": true, \"redirectUrl\": \"" + 
-                    (frontendDevServerUrl.isEmpty() ? "http://localhost:9000" : frontendDevServerUrl) + "\"}");
+                    (frontendDevServerUrl.isEmpty() ? "https://localhost:9000" : frontendDevServerUrl) + "\"}");
                 return;
             }
             
             // For form submissions, redirect back to dev server with login success parameter
-            String baseUrl = frontendDevServerUrl.isEmpty() ? "http://localhost:9000" : frontendDevServerUrl;
+            String baseUrl = frontendDevServerUrl.isEmpty() ? "https://localhost:9000" : frontendDevServerUrl;
             String redirectUrl = baseUrl + "?loginSuccess=true";
             logger.info("Redirecting to dev server: {}", redirectUrl);
             response.sendRedirect(redirectUrl);

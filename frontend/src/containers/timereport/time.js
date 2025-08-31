@@ -132,7 +132,7 @@ class TimeReportTableEntry extends React.Component {
 
         const inputStyle = {
             backgroundColor: backGroundColor,
-            width: '55px'
+            width: '40px'
         }
 
         return (
@@ -178,15 +178,15 @@ class TimeReportTableRow extends React.Component {
         }
 
         var accountName = this.state.timeReportTask.task.account.name;
-        var accountShortName = accountName.substring(0, Math.min(10, accountName.length));
+        var accountShortName = accountName.substring(0, Math.min(8, accountName.length));
         var taskName = this.state.timeReportTask.task.name;
-        var taskShortName = taskName.substring(0, Math.min(10, taskName.length));
+        var taskShortName = taskName.substring(0, Math.min(8, taskName.length));
 
         return (
             <tr key={keyBase}>
                 <th key={keyBase + '-0'} className="text-nowrap" title={accountName}>{accountShortName}</th>
                 <th key={keyBase + '-1'} className="text-nowrap" title={taskName}>{taskShortName}</th>
-                <th key={keyBase + '-2  '}><input className="time" style={{ width: "65px" }} readOnly={true} name={this.state.timeReportTask.task.name} type="text" value={this.state.totalTaskTime} /></th>
+                <th key={keyBase + '-2  '}><input className="time" style={{ width: "50px" }} readOnly={true} name={this.state.timeReportTask.task.name} type="text" value={this.state.totalTaskTime} /></th>
                 {entries}
             </tr>
         );
@@ -442,30 +442,30 @@ export default class Times extends React.Component {
         if (this.state == null || this.state.timeReport == null) return null;
 
         return (
-            <div className="container-fluid ml-4 mr-4">
+            <div className="container-fluid ml-2 mr-2">
                 <h2>Time</h2>
-                <div className="row mb-3">
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.timeReport.firstDate} onClick={this.loadPreviousTimes}>&lt;&lt;</button>
+                <div className="row mb-2">
+                    <div className="col-auto">
+                        <button className="btn btn-success btn-sm" name={this.state.timeReport.firstDate} onClick={this.loadPreviousTimes}>&lt;&lt;</button>
                     </div>
-                    <div className="col-sm-1">
-                        <button className="btn btn-success" name={this.state.timeReport.lastDate} onClick={this.loadNextTimes}>&gt;&gt;</button>
+                    <div className="col-auto">
+                        <button className="btn btn-success btn-sm" name={this.state.timeReport.lastDate} onClick={this.loadNextTimes}>&gt;&gt;</button>
                     </div>
-                    <div className="col-sm-2">
-                        <select className="form-control input-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
+                    <div className="col-auto">
+                        <select className="form-control form-control-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
                             <option value={Constants.WEEK_VIEW}>Week</option>
                             <option value={Constants.MONTH_VIEW}>Month</option>
                         </select>
                     </div>
-                    <div className="col-sm-6">
+                    <div className="col">
                         {this.state.reportView === Constants.MONTH_VIEW && !this.state.timeReport.closed ? (
                             <span className="float-right">
-                                <button className="btn btn-success" name={this.state.timeReport.firstDate} onClick={this.closeReport}>Close report</button>
+                                <button className="btn btn-success btn-sm" name={this.state.timeReport.firstDate} onClick={this.closeReport}>Close report</button>
                             </span>
                         ) : ''}
                     </div>
-                    <div className="col-sm-2">
-                        <span className="float-right">
+                    <div className="col-auto">
+                        <span className="text-nowrap">
                             <b>{this.state.timeReport.firstDate} - {this.state.timeReport.lastDate}</b>
                         </span>
                     </div>

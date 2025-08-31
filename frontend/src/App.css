@@ -330,7 +330,8 @@ td .btn {
 .time-report-table td {
   text-align: center;
   vertical-align: middle;
-  padding: 0.5rem !important;
+  padding: 0.25rem !important;
+  font-size: 0.9rem;
 }
 
 /* First two columns (Account, Task) should be left-aligned */
@@ -339,30 +340,34 @@ td .btn {
 .time-report-table th:nth-child(2),
 .time-report-table td:nth-child(2) {
   text-align: left;
-  min-width: 120px;
+  min-width: 80px;
+  max-width: 100px;
 }
 
 /* Time column (third column) */
 .time-report-table th:nth-child(3),
 .time-report-table td:nth-child(3) {
-  min-width: 80px;
+  min-width: 60px;
+  max-width: 65px;
   text-align: center;
 }
 
 /* Day columns should have consistent width */
 .time-report-table th:nth-child(n+4),
 .time-report-table td:nth-child(n+4) {
-  min-width: 60px;
-  max-width: 60px;
+  min-width: 45px;
+  max-width: 50px;
   text-align: center;
+  padding: 0.25rem !important;
 }
 
 /* Ensure inputs within table cells are properly sized and centered */
 .time-report-table input.time {
-  width: 50px;
-  height: 32px;
+  width: 40px;
+  height: 28px;
   margin: 0 auto;
   display: block;
+  font-size: 0.85rem;
 }
 
 /* Professional Form Controls & Dropdown Styling */

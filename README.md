@@ -1,6 +1,51 @@
 # DTime Application
 
-A modern time tracking application with completely separated frontend and backend services, designed for Docker deployment.
+A comprehensive time tracking and project management application built with modern technologies. DTime provides organizations with powerful tools to track work hours, manage projects, generate reports, and handle user administration through a clean, intuitive web interface.
+
+## Application Overview
+
+DTime is a full-featured time management solution designed for businesses and teams who need to track work hours across multiple projects and users. The application combines robust backend APIs with a responsive React frontend, all secured with modern authentication and HTTPS encryption.
+
+### Key Features
+
+**🕒 Time Tracking & Reporting**
+- Individual time entry with project association
+- Monthly time report generation and submission  
+- Time report approval workflows
+- Automated time tracking reminders
+- Comprehensive reporting dashboards
+
+![Time Report Screen](time_report_screen.png)
+
+**👥 User & Project Management** 
+- Multi-role user system (Admin, User)
+- Project and task organization
+- User assignment to projects
+- Account and contributor management
+- OAuth2 integration (Google)
+
+**📊 Administration & Analytics**
+- Complete administrative control panel
+- System configuration management
+- User role and permission management
+- Special day (holidays) configuration
+- Email notification system
+
+![Admin Screen](admin_screen.png)
+
+**🔒 Security & Authentication**
+- Secure HTTPS-only operation
+- Session-based authentication
+- CSRF protection
+- Role-based access control
+- Secure password handling
+
+**🐳 Modern Architecture**
+- Containerized deployment with Docker
+- Separated frontend and backend services
+- PostgreSQL database with automated migrations
+- Runtime environment configuration
+- Production-ready deployment scripts
 
 ## Project Structure
 

@@ -1,12 +1,14 @@
 package se.dtime.model;
 
 import lombok.Builder;
+import lombok.EqualsAndHashCode;
 import lombok.Getter;
 import lombok.Setter;
 
 @Getter
 @Setter
 @Builder
+@EqualsAndHashCode
 public class EmailContainer {
     private String from;
     private String subject;
@@ -17,13 +19,13 @@ public class EmailContainer {
 
     @Override
     public String toString() {
-        StringBuilder sb = new StringBuilder();
-        sb.append("To: ").append(toList).append("\n");
-        sb.append("From: ").append(from).append("\n");
-        sb.append("CC: ").append(ccList).append("\n");
-        sb.append("Subject: ").append(subject).append("\n");
-        sb.append("Sent Date: ").append(sentDate).append("\n");
-        sb.append("Message: ").append(body).append("\n");
-        return sb.toString();
+        return new StringBuilder()
+                .append("To: ").append(toList).append("\n")
+                .append("From: ").append(from).append("\n")
+                .append("CC: ").append(ccList).append("\n")
+                .append("Subject: ").append(subject).append("\n")
+                .append("Sent Date: ").append(sentDate).append("\n")
+                .append("Message: ").append(body).append("\n")
+                .toString();
     }
 }

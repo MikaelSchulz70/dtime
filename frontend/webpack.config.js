@@ -39,13 +39,14 @@ module.exports = {
     static: false,
     port: 9000,
     hot: true,
+    server: 'https',
     historyApiFallback: {
       index: '/index.html'
     },
     proxy: [
       {
         context: ['/api', '/logout', '/perform_login', '/pub'],
-        target: 'http://localhost:8080',
+        target: 'https://localhost:8443',
         secure: false,
         changeOrigin: true,
         cookieDomainRewrite: 'localhost',

@@ -5,6 +5,7 @@ import se.dtime.model.UserExt;
 public class UserUtil {
 
     public static boolean isUserAdmin(UserExt userExt) {
-        return userExt != null && userExt.getAuthorities().stream().anyMatch(a -> a.getAuthority().equals("ROLE_ADMIN"));
+        return userExt != null && userExt.getAuthorities().stream()
+                .anyMatch(a -> "ROLE_ADMIN".equals(a.getAuthority()));
     }
 }
