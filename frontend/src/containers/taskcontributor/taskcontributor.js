@@ -73,8 +73,8 @@ class TaskContributorTable extends React.Component {
         var taskNameFilter = this.props.taskNameFilter;
         var statusFilter = this.props.statusFilter;
 
-        if (this.state.taskcontributors != null) {
-            var filteredTaskcontributors = this.state.taskcontributors.filter(function (taskcontributor) {
+        if (this.props.taskcontributors != null) {
+            var filteredTaskcontributors = this.props.taskcontributors.filter(function (taskcontributor) {
                 return (taskcontributor.activationStatus === statusFilter) &&
                     (taskcontributor.task.account.name.toLowerCase().startsWith(accountNameFilter.toLowerCase())) &&
                     (taskcontributor.task.name.toLowerCase().startsWith(taskNameFilter.toLowerCase()));

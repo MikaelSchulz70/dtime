@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import AccountService from '../../service/AccountService';
 
@@ -24,16 +24,61 @@ const AccountsModal = () => {
         totalPages: 0,
         totalElements: 0
     });
+    
+    const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadAccounts();
     }, [pagination.currentPage, pagination.itemsPerPage]);
+    
+    // Handle filter changes with debouncing for name
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        searchTimeoutRef.current = setTimeout(() => {
+            console.log('Account name filter effect triggered, loading accounts with filters:', filters);
+            loadAccounts();
+        }, 300);
+        
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [filters.name]);
+    
+    // Status filter changes should be immediate
+    useEffect(() => {
+        console.log('Account status filter changed, loading accounts immediately');
+        loadAccounts();
+    }, [filters.status]);
+    
+    // Cleanup timeout on component unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const loadAccounts = async () => {
         setLoading(true);
+        console.log('Loading accounts with filters:', filters, 'pagination:', pagination);
         try {
             const accountService = new AccountService();
             const activeFilter = filters.status === '' ? null : (filters.status === 'ACTIVE');
+            console.log('Account API call parameters:', {
+                page: pagination.currentPage - 1,
+                size: pagination.itemsPerPage,
+                sort: 'name',
+                direction: 'asc',
+                active: activeFilter,
+                name: filters.name
+            });
+            
             const response = await accountService.getAllPaged(
                 pagination.currentPage - 1, // Backend uses 0-based indexing
                 pagination.itemsPerPage,
@@ -98,11 +143,14 @@ const AccountsModal = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
+        console.log('Account filter changed:', { name, value });
+        
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
-        // Reset to first page and reload data when filters change
+        
+        // Reset to first page when filters change
         setPagination(prev => ({ ...prev, currentPage: 1 }));
     };
 

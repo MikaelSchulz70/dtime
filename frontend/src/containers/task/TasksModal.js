@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
@@ -29,6 +29,8 @@ const TasksModal = () => {
         totalPages: 0,
         totalElements: 0
     });
+    
+    const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadTasks();
@@ -38,13 +40,57 @@ const TasksModal = () => {
     useEffect(() => {
         loadTasks();
     }, [pagination.currentPage, pagination.itemsPerPage]);
+    
+    // Handle filter changes with debouncing for name
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        searchTimeoutRef.current = setTimeout(() => {
+            console.log('Task name filter effect triggered, loading tasks with filters:', filters);
+            loadTasks();
+        }, 300);
+        
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [filters.name]);
+    
+    // Status and account filter changes should be immediate
+    useEffect(() => {
+        console.log('Task status/account filter changed, loading tasks immediately');
+        loadTasks();
+    }, [filters.status, filters.account]);
+    
+    // Cleanup timeout on component unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const loadTasks = async () => {
         setLoading(true);
+        console.log('Loading tasks with filters:', filters, 'pagination:', pagination);
         try {
             const taskService = new TaskService();
             const activeFilter = filters.status === '' ? null : (filters.status === 'ACTIVE');
             const accountFilter = filters.account === '' ? null : filters.account;
+            console.log('Task API call parameters:', {
+                page: pagination.currentPage - 1,
+                size: pagination.itemsPerPage,
+                sort: 'name',
+                direction: 'asc',
+                active: activeFilter,
+                name: filters.name,
+                account: accountFilter
+            });
+            
             const response = await taskService.getAllPaged(
                 pagination.currentPage - 1, // Backend uses 0-based indexing
                 pagination.itemsPerPage,
@@ -125,11 +171,14 @@ const TasksModal = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
+        console.log('Task filter changed:', { name, value });
+        
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
-        // Reset to first page and reload data when filters change
+        
+        // Reset to first page when filters change
         setPagination(prev => ({ ...prev, currentPage: 1 }));
     };
 

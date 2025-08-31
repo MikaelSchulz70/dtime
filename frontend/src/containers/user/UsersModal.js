@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import UserService from '../../service/UserService';
 
@@ -29,16 +29,62 @@ const UsersModal = () => {
         totalPages: 0,
         totalElements: 0
     });
+    
+    const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadUsers();
     }, [pagination.currentPage, pagination.itemsPerPage]);
+    
+    // Handle filter changes with debouncing
+    useEffect(() => {
+        if (searchTimeoutRef.current) {
+            clearTimeout(searchTimeoutRef.current);
+        }
+        
+        searchTimeoutRef.current = setTimeout(() => {
+            console.log('Filter effect triggered, loading users with filters:', filters);
+            loadUsers();
+        }, 300);
+        
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, [filters.firstName, filters.lastName]);
+    
+    // Status filter changes should be immediate
+    useEffect(() => {
+        console.log('Status filter changed, loading users immediately');
+        loadUsers();
+    }, [filters.status]);
+    
+    // Cleanup timeout on component unmount
+    useEffect(() => {
+        return () => {
+            if (searchTimeoutRef.current) {
+                clearTimeout(searchTimeoutRef.current);
+            }
+        };
+    }, []);
 
     const loadUsers = async () => {
         setLoading(true);
+        console.log('Loading users with filters:', filters, 'pagination:', pagination);
         try {
             const userService = new UserService();
             const activeFilter = filters.status === '' ? null : (filters.status === 'ACTIVE');
+            console.log('API call parameters:', {
+                page: pagination.currentPage - 1,
+                size: pagination.itemsPerPage,
+                sort: 'firstName',
+                direction: 'asc',
+                active: activeFilter,
+                firstName: filters.firstName,
+                lastName: filters.lastName
+            });
+            
             const response = await userService.getAllPaged(
                 pagination.currentPage - 1, // Backend uses 0-based indexing
                 pagination.itemsPerPage,
@@ -112,11 +158,14 @@ const UsersModal = () => {
 
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
+        console.log('Filter changed:', { name, value });
+        
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
-        // Reset to first page and reload data when filters change
+        
+        // Reset to first page when filters change
         setPagination(prev => ({ ...prev, currentPage: 1 }));
     };
 

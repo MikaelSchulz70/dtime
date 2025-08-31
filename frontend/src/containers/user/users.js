@@ -46,16 +46,13 @@ class UserTable extends React.Component {
     render() {
         if (this.state == null) return null;
 
-        var firstNameFilter = this.props.firstNameFilter;
-        var lastNameFilter = this.props.lastNameFilter;
         var statusFilter = this.props.statusFilter;
         var emailFilter = this.props.emailFilter || '';
         var roleFilter = this.props.roleFilter;
 
+        // Filter only by status, email, and role since firstName/lastName filtering is now done server-side
         var filteredUsers = this.props.users.filter(function (user) {
             return (user.activationStatus === statusFilter) &&
-                (user.firstName.toLowerCase().startsWith(firstNameFilter.toLowerCase())) &&
-                (user.lastName.toLowerCase().startsWith(lastNameFilter.toLowerCase())) &&
                 (user.email.toLowerCase().includes(emailFilter.toLowerCase())) &&
                 (user.userRole === roleFilter || roleFilter === '');
         });
@@ -90,8 +87,9 @@ export default class Users extends React.Component {
         super(props);
         this.handleDelete = this.handleDelete.bind(this);
         this.loadFromServer = this.loadFromServer.bind(this);
-        this.filterChanged = this.filterChanged.bind(this);
-        this.state = { firstNameFilter: '', lastNameFilter: '', statusFilter: Constants.ACTIVE_STATUS, categoryFilter: '', roleFilter: '' };
+        this.debouncedSearch = this.debouncedSearch.bind(this);
+        this.state = { firstNameFilter: '', lastNameFilter: '', emailFilter: '', statusFilter: Constants.ACTIVE_STATUS, categoryFilter: '', roleFilter: '' };
+        this.searchTimeout = null;
     }
 
     componentDidMount() {
@@ -105,22 +103,74 @@ export default class Users extends React.Component {
         }
     }
 
-    loadFromServer() {
-        const self = this;
-        const userService = new UserService();
-        userService.getAll()
-            .then(response => {
-                self.setState({ users: response.data });
-            })
-            .catch(error => {
-                alert('Failed to load users');
-            });
+    componentWillUnmount() {
+        // Clean up timeout
+        if (this.searchTimeout) {
+            clearTimeout(this.searchTimeout);
+        }
     }
 
-    filterChanged(event) {
+    loadFromServer(firstName = '', lastName = '') {
+        const self = this;
+        const userService = new UserService();
+        
+        console.log('Loading users with filters:', { firstName, lastName });
+        
+        // Use paged API for search functionality
+        if (firstName || lastName) {
+            userService.getAllPaged(undefined, undefined, undefined, undefined, undefined, firstName, lastName)
+                .then(response => {
+                    console.log('Search API response:', response.data);
+                    // Handle both paginated and non-paginated responses
+                    const users = response.data.content || response.data;
+                    console.log('Setting users:', users);
+                    self.setState({ users: users });
+                })
+                .catch(error => {
+                    console.error('Failed to load users with search:', error);
+                    alert('Failed to load users: ' + (error.response?.data?.error || error.message));
+                });
+        } else {
+            // Use regular getAll for initial load or when no search terms
+            userService.getAll()
+                .then(response => {
+                    console.log('Regular API response:', response.data);
+                    self.setState({ users: response.data });
+                })
+                .catch(error => {
+                    console.error('Failed to load users:', error);
+                    alert('Failed to load users');
+                });
+        }
+    }
+
+    debouncedSearch() {
+        const { firstNameFilter, lastNameFilter } = this.state;
+        this.loadFromServer(firstNameFilter, lastNameFilter);
+    }
+
+    filterChanged = (event) => {
+        console.log('filterChanged called!', event.target.name, event.target.value);
         const value = event.target.value;
         const name = event.target.name;
-        this.setState({ [name]: value });
+        
+        this.setState({ [name]: value }, () => {
+            console.log('State updated:', this.state);
+            // For first and last name, trigger real-time search
+            if (name === 'firstNameFilter' || name === 'lastNameFilter') {
+                console.log('Triggering search for name filter');
+                // Clear existing timeout
+                if (this.searchTimeout) {
+                    clearTimeout(this.searchTimeout);
+                }
+                
+                // Set new timeout for debounced search (300ms delay)
+                this.searchTimeout = setTimeout(() => {
+                    console.log('Executing debounced search');
+                    this.debouncedSearch();
+                }, 300);
+            }
+        });
     }
 
     handleDelete(id) {
@@ -148,34 +198,36 @@ export default class Users extends React.Component {
                 <h2>User</h2>
                 <div className="row mb-3">
                     <div className="col-sm-2">
-                        <input className="form-control input-sm" type="text" placeholder="First Name" name="firstNameFilter" onChange={this.filterChanged} />
+                        <input className="form-control input-sm" type="text" placeholder="First Name" name="firstNameFilter" value={this.state.firstNameFilter} onChange={this.filterChanged} />
                     </div>
                     <div className="col-sm-2">
-                        <input className="form-control input-sm" type="text" placeholder="Last name" name="lastNameFilter" onChange={this.filterChanged} />
+                        <input className="form-control input-sm" type="text" placeholder="Last name" name="lastNameFilter" value={this.state.lastNameFilter} onChange={this.filterChanged} />
                     </div>
                     <div className="col-sm-2">
-                        <select className="form-control input-sm" name="roleFilter" onChange={this.filterChanged}>
+                        <input className="form-control input-sm" type="text" placeholder="Email" name="emailFilter" value={this.state.emailFilter} onChange={this.filterChanged} />
+                    </div>
+                    <div className="col-sm-2">
+                        <select className="form-control input-sm" name="roleFilter" value={this.state.roleFilter} onChange={this.filterChanged}>
                             <option value=""></option>
                             <option value={Constants.USER_ROLE}>User</option>
                             <option value={Constants.ADMIN_ROLE}>Admin</option>
                         </select>
                     </div>
                     <div className="col-sm-2">
-                        <select className="form-control input-sm" name="statusFilter" onChange={this.filterChanged}>
+                        <select className="form-control input-sm" name="statusFilter" value={this.state.statusFilter} onChange={this.filterChanged}>
                             <option value={Constants.ACTIVE_STATUS}>Active</option>
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>
                     </div>
-                    <div className="col-sm-4 text-end">
+                    <div className="col-sm-2 text-end">
+                        <button className="btn btn-warning btn-sm me-2" onClick={() => console.log('Test button clicked', this.state)}>Test</button>
                         <Link className="btn btn-primary btn-sm" to='/users/0'>+ Add User</Link>
                     </div>
                 </div>
                 <div className="row">
                     <UserTable users={this.state.users}
                         handleDelete={this.handleDelete.bind(this)}
-                        firstNameFilter={this.state.firstNameFilter}
-                        lastNameFilter={this.state.lastNameFilter}
-                        categoryFilter={this.state.categoryFilter}
+                        emailFilter={this.state.emailFilter}
                         roleFilter={this.state.roleFilter}
                         statusFilter={this.state.statusFilter}
                     />

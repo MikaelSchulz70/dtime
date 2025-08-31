@@ -45,7 +45,7 @@ class AccountTable extends React.Component {
         var nameFilter = this.props.nameFilter;
         var statusFilter = this.props.statusFilter;
 
-        var filteredAccounts = this.state.accounts.filter(function (account) {
+        var filteredAccounts = this.props.accounts.filter(function (account) {
             return (account.activationStatus === statusFilter) &&
                 (account.name.toLowerCase().startsWith(nameFilter.toLowerCase()));
         });
