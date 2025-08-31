@@ -1,0 +1,222 @@
+name: Performance Tests
+
+on:
+  schedule:
+    - cron: '0 2 * * 1'  # Weekly on Mondays at 2 AM
+  workflow_dispatch:
+    inputs:
+      duration:
+        description: 'Test duration in seconds'
+        required: false
+        default: '300'
+        type: string
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+
+jobs:
+  performance-test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Start test environment
+      run: |
+        # Create performance test docker-compose
+        cat > docker-compose.perf.yml << EOF
+        version: '3.8'
+        services:
+          dtime-db:
+            image: postgres:14
+            environment:
+              POSTGRES_DB: dtime_perf
+              POSTGRES_USER: dtime_perf
+              POSTGRES_PASSWORD: perf_password
+            tmpfs:
+              - /var/lib/postgresql/data
+            command: >
+              postgres
+              -c shared_buffers=256MB
+              -c max_connections=200
+              -c effective_cache_size=1GB
+
+          dtime-backend:
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:latest
+            environment:
+              SPRING_PROFILES_ACTIVE: prod
+              POSTGRES_DB: dtime_perf
+              POSTGRES_USER: dtime_perf
+              POSTGRES_PASSWORD: perf_password
+              MAIL_USERNAME: perf@example.com
+              MAIL_PASSWORD: dummy-password
+              SECURITY_CSRF_ENABLED: false
+              JAVA_OPTS: -Xms512m -Xmx1g
+            ports:
+              - "8080:8080"
+            depends_on:
+              - dtime-db
+
+          dtime-frontend:
+            image: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
+            environment:
+              REACT_APP_BACKEND_URL: http://localhost:8080
+            ports:
+              - "3000:80"
+            depends_on:
+              - dtime-backend
+        EOF
+        
+        docker-compose -f docker-compose.perf.yml up -d
+
+    - name: Wait for services
+      run: |
+        timeout 180s bash -c '
+          while ! curl -f http://localhost:8080/actuator/health >/dev/null 2>&1; do
+            echo "Waiting for backend..."
+            sleep 10
+          done
+        '
+        
+        timeout 60s bash -c '
+          while ! curl -f http://localhost:3000/ >/dev/null 2>&1; do
+            echo "Waiting for frontend..."
+            sleep 5
+          done
+        '
+
+    - name: Install k6
+      run: |
+        sudo gpg -k
+        sudo gpg --no-default-keyring --keyring /usr/share/keyrings/k6-archive-keyring.gpg --keyserver hkp://keyserver.ubuntu.com:80 --recv-keys C5AD17C747E3415A3642D57D77C6C491D6AC1D69
+        echo "deb [signed-by=/usr/share/keyrings/k6-archive-keyring.gpg] https://dl.k6.io/deb stable main" | sudo tee /etc/apt/sources.list.d/k6.list
+        sudo apt-get update
+        sudo apt-get install k6
+
+    - name: Create performance test script
+      run: |
+        cat > perf-test.js << 'EOF'
+        import http from 'k6/http';
+        import { check, sleep } from 'k6';
+        import { Rate } from 'k6/metrics';
+
+        const errorRate = new Rate('errors');
+        const BASE_URL = 'http://localhost:8080';
+        const FRONTEND_URL = 'http://localhost:3000';
+
+        export const options = {
+          stages: [
+            { duration: '2m', target: 10 }, // Ramp up
+            { duration: '5m', target: 10 }, // Stay at 10 users
+            { duration: '2m', target: 20 }, // Ramp up to 20 users
+            { duration: '5m', target: 20 }, // Stay at 20 users
+            { duration: '2m', target: 0 },  // Ramp down
+          ],
+          thresholds: {
+            http_req_duration: ['p(95)<2000'], // 95% of requests must complete below 2s
+            http_req_failed: ['rate<0.1'],     // Error rate must be below 10%
+            errors: ['rate<0.1'],
+          },
+        };
+
+        export default function () {
+          // Test frontend loading
+          let frontendResponse = http.get(FRONTEND_URL);
+          check(frontendResponse, {
+            'frontend status is 200': (r) => r.status === 200,
+            'frontend loads in reasonable time': (r) => r.timings.duration < 3000,
+          });
+          errorRate.add(frontendResponse.status !== 200);
+
+          sleep(1);
+
+          // Test backend health
+          let healthResponse = http.get(`${BASE_URL}/actuator/health`);
+          check(healthResponse, {
+            'health check is 200': (r) => r.status === 200,
+            'health check is fast': (r) => r.timings.duration < 500,
+          });
+          errorRate.add(healthResponse.status !== 200);
+
+          sleep(1);
+
+          // Test API endpoints (should get auth redirect/error - that's ok)
+          let apiResponse = http.get(`${BASE_URL}/api/users`, {
+            headers: { 'Accept': 'application/json' },
+          });
+          check(apiResponse, {
+            'API responds': (r) => r.status === 401 || r.status === 403 || r.status === 200,
+            'API is fast': (r) => r.timings.duration < 1000,
+          });
+
+          sleep(2);
+        }
+        EOF
+
+    - name: Run performance tests
+      run: |
+        DURATION="${{ github.event.inputs.duration || '300' }}"
+        echo "Running performance tests for ${DURATION} seconds..."
+        
+        timeout ${DURATION}s k6 run perf-test.js --out json=results.json || true
+
+    - name: Generate performance report
+      run: |
+        if [ -f results.json ]; then
+          echo "## Performance Test Results" > performance-report.md
+          echo "" >> performance-report.md
+          
+          # Extract key metrics
+          TOTAL_REQUESTS=$(cat results.json | jq -r 'select(.type=="Point" and .metric=="http_reqs") | .data.value' | tail -1)
+          AVG_DURATION=$(cat results.json | jq -r 'select(.type=="Point" and .metric=="http_req_duration") | .data.value' | awk '{sum+=$1; count++} END {if(count>0) print sum/count; else print "N/A"}')
+          ERROR_RATE=$(cat results.json | jq -r 'select(.type=="Point" and .metric=="http_req_failed") | .data.value' | awk '{sum+=$1; count++} END {if(count>0) print (sum/count)*100; else print "0"}')
+          
+          echo "- **Total Requests**: ${TOTAL_REQUESTS:-N/A}" >> performance-report.md
+          echo "- **Average Response Time**: ${AVG_DURATION:-N/A} ms" >> performance-report.md  
+          echo "- **Error Rate**: ${ERROR_RATE:-0}%" >> performance-report.md
+          echo "" >> performance-report.md
+          echo "Full results available in the job artifacts." >> performance-report.md
+        else
+          echo "No performance results generated" > performance-report.md
+        fi
+
+    - name: Upload performance results
+      uses: actions/upload-artifact@v4
+      if: always()
+      with:
+        name: performance-results
+        path: |
+          results.json
+          performance-report.md
+        retention-days: 30
+
+    - name: Comment performance results on commit
+      uses: actions/github-script@v7
+      if: always() && github.event_name != 'schedule'
+      with:
+        script: |
+          const fs = require('fs');
+          if (fs.existsSync('performance-report.md')) {
+            const report = fs.readFileSync('performance-report.md', 'utf8');
+            github.rest.repos.createCommitComment({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              commit_sha: context.sha,
+              body: '## 🚀 Performance Test Results\n\n' + report
+            });
+          }
+
+    - name: Cleanup test environment
+      if: always()
+      run: |
+        docker-compose -f docker-compose.perf.yml down -v

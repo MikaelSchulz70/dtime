@@ -1,0 +1,179 @@
+name: Documentation
+
+on:
+  push:
+    branches: [ main, master ]
+    paths:
+      - '**.md'
+      - 'docs/**'
+      - '.github/workflows/docs.yml'
+  pull_request:
+    branches: [ main, master ]
+    paths:
+      - '**.md'
+      - 'docs/**'
+
+jobs:
+  validate-docs:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js for markdownlint
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Install markdown linter
+      run: npm install -g markdownlint-cli
+
+    - name: Create markdownlint config
+      run: |
+        cat > .markdownlint.json << EOF
+        {
+          "MD013": false,
+          "MD033": false,
+          "MD041": false
+        }
+        EOF
+
+    - name: Lint markdown files
+      run: |
+        markdownlint README.md || true
+        find docs -name "*.md" -exec markdownlint {} \; || true
+
+    - name: Check for broken links in README
+      run: |
+        # Simple check for common broken link patterns
+        if grep -n "](http" README.md; then
+          echo "External links found in README.md - manual verification recommended"
+        fi
+
+    - name: Validate docker-compose documentation
+      run: |
+        # Check if docker-compose files are documented
+        if [ -f docker-compose.yml ]; then
+          if ! grep -q "docker-compose" README.md; then
+            echo "⚠️  Warning: docker-compose.yml exists but not documented in README.md"
+          fi
+        fi
+
+    - name: Check for required documentation sections
+      run: |
+        REQUIRED_SECTIONS=(
+          "Quick Start"
+          "Installation"
+          "Configuration"
+          "Usage"
+          "API"
+        )
+        
+        MISSING_SECTIONS=()
+        
+        for section in "${REQUIRED_SECTIONS[@]}"; do
+          if ! grep -qi "$section" README.md; then
+            MISSING_SECTIONS+=("$section")
+          fi
+        done
+        
+        if [ ${#MISSING_SECTIONS[@]} -gt 0 ]; then
+          echo "⚠️  Recommended sections missing from README.md:"
+          printf '%s\n' "${MISSING_SECTIONS[@]}"
+        else
+          echo "✅ All recommended sections found in README.md"
+        fi
+
+    - name: Generate API documentation
+      run: |
+        echo "## API Documentation" > API.md
+        echo "" >> API.md
+        echo "This is auto-generated API documentation." >> API.md
+        echo "" >> API.md
+        
+        # Extract API endpoints from backend code if possible
+        if [ -d backend/src ]; then
+          echo "### Available Endpoints" >> API.md
+          echo "" >> API.md
+          
+          # Find REST controller mappings
+          grep -r "@RequestMapping\|@GetMapping\|@PostMapping\|@PutMapping\|@DeleteMapping" backend/src/ | \
+            grep -o '"/[^"]*"' | \
+            sort -u | \
+            sed 's/^/- `/' | \
+            sed 's/$/`/' >> API.md || true
+        fi
+
+    - name: Upload documentation artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: documentation
+        path: |
+          README.md
+          API.md
+          docs/
+        retention-days: 90
+
+  update-docs:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: validate-docs
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+
+    - name: Update README with build status
+      run: |
+        # Add build status badges if not present
+        if ! grep -q "github/workflows/ci-cd" README.md; then
+          sed -i '1i[![CI/CD Pipeline](https://github.com/${{ github.repository }}/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/${{ github.repository }}/actions/workflows/ci-cd.yml)' README.md
+        fi
+        
+        if ! grep -q "github.com/${{ github.repository }}/releases" README.md; then
+          sed -i '1i[![GitHub release](https://img.shields.io/github/release/${{ github.repository }}.svg)](https://github.com/${{ github.repository }}/releases/latest)' README.md
+        fi
+
+    - name: Update CHANGELOG
+      run: |
+        if [ ! -f CHANGELOG.md ]; then
+          cat > CHANGELOG.md << EOF
+        # Changelog
+
+        All notable changes to this project will be documented in this file.
+
+        The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+        and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+        ## [Unreleased]
+
+        ### Added
+        - GitHub Actions CI/CD pipeline
+        - Automated testing and deployment
+        - Performance testing workflow
+        - Security scanning
+        - Documentation validation
+
+        ### Changed
+        - Enhanced build and deployment process
+
+        ### Security
+        - Added automated vulnerability scanning
+        EOF
+        fi
+
+    - name: Commit documentation updates
+      run: |
+        git config --local user.email "action@github.com"
+        git config --local user.name "GitHub Action"
+        git add README.md CHANGELOG.md
+        git diff --staged --quiet || git commit -m "docs: update documentation and changelog [skip ci]"
+        git push

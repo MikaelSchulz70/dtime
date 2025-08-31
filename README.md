@@ -274,3 +274,131 @@ cd dtime-v1.0.0
 ./load-images.sh
 ./scripts/deploy.sh
 ```
+
+## CI/CD Pipeline
+
+DTime includes a comprehensive GitHub Actions CI/CD pipeline that automates building, testing, and deployment validation.
+
+### 🔄 Workflows
+
+**Main CI/CD Pipeline (`.github/workflows/ci-cd.yml`)**
+- Triggers on push to `main`/`master`/`develop` branches and pull requests
+- **Frontend Build**: Node.js setup, dependency installation, linting, testing, and production build
+- **Backend Build**: Java 21 setup, Maven caching, testing with PostgreSQL, and JAR packaging
+- **Docker Build**: Multi-platform container images published to GitHub Container Registry
+- **Integration Testing**: Full stack deployment testing with health checks
+- **Deployment Validation**: Script validation and docker-compose verification
+- **Security Scanning**: Vulnerability scanning with Trivy
+
+**Release Pipeline (`.github/workflows/release.yml`)**
+- Triggers on version tags (`v*`)
+- Builds and publishes tagged Docker images
+- Creates distribution packages with deployment scripts
+- Generates release notes with change logs
+- Creates GitHub releases with artifacts
+
+**Performance Testing (`.github/workflows/performance.yml`)**
+- Scheduled weekly performance tests
+- Load testing with k6
+- Performance metrics and reporting
+- Can be manually triggered with custom duration
+
+**Documentation (`.github/workflows/docs.yml`)**
+- Validates markdown files and documentation structure
+- Checks for required documentation sections
+- Auto-generates API documentation
+- Updates build status badges
+
+### 🔧 Dependency Management
+
+**Dependabot Configuration (`.github/dependabot.yml`)**
+- Weekly dependency updates for npm packages
+- Weekly dependency updates for Maven dependencies  
+- Monthly GitHub Actions updates
+- Automated security vulnerability patches
+
+### 🐳 Container Images
+
+The pipeline automatically builds and publishes Docker images to GitHub Container Registry:
+
+```bash
+# Latest images (from main branch)
+ghcr.io/mikael/dtime/backend:latest
+ghcr.io/mikael/dtime/frontend:latest
+
+# Tagged releases
+ghcr.io/mikael/dtime/backend:v1.0.0
+ghcr.io/mikael/dtime/frontend:v1.0.0
+
+# Branch-specific builds
+ghcr.io/mikael/dtime/backend:develop-abc1234
+ghcr.io/mikael/dtime/frontend:develop-abc1234
+```
+
+### 🚀 Deployment Strategy
+
+**Development**
+- Automatic builds on feature branches
+- Integration testing on every pull request
+- Branch-specific container tags for testing
+
+**Staging** 
+- Automatic deployment to staging on merge to `develop`
+- Full integration and performance testing
+- Security scanning and vulnerability checks
+
+**Production**
+- Manual approval required for production deployment
+- Tagged releases with semantic versioning
+- Rollback capabilities with previous image versions
+- Health checks and deployment validation
+
+### 🔍 Monitoring & Quality
+
+**Automated Testing**
+- Unit tests for both frontend and backend
+- Integration tests with real database
+- End-to-end deployment validation
+- Performance benchmarking
+
+**Security & Compliance**
+- Container vulnerability scanning
+- Dependency security updates
+- HTTPS-only deployment validation
+- Security policy compliance checks
+
+**Code Quality**
+- Linting for JavaScript/TypeScript and Java
+- Code coverage reporting
+- Documentation validation
+- Consistent formatting and style
+
+### 📊 Status & Metrics
+
+Monitor the health of your deployment and CI/CD pipeline:
+
+- **Build Status**: Check GitHub Actions for build history
+- **Container Images**: View published images in GitHub Packages
+- **Security Alerts**: Review Dependabot security advisories  
+- **Performance**: Check weekly performance test results
+- **Documentation**: Validate documentation completeness
+
+### 🛠️ Local Development
+
+For local development that mirrors the CI/CD environment:
+
+```bash
+# Run the same linting as CI
+cd frontend && npm run lint
+cd backend && mvn checkstyle:check
+
+# Run the same tests as CI  
+cd frontend && npm test -- --coverage --watchAll=false
+cd backend && mvn test
+
+# Build the same Docker images as CI
+./build-docker.sh --tag local-test
+
+# Test deployment locally
+./deploy.sh --env development
+```

@@ -1,0 +1,156 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME_BACKEND: ${{ github.repository }}/backend
+  IMAGE_NAME_FRONTEND: ${{ github.repository }}/frontend
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      packages: write
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '18'
+        cache: 'npm'
+        cache-dependency-path: frontend/package-lock.json
+
+    - name: Setup Java
+      uses: actions/setup-java@v4
+      with:
+        java-version: '21'
+        distribution: 'temurin'
+
+    - name: Cache Maven dependencies
+      uses: actions/cache@v4
+      with:
+        path: ~/.m2
+        key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+
+    - name: Build frontend
+      run: |
+        cd frontend
+        npm ci
+        npm run build
+      env:
+        CI: false
+
+    - name: Build backend
+      run: |
+        cd backend
+        mvn clean package -DskipTests
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ${{ env.REGISTRY }}
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract version from tag
+      id: version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Build and push backend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./backend
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ steps.version.outputs.VERSION }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:latest
+        labels: |
+          org.opencontainers.image.title=DTime Backend
+          org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
+          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+    - name: Build and push frontend Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: ./frontend
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: |
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ steps.version.outputs.VERSION }}
+          ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:latest
+        labels: |
+          org.opencontainers.image.title=DTime Frontend
+          org.opencontainers.image.version=${{ steps.version.outputs.VERSION }}
+          org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+
+    - name: Create release package
+      run: |
+        chmod +x ./package.sh
+        ./package.sh --version ${{ steps.version.outputs.VERSION }} --output ./release
+
+    - name: Generate release notes
+      run: |
+        echo "# DTime Release ${{ steps.version.outputs.VERSION }}" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## Docker Images" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "- **Backend**: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ steps.version.outputs.VERSION }}\`" >> RELEASE_NOTES.md
+        echo "- **Frontend**: \`${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ steps.version.outputs.VERSION }}\`" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## Deployment" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "### Quick Start with Docker" >> RELEASE_NOTES.md
+        echo "\`\`\`bash" >> RELEASE_NOTES.md
+        echo "# Download and extract the release package" >> RELEASE_NOTES.md
+        echo "wget https://github.com/${{ github.repository }}/releases/download/v${{ steps.version.outputs.VERSION }}/dtime-${{ steps.version.outputs.VERSION }}.tar.gz" >> RELEASE_NOTES.md
+        echo "tar -xzf dtime-${{ steps.version.outputs.VERSION }}.tar.gz" >> RELEASE_NOTES.md
+        echo "cd dtime-${{ steps.version.outputs.VERSION }}" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "# Configure environment" >> RELEASE_NOTES.md
+        echo "cp .env.example .env" >> RELEASE_NOTES.md
+        echo "# Edit .env with your configuration" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "# Deploy" >> RELEASE_NOTES.md
+        echo "./deploy.sh --env production" >> RELEASE_NOTES.md
+        echo "\`\`\`" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "### Access the Application" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "- **Frontend**: http://localhost:3000" >> RELEASE_NOTES.md
+        echo "- **Backend API**: http://localhost:8080" >> RELEASE_NOTES.md
+        echo "- **Default Admin**: admin@dtime.se / admin123" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "## Changes in this Release" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        
+        # Get commits since last tag
+        LAST_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+        if [ -n "$LAST_TAG" ]; then
+          git log ${LAST_TAG}..HEAD --pretty=format:"- %s (%h)" >> RELEASE_NOTES.md
+        else
+          echo "- Initial release" >> RELEASE_NOTES.md
+        fi
+
+    - name: Create GitHub Release
+      uses: softprops/action-gh-release@v1
+      with:
+        body_path: RELEASE_NOTES.md
+        files: |
+          release/dtime-${{ steps.version.outputs.VERSION }}.tar.gz
+        draft: false
+        prerelease: false
+        generate_release_notes: true
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
