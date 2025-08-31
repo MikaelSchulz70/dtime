@@ -1,5 +1,5 @@
 # Backend Dockerfile
-FROM openjdk:21-jdk-slim as build
+FROM openjdk:26-jdk-slim as build
 
 # Install dependencies for build process
 RUN apt-get update && apt-get install -y \
@@ -27,7 +27,7 @@ COPY src ./src
 RUN ./mvnw clean package -DskipTests
 
 # Runtime stage
-FROM openjdk:21-jdk-slim
+FROM openjdk:26-jdk-slim
 
 # Install curl for health checks
 RUN apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
