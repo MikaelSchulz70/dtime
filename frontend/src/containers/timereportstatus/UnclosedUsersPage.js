@@ -305,12 +305,12 @@ export default class UnclosedUsersPage extends React.Component {
                     <div className="card-body">
                         <div className="row mb-3">
                             <div className="col-sm-2">
-                                <div className="btn-group" role="group" aria-label="Navigation">
-                                    <button className="btn btn-outline-primary" name={fromDate} onClick={this.handlePreviousReport} title="Previous Period">
-                                        ← Previous
+                                <div className="d-flex gap-2" role="group" aria-label="Navigation">
+                                    <button className="btn btn-success btn-sm" name={fromDate} onClick={this.handlePreviousReport} title="Previous Period">
+                                        &lt;&lt;
                                     </button>
-                                    <button className="btn btn-outline-primary" name={toDate} onClick={this.handleNextReport} title="Next Period">
-                                        Next →
+                                    <button className="btn btn-success btn-sm" name={toDate} onClick={this.handleNextReport} title="Next Period">
+                                        &gt;&gt;
                                     </button>
                                 </div>
                             </div>

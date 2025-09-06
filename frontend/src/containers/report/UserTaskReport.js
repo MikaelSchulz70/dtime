@@ -1,7 +1,6 @@
 import React from "react";
 import Modal from 'react-modal';
 import * as Constants from '../../common/Constants';
-import ReportService from '../../service/ReportService';
 import TimeService from '../../service/TimeService';
 
 Modal.setAppElement('#root');
@@ -41,50 +40,6 @@ class TimeReportTableEntry extends React.Component {
     }
 };
 
-class UserReportSummaryTable extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { report: this.props.report };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
-
-    render() {
-        if (this.state == null)
-            return null;
-
-        var rows = [];
-        rows.push(
-            <tr key={'summary-header'} className="bg-success text-white">
-                <th className="fw-bold fs-6">Summary</th>
-                <th className="fw-bold fs-6">Workable Hours (Month)</th>
-                <th className="fw-bold fs-6">Total Workable Hours</th>
-                <th className="fw-bold fs-6">Total Hours Worked</th>
-                <th></th>
-            </tr>
-        );
-
-        rows.push(
-            <tr key={'summary-info'} className="table-light">
-                <td className="fw-bold text-muted">Totals</td>
-                <td className="fw-bold">{this.state.report.workableHours}</td>
-                <td className="fw-bold">{this.state.report.totalWorkableHours}</td>
-                <td className="fw-bold text-success">{this.state.report.totalHoursWorked}</td>
-                <td></td>
-            </tr>
-        );
-
-        return (
-            <tbody>
-                {rows}
-            </tbody>
-        );
-    }
-}
 
 class TimeReportTableRow extends React.Component {
     constructor(props) {
@@ -127,7 +82,6 @@ class TimeReportTableRow extends React.Component {
 class UserReportRows extends React.Component {
     constructor(props) {
         super(props);
-        this.handleOpenCloseReport = this.handleOpenCloseReport.bind(this);
         this.state = { userReport: this.props.userReport, reportView: this.props.reportView, workableHours: this.props.workableHours, fromDate: this.props.fromDate };
     }
 
@@ -135,34 +89,6 @@ class UserReportRows extends React.Component {
         if (this.props !== nextProps) {
             this.setState(nextProps);
         }
-    }
-
-    handleOpenCloseReport(event) {
-        var userId = event.target.id;
-        var date = event.target.name;
-
-        var urlPath = '';
-        if (this.state.userReport.closed) {
-            urlPath = 'open';
-        } else {
-            urlPath = 'close';
-        }
-
-        var payLoad = '{ "userId": "' + userId + '", "closeDate": "' + date + '"}';
-        var self = this;
-        var service = new ReportService();
-        service.updateOpenCloseReport(payLoad, urlPath)
-            .then(response => {
-                if (self.state.userReport.closed) {
-                    self.state.userReport.closed = false;
-                } else {
-                    self.state.userReport.closed = true;
-                }
-                self.setState({ userReport: self.state.userReport });
-            })
-            .catch(error => {
-                alert('Failed to open/close report');
-            });
     }
 
     render() {
@@ -177,12 +103,11 @@ class UserReportRows extends React.Component {
         var rows = [];
         var keyBase = this.state.userReport.userId + '_';
         var keyHeader = keyBase + '0';
-        rows.push(<tr key={keyHeader} className="bg-success text-white">)
+        rows.push(<tr key={keyHeader} className="bg-success text-white">
             <th className="fw-bold">{this.state.userReport.fullName}</th>
             <th className="fw-bold">Account</th>
             <th className="fw-bold">Task</th>
             <th className="fw-bold">Total Hours</th>
-            <th></th>
             <th></th>
         </tr>);
 
@@ -200,8 +125,6 @@ class UserReportRows extends React.Component {
                     <td className="text-nowrap" title={taskName}>{taskShortName}</td>
                     <td>{taskReport.totalHours}</td>
                     <td></td>
-                    <td></td>
-                    <td></td>
                 </tr>);
         });
 
@@ -216,7 +139,6 @@ class UserReportRows extends React.Component {
             <th className="fw-bold text-dark">Total Time</th>
             <th></th>
             <th className={`fw-bold fs-6 ${textColor}`}>{this.state.userReport.totalTime} hrs</th>
-            <th></th>
             <th>
                 {this.state.reportView === Constants.MONTH_VIEW ? (
                     <UserDetailReport userId={this.state.userReport.userId} fromDate={this.state.fromDate} toDate={this.state.toDate} />
@@ -409,10 +331,6 @@ export default class UserTaskReportTable extends React.Component {
             return null;
 
         var rows = [];
-        rows.push(
-            <UserReportSummaryTable key={'summary-table'} report={this.state.report} />
-        );
-
         var workableHours = this.state.report.workableHours;
         var reportView = this.state.reportView;
         var fromDate = this.state.report.fromDate;
