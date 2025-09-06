@@ -103,7 +103,7 @@ class UserReportRows extends React.Component {
         var rows = [];
         var keyBase = this.state.userReport.userId + '_';
         var keyHeader = keyBase + '0';
-        rows.push(<tr key={keyHeader} className="bg-success text-white">
+        rows.push(<tr key={keyHeader}>
             <th className="fw-bold">{this.state.userReport.fullName}</th>
             <th className="fw-bold">Account</th>
             <th className="fw-bold">Task</th>
@@ -134,11 +134,11 @@ class UserReportRows extends React.Component {
         }
 
         var key = keyBase + "_footer";
-        rows.push(<tr key={key} className="table-light border-top border-2">
+        rows.push(<tr key={key} className="table-primary border-top border-2">
             <th className="text-muted"></th>
-            <th className="fw-bold text-dark">Total Time</th>
+            <th className="fw-bold fs-6">📊 Total Time</th>
             <th></th>
-            <th className={`fw-bold fs-6 ${textColor}`}>{this.state.userReport.totalTime} hrs</th>
+            <th className={`fw-bold fs-6`}>{this.state.userReport.totalTime} hrs</th>
             <th>
                 {this.state.reportView === Constants.MONTH_VIEW ? (
                     <UserDetailReport userId={this.state.userReport.userId} fromDate={this.state.fromDate} toDate={this.state.toDate} />
@@ -344,7 +344,7 @@ export default class UserTaskReportTable extends React.Component {
             <div className="col-12">
                 <div className="card shadow-sm">
                     <div className="card-header bg-success text-white">
-                        <h5 className="mb-0 fw-bold">👥 User Task Time Summary</h5>
+                        <h5 className="mb-0 fw-bold text-white">👥 User Task Time Summary</h5>
                     </div>
                     <div className="card-body p-0">
                         <div className="table-responsive">

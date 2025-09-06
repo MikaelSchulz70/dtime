@@ -21,11 +21,21 @@ export default class AdminReports extends React.Component {
     }
 
     viewChange(event) {
-        this.loadFromServer(event.target.value, this.state.reportType);
+        // Preserve the current date range when changing view type
+        if (this.state.report && this.state.report.fromDate) {
+            this.loadReportForDate(event.target.value, this.state.reportType, this.state.report.fromDate);
+        } else {
+            this.loadFromServer(event.target.value, this.state.reportType);
+        }
     }
 
     typeChange(event) {
-        this.loadFromServer(this.state.reportView, event.target.value);
+        // Preserve the current date range when changing report type
+        if (this.state.report && this.state.report.fromDate) {
+            this.loadReportForDate(this.state.reportView, event.target.value, this.state.report.fromDate);
+        } else {
+            this.loadFromServer(this.state.reportView, event.target.value);
+        }
     }
 
     loadFromServer(view, type) {
@@ -37,6 +47,36 @@ export default class AdminReports extends React.Component {
             })
             .catch(error => {
                 alert('Failed to load report');
+            });
+    }
+
+    loadReportForDate(view, type, date) {
+        const self = this;
+        var service = new ReportService();
+
+        // First try to get the report by going to previous, then coming back with next
+        // This helps ensure we get the exact same time period
+        service.getPreviousReport(view, type, date)
+            .then(response => {
+                // Now get the next report from the previous period to get back to our target period
+                const previousFromDate = response.data.fromDate;
+                return service.getNextReport(view, type, previousFromDate);
+            })
+            .then(response => {
+                self.setState({ report: response.data, reportView: view, reportType: type });
+            })
+            .catch(error => {
+                console.log('Failed to load report for specific date, trying direct approach');
+                // If the roundtrip fails, try using the date directly with getNextReport
+                service.getNextReport(view, type, date)
+                    .then(response => {
+                        self.setState({ report: response.data, reportView: view, reportType: type });
+                    })
+                    .catch(secondError => {
+                        console.log('All attempts failed, falling back to current report');
+                        // If everything fails, fall back to current report
+                        self.loadFromServer(view, type);
+                    });
             });
     }
 
@@ -76,7 +116,7 @@ export default class AdminReports extends React.Component {
             <div className="container-fluid p-4">
                 <div className="card shadow-sm mb-4">
                     <div className="card-header bg-success text-white">
-                        <h2 className="mb-0 fw-bold">📊 Administrative Reports</h2>
+                        <h2 className="mb-0 fw-bold text-white">📊 Administrative Reports</h2>
                     </div>
                     <div className="card-body">
                         <div className="row mb-3 align-items-center">

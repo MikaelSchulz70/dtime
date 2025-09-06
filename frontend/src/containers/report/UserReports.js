@@ -28,7 +28,7 @@ class UserReportRows extends React.Component {
                 <tr key={key}>
                     <td className="fw-medium">{taskReport.accountName}</td>
                     <td className="fw-medium">{taskReport.taskName}</td>
-                    <td className="text-end fw-bold text-success">{taskReport.totalHours} hrs</td>
+                    <td className="text-end">{taskReport.totalHours} hrs</td>
                 </tr>);
             i++;
         });
@@ -36,7 +36,7 @@ class UserReportRows extends React.Component {
         var key = 'row-' + i;
         rows.push(<tr key={key} className="table-primary border-top border-2">
             <td className="fw-bold fs-6" colSpan="2">📊 Total Time</td>
-            <td className="text-end fw-bold fs-6 text-success">{this.state.userReport.totalTime} hrs</td>
+            <td className="text-end fw-bold fs-6">{this.state.userReport.totalTime} hrs</td>
         </tr>);
 
         return (
@@ -75,19 +75,17 @@ class UserReportTable extends React.Component {
         return (
             <div className="col-12">
                 <div className="card shadow-sm">
-                    <div className="card-header bg-success text-white">
-                        <h5 className="mb-0 fw-bold">📋 Task Time Breakdown</h5>
+                    <div className="card-header bg-success">
+                        <h5 className="mb-0 fw-bold text-white">📋 Task Time Breakdown</h5>
                     </div>
                     <div className="card-body p-0">
                         <div className="table-responsive">
                             <table className="table table-hover table-striped mb-0">
-                                <thead className="bg-light">
-                                    <tr>
-                                        <th className="fw-bold text-success">🏢 Account</th>
-                                        <th className="fw-bold text-success">📋 Task</th>
-                                        <th className="fw-bold text-success text-end">⏱️ Total Hours</th>
-                                    </tr>
-                                </thead>
+                                <tr>
+                                    <th className="fw-bold">🏢 Account</th>
+                                    <th className="fw-bold">📋 Task</th>
+                                    <th className="fw-bold text-end">⏱️ Total Hours</th>
+                                </tr>
                                 {rows}
                             </table>
                         </div>
@@ -161,7 +159,7 @@ export default class UserReports extends React.Component {
         return (
             <div className="container-fluid p-4">
                 <div className="card shadow-sm mb-4">
-                    <div className="card-header bg-success text-white">
+                    <div className="card-header">
                         <h2 className="mb-0 fw-bold">👤 My Time Report</h2>
                     </div>
                     <div className="card-body">
