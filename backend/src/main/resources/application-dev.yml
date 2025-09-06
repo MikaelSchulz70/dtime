@@ -16,9 +16,7 @@ spring:
 # Server Configuration for Development (HTTPS enabled)
 server:
   port: 8443
-  http:
-    port: 8080
-  address: localhost
+  address: 0.0.0.0
   ssl:
     key-store-type: PKCS12
     key-store: classpath:keystore/dtime_new.p12
