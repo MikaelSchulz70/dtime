@@ -206,6 +206,19 @@ fi
 if [ "$START_SERVICES" = true ]; then
     print_header "🚀 Starting Services"
     
+    # Set environment-specific backend URL if not already configured
+    if [ -z "${FRONTEND_BACKEND_URL}" ]; then
+        if [ "$ENVIRONMENT" = "development" ]; then
+            export FRONTEND_BACKEND_URL="https://localhost:8443"
+            print_status "Auto-configured backend URL for local development: $FRONTEND_BACKEND_URL"
+        else
+            export FRONTEND_BACKEND_URL="https://localhost:8443"
+            print_warning "Using localhost for production - set FRONTEND_BACKEND_URL in .env for production domain"
+        fi
+    else
+        print_status "Using configured backend URL: $FRONTEND_BACKEND_URL"
+    fi
+    
     if [ "$ENVIRONMENT" = "development" ]; then
         print_status "Starting development environment..."
         docker-compose --profile full-stack up -d

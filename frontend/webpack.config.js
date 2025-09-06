@@ -49,7 +49,7 @@ module.exports = {
     proxy: [
       {
         context: ['/api', '/logout', '/perform_login', '/pub'],
-        target: 'https://localhost:8443',
+        target: process.env.REACT_APP_BACKEND_URL || 'https://localhost:8443',
         secure: false,
         changeOrigin: true,
         cookieDomainRewrite: 'localhost',
