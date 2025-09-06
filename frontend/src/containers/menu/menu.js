@@ -1,11 +1,9 @@
 import React from "react";
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router-dom';
-import { useSession } from "../../contexts/SessionContext";
 import logo from "../../assets/logo_white.png";
 
-const NavigationMenu = () => {
-  const { session } = useSession();
+const NavigationMenu = ({ session }) => {
 
   if (!session || !session.loggedInUser) {
     return null;

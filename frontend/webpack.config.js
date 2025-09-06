@@ -36,7 +36,10 @@ module.exports = {
     })
   ],
   devServer: {
-    static: false,
+    static: {
+      directory: './public',
+      publicPath: '/'
+    },
     port: 9000,
     hot: true,
     server: 'https',

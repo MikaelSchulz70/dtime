@@ -153,7 +153,7 @@ const AppContent = () => {
 
   return (
     <div className="d-flex flex-column min-vh-100">
-      <NavigationMenu />
+      <NavigationMenu session={session} />
       <div className="flex-grow-1">
         <Main />
       </div>
