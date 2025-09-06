@@ -52,7 +52,7 @@ public class SpecialDayPO extends BasePO {
         this.dayType = dayType;
     }
 
-    @Column(name = "date", unique = false, nullable = false, updatable = false)
+    @Column(name = "date", unique = false, nullable = false)
     public LocalDate getDate() {
         return date;
     }

@@ -122,7 +122,7 @@ const SpecialDays = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setModalError({ show: false, message: '' });
-        
+
         if (!formData.name || !formData.date || !formData.dayType) {
             setModalError({ show: true, message: 'Please fill in all required fields' });
             return;
@@ -130,10 +130,14 @@ const SpecialDays = () => {
 
         try {
             if (editingSpecialDay) {
-                await SpecialDayService.updateSpecialDay(editingSpecialDay.id, formData);
+                console.log('Submitting update for special day:', editingSpecialDay.id, formData);
+                const result = await SpecialDayService.updateSpecialDay(editingSpecialDay.id, formData);
+                console.log('Update successful:', result);
                 showAlert('Special day updated successfully');
             } else {
-                await SpecialDayService.createSpecialDay(formData);
+                console.log('Submitting create for special day:', formData);
+                const result = await SpecialDayService.createSpecialDay(formData);
+                console.log('Create successful:', result);
                 showAlert('Special day created successfully');
             }
 
@@ -170,7 +174,7 @@ const SpecialDays = () => {
             const errorMessage = error.response?.data?.message || error.message || 'Failed to upload special days';
             showAlert(errorMessage, 'danger');
         }
-        
+
         // Reset file input
         event.target.value = '';
     };
@@ -188,12 +192,12 @@ const SpecialDays = () => {
                 date: "2025-12-24"
             }
         ];
-        
+
         const dataStr = JSON.stringify(sampleData, null, 2);
         const dataUri = 'data:application/json;charset=utf-8,' + encodeURIComponent(dataStr);
-        
+
         const exportFileDefaultName = 'special-days-sample.json';
-        
+
         const linkElement = document.createElement('a');
         linkElement.setAttribute('href', dataUri);
         linkElement.setAttribute('download', exportFileDefaultName);
@@ -261,8 +265,8 @@ const SpecialDays = () => {
                 </Col>
                 {selectedYear && (
                     <Col xs="auto">
-                        <Button 
-                            variant="danger" 
+                        <Button
+                            variant="danger"
                             size="sm"
                             onClick={() => handleDeleteYear(selectedYear)}
                         >

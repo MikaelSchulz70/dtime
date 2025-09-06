@@ -49,6 +49,13 @@ server:
     key-store: classpath:keystore/dtime_new.p12
     key-store-password: ${SSL_KEYSTORE_PASSWORD:dt2020}
     key-alias: dtime
+  servlet:
+    session:
+      cookie:
+        name: JSESSIONID
+        secure: false  # Allow session cookies over HTTP for dev
+        http-only: false  # Allow JavaScript access for debugging
+        same-site: lax  # Allow cross-site requests for development
 
 # Security Configuration
 security:
