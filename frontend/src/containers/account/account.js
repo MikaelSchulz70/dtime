@@ -20,7 +20,7 @@ class AccountTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class AccountTable extends React.Component {
     constructor(props) {
@@ -70,7 +70,7 @@ class AccountTable extends React.Component {
             </table>
         );
     }
-};
+}
 
 export default class Account extends React.Component {
     constructor(props) {
@@ -193,4 +193,4 @@ export default class Account extends React.Component {
             </div>
         );
     }
-};
+}

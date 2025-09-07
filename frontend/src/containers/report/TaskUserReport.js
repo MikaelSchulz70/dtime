@@ -32,7 +32,7 @@ class TimeReportTableEntry extends React.Component {
             <td><input style={{ backgroundColor: backGroundColor }} className="time" readOnly={true} type="text" value={time} /></td>
         );
     }
-};
+}
 
 class TaskUserTableRow extends React.Component {
     constructor(props) {
@@ -70,7 +70,7 @@ class TaskUserTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 
 class TaskUserReportRow extends React.Component {
@@ -121,8 +121,8 @@ class TaskUserReportRow extends React.Component {
                 {rows}
             </tbody>
         );
-    };
-};
+    }
+}
 
 export default class TaskUserReportTable extends React.Component {
     constructor(props) {
@@ -156,4 +156,4 @@ export default class TaskUserReportTable extends React.Component {
             </div>
         );
     }
-};
+}

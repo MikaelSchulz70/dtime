@@ -33,18 +33,33 @@
   },
   "eslintConfig": {
     "extends": [
-      "react-app",
       "eslint:recommended",
       "plugin:react/recommended",
       "plugin:react-hooks/recommended"
     ],
+    "env": {
+      "browser": true,
+      "node": true,
+      "es6": true,
+      "jest": true
+    },
+    "parserOptions": {
+      "ecmaVersion": 2020,
+      "sourceType": "module",
+      "ecmaFeatures": {
+        "jsx": true
+      }
+    },
     "rules": {
       "no-console": "warn",
       "no-unused-vars": "warn", 
       "no-unreachable": "error",
-      "react/prop-types": "warn",
+      "react/prop-types": "off",
+      "react/no-deprecated": "warn",
       "react-hooks/rules-of-hooks": "error",
-      "react-hooks/exhaustive-deps": "warn"
+      "react-hooks/exhaustive-deps": "warn",
+      "no-extra-semi": "warn",
+      "no-prototype-builtins": "warn"
     },
     "settings": {
       "react": {

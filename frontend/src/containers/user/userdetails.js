@@ -177,4 +177,4 @@ export default class UserDetails extends BaseDetails {
             </div>
         );
     }
-};
+}

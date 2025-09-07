@@ -38,7 +38,7 @@ class VacationTableEntry extends React.Component {
             </td>
         );
     }
-};
+}
 
 class VacationTableRow extends React.Component {
     constructor(props) {
@@ -77,7 +77,7 @@ class VacationTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class VacationTableHeaderRow extends React.Component {
     constructor(props) {
@@ -123,7 +123,7 @@ class VacationTableHeaderRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class VacationTable extends React.Component {
     constructor(props) {
@@ -159,7 +159,7 @@ class VacationTable extends React.Component {
             </table>
         );
     }
-};
+}
 
 
 export default class Vacations extends React.Component {
@@ -261,4 +261,4 @@ export default class Vacations extends React.Component {
             </div >
         );
     }
-};
+}

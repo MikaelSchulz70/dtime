@@ -11,7 +11,7 @@ export default class TimeService {
         return axios.post(BASE_URL,
             payLoad,
             Headers());
-    };
+    }
 
     getTimes(view) {
         return axios.get(BASE_URL + '?view=' + view);

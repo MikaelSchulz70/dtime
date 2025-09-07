@@ -141,7 +141,7 @@ class TimeReportTableEntry extends React.Component {
             </td>
         );
     }
-};
+}
 
 class TimeReportTableRow extends React.Component {
     constructor(props) {
@@ -191,7 +191,7 @@ class TimeReportTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class TimeReportTableHeaderRow extends React.Component {
     constructor(props) {
@@ -240,7 +240,7 @@ class TimeReportTableHeaderRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class TimeReportTableFooterRow extends React.Component {
     constructor(props) {
@@ -278,7 +278,7 @@ class TimeReportTableFooterRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class TimeReportTable extends React.Component {
     constructor(props) {
@@ -354,7 +354,7 @@ class TimeReportTable extends React.Component {
             </table>
         );
     }
-};
+}
 
 
 export default class Times extends React.Component {
@@ -478,4 +478,4 @@ export default class Times extends React.Component {
             </div >
         );
     }
-};
+}

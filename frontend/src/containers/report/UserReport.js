@@ -61,4 +61,4 @@ export default class UserReportTable extends React.Component {
             </div>
         );
     }
-};
+}

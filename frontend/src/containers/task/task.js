@@ -23,7 +23,7 @@ class TaskTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class TaskTable extends React.Component {
     constructor(props) {
@@ -77,7 +77,7 @@ class TaskTable extends React.Component {
             </table>
         );
     }
-};
+}
 
 export default class Task extends React.Component {
     constructor(props) {
@@ -183,4 +183,4 @@ export default class Task extends React.Component {
             </div>
         );
     }
-};
+}

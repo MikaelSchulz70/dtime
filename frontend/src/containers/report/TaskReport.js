@@ -64,4 +64,4 @@ export default class TaskReportTable extends React.Component {
             </div>
         );
     }
-};
+}

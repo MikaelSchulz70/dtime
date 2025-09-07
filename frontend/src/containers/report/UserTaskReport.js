@@ -39,8 +39,52 @@ class TimeReportTableEntry extends React.Component {
             <td style={{ padding: "0px" }}><input style={inputStyle} readOnly={true} type="text" value={time} /></td>
         );
     }
-};
+}
 
+class UserReportSummaryTable extends React.Component {
+    constructor(props) {
+        super(props);
+        this.state = { report: this.props.report };
+    }
+
+    componentWillReceiveProps(nextProps) {
+        if (this.props !== nextProps) {
+            this.setState(nextProps);
+        }
+    }
+
+    render() {
+        if (this.state == null)
+            return null;
+
+        var rows = [];
+        rows.push(
+            <tr key={'summary-header'} className="bg-success text-white">
+                <th className="fw-bold fs-6">Summary</th>
+                <th className="fw-bold fs-6">Workable Hours (Month)</th>
+                <th className="fw-bold fs-6">Total Workable Hours</th>
+                <th className="fw-bold fs-6">Total Hours Worked</th>
+                <th></th>
+            </tr>
+        );
+
+        rows.push(
+            <tr key={'summary-info'} className="table-light">
+                <td className="fw-bold text-muted">Totals</td>
+                <td className="fw-bold">{this.state.report.workableHours}</td>
+                <td className="fw-bold">{this.state.report.totalWorkableHours}</td>
+                <td className="fw-bold text-success">{this.state.report.totalHoursWorked}</td>
+                <td></td>
+            </tr>
+        );
+
+        return (
+            <tbody>
+                {rows}
+            </tbody>
+        );
+    }
+}
 
 class TimeReportTableRow extends React.Component {
     constructor(props) {
@@ -78,7 +122,7 @@ class TimeReportTableRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class UserReportRows extends React.Component {
     constructor(props) {
@@ -151,8 +195,8 @@ class UserReportRows extends React.Component {
                 {rows}
             </tbody>
         );
-    };
-};
+    }
+}
 
 class TimeReportTableHeaderRow extends React.Component {
     constructor(props) {
@@ -195,7 +239,7 @@ class TimeReportTableHeaderRow extends React.Component {
             </tr>
         );
     }
-};
+}
 
 class UserDetailReport extends React.Component {
     constructor(props) {

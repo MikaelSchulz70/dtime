@@ -203,4 +203,4 @@ export default class TaskDetails extends BaseDetails {
             </div>
         );
     }
-};
+}

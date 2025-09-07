@@ -243,7 +243,7 @@ class UnclosedUsersPage extends React.Component {
     handleSendEmailReminder() {
         const unclosedUsers = this.state.report.unclosedUsers || [];
         const unclosedCount = unclosedUsers.length;
-        
+
         if (unclosedCount === 0) {
             this.props.showWarning('No users have unclosed time reports. No emails will be sent.');
             return;

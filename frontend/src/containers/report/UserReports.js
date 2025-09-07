@@ -45,8 +45,8 @@ class UserReportRows extends React.Component {
                 {rows}
             </tbody>
         );
-    };
-};
+    }
+}
 
 class UserReportTable extends React.Component {
     constructor(props) {
@@ -95,7 +95,7 @@ class UserReportTable extends React.Component {
             </div>
         );
     }
-};
+}
 
 class UserReports extends React.Component {
     constructor(props) {

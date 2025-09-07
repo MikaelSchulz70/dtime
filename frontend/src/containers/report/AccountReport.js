@@ -61,4 +61,4 @@ export default class AccountReportTable extends React.Component {
             </div>
         );
     }
-};
+}

@@ -77,7 +77,7 @@ class SystemPropertyTable extends React.Component {
             </div>
         );
     }
-};
+}
 
 
 class SystemConfig extends React.Component {
