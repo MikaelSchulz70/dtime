@@ -1,6 +1,5 @@
 package se.dtime.service.timeentry;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
@@ -17,10 +16,14 @@ import java.util.stream.Collectors;
 @Service
 public class TimeReportConverter extends BaseConverter {
 
-    @Autowired
-    private TaskConverter taskConverter;
-    @Autowired
-    private UserConverter userConverter;
+
+    private final TaskConverter taskConverter;
+    private final UserConverter userConverter;
+
+    public TimeReportConverter(TaskConverter taskConverter, UserConverter userConverter) {
+        this.taskConverter = taskConverter;
+        this.userConverter = userConverter;
+    }
 
     TimeReport convertToTimeReport(Day[] days, UserPO userPO, List<TimeEntryPO> timeEntryPOS, List<TaskContributorPO> participations) {
         TimeReport timeReport = TimeReport.builder().

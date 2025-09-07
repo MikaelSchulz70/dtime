@@ -8,7 +8,7 @@ import static org.junit.jupiter.api.Assertions.*;
 
 public class DataIntegrityViolationHandlerTest {
 
-    private DataIntegrityViolationHandler dataIntegrityViolationHandler = new DataIntegrityViolationHandler();
+    private final DataIntegrityViolationHandler dataIntegrityViolationHandler = new DataIntegrityViolationHandler();
 
     @Test
     public void getFieldErrorTest() {

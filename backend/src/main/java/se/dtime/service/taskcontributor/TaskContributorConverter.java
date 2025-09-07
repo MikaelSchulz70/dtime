@@ -1,6 +1,5 @@
 package se.dtime.service.taskcontributor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
@@ -18,10 +17,14 @@ import java.util.Optional;
 
 @Service
 public class TaskContributorConverter extends BaseConverter {
-    @Autowired
-    private UserConverter userConverter;
-    @Autowired
-    private TaskConverter taskConverter;
+
+    private final UserConverter userConverter;
+    private final TaskConverter taskConverter;
+
+    public TaskContributorConverter(UserConverter userConverter, TaskConverter taskConverter) {
+        this.userConverter = userConverter;
+        this.taskConverter = taskConverter;
+    }
 
     public TaskContributor toModel(TaskContributorPO taskContributorPO) {
         if (taskContributorPO == null) {

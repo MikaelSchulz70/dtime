@@ -1,6 +1,5 @@
 package se.dtime.service.taskcontributor;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
@@ -18,16 +17,19 @@ import java.util.List;
 
 @Service
 public class TaskContributorService {
-    @Autowired
-    private TaskContributorConverter taskContributorConverter;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private TaskContributorValidator taskContributorValidator;
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private UserRepository userRepository;
+    private final TaskContributorConverter taskContributorConverter;
+    private final TaskContributorRepository taskContributorRepository;
+    private final TaskContributorValidator taskContributorValidator;
+    private final TaskRepository taskRepository;
+    private final UserRepository userRepository;
+
+    public TaskContributorService(TaskContributorConverter taskContributorConverter, TaskContributorRepository taskContributorRepository, TaskContributorValidator taskContributorValidator, TaskRepository taskRepository, UserRepository userRepository) {
+        this.taskContributorConverter = taskContributorConverter;
+        this.taskContributorRepository = taskContributorRepository;
+        this.taskContributorValidator = taskContributorValidator;
+        this.taskRepository = taskRepository;
+        this.userRepository = userRepository;
+    }
 
     public TaskContributor addOrUpdate(TaskContributor taskContributor) {
         taskContributorValidator.validateAdd(taskContributor);
@@ -53,7 +55,7 @@ public class TaskContributorService {
     public List<TaskContributor> getCurrentTaskContributors() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         long userId;
-        
+
         if (principal instanceof UserExt userExt) {
             userId = userExt.getId();
         } else {
@@ -64,7 +66,7 @@ public class TaskContributorService {
             }
             userId = users.get(0).getId(); // Use the first user found
         }
-        
+
         try {
             return getTasksForUser(userId);
         } catch (NotFoundException e) {

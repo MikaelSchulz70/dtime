@@ -1,6 +1,5 @@
 package se.dtime.service.account;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -17,12 +16,15 @@ import java.util.List;
 
 @Service
 public class AccountService {
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private AccountConverter accountConverter;
-    @Autowired
-    private AccountValidator accountValidator;
+    private final AccountRepository accountRepository;
+    private final AccountConverter accountConverter;
+    private final AccountValidator accountValidator;
+
+    public AccountService(AccountRepository accountRepository, AccountConverter accountConverter, AccountValidator accountValidator) {
+        this.accountRepository = accountRepository;
+        this.accountConverter = accountConverter;
+        this.accountValidator = accountValidator;
+    }
 
     public Account add(Account account) {
         accountValidator.validateAdd(account);
@@ -53,14 +55,14 @@ public class AccountService {
 
     public PagedResponse<Account> getAllPaged(Pageable pageable, Boolean active, String name) {
         Page<AccountPO> page;
-        
+
         if (active != null) {
             ActivationStatus activationStatus = active ? ActivationStatus.ACTIVE : ActivationStatus.INACTIVE;
             page = accountRepository.findByActivationStatus(pageable, activationStatus);
         } else {
             page = accountRepository.findAll(pageable);
         }
-        
+
         // Apply name filter if provided
         List<AccountPO> filteredAccounts = page.getContent();
         if (name != null && !name.isEmpty()) {
@@ -68,17 +70,17 @@ public class AccountService {
                     .filter(a -> a.getName().toLowerCase().contains(name.toLowerCase()))
                     .toList();
         }
-        
+
         Account[] accounts = accountConverter.toModel(filteredAccounts);
-        
+
         return new PagedResponse<>(
-            Arrays.asList(accounts),
-            page.getNumber(),
-            page.getTotalPages(),
-            page.getTotalElements(),
-            page.getSize(),
-            page.isFirst(),
-            page.isLast()
+                Arrays.asList(accounts),
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getSize(),
+                page.isFirst(),
+                page.isLast()
         );
     }
 

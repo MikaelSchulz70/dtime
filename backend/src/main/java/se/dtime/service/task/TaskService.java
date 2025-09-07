@@ -1,6 +1,5 @@
 package se.dtime.service.task;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -21,16 +20,19 @@ import java.util.List;
 @Service
 public class TaskService {
 
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private TaskConverter taskConverter;
-    @Autowired
-    private TaskValidator taskValidator;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private TimeEntryRepository timeEntryRepository;
+    private final TaskRepository taskRepository;
+    private final TaskConverter taskConverter;
+    private final TaskValidator taskValidator;
+    private final TaskContributorRepository taskContributorRepository;
+    private final TimeEntryRepository timeEntryRepository;
+
+    public TaskService(TaskRepository taskRepository, TaskConverter taskConverter, TaskValidator taskValidator, TaskContributorRepository taskContributorRepository, TimeEntryRepository timeEntryRepository) {
+        this.taskRepository = taskRepository;
+        this.taskConverter = taskConverter;
+        this.taskValidator = taskValidator;
+        this.taskContributorRepository = taskContributorRepository;
+        this.timeEntryRepository = timeEntryRepository;
+    }
 
     public Task add(Task task) {
         taskValidator.validateAdd(task);
@@ -66,7 +68,7 @@ public class TaskService {
 
     public PagedResponse<Task> getAllPaged(Pageable pageable, Boolean active, String name, Long accountId) {
         Page<TaskPO> page;
-        
+
         if (active != null && accountId != null) {
             ActivationStatus activationStatus = active ? ActivationStatus.ACTIVE : ActivationStatus.INACTIVE;
             page = taskRepository.findByActivationStatusAndAccountId(pageable, activationStatus, accountId);
@@ -78,7 +80,7 @@ public class TaskService {
         } else {
             page = taskRepository.findAll(pageable);
         }
-        
+
         // Apply name filter if provided
         List<TaskPO> filteredTasks = page.getContent();
         if (name != null && !name.isEmpty()) {
@@ -86,17 +88,17 @@ public class TaskService {
                     .filter(t -> t.getName().toLowerCase().contains(name.toLowerCase()))
                     .toList();
         }
-        
+
         Task[] tasks = taskConverter.toModel(filteredTasks);
-        
+
         return new PagedResponse<>(
-            Arrays.asList(tasks),
-            page.getNumber(),
-            page.getTotalPages(),
-            page.getTotalElements(),
-            page.getSize(),
-            page.isFirst(),
-            page.isLast()
+                Arrays.asList(tasks),
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getSize(),
+                page.isFirst(),
+                page.isLast()
         );
     }
 

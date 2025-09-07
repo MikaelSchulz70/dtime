@@ -1,6 +1,5 @@
 package se.dtime.service.task;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskPO;
@@ -12,8 +11,12 @@ import java.util.List;
 
 @Service
 public class TaskConverter extends BaseConverter {
-    @Autowired
-    private AccountConverter accountConverter;
+
+    private final AccountConverter accountConverter;
+
+    public TaskConverter(AccountConverter accountConverter) {
+        this.accountConverter = accountConverter;
+    }
 
     public Task toModel(TaskPO taskPO) {
         if (taskPO == null) {

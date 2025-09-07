@@ -6,7 +6,7 @@ import lombok.Setter;
 import org.springframework.http.HttpStatus;
 
 import java.time.Instant;
-import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 
 @Getter
@@ -40,7 +40,7 @@ public class ApiError {
         this.status = HttpStatus.BAD_REQUEST.value();
         this.error = HttpStatus.BAD_REQUEST.getReasonPhrase();
         this.message = "Validation failed";
-        this.fieldErrors = Arrays.asList(fieldError);
+        this.fieldErrors = Collections.singletonList(fieldError);
     }
 
     public ApiError(List<FieldError> fieldErrors) {

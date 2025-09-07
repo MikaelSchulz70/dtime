@@ -1,7 +1,6 @@
 package se.dtime.repository.jdbc;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.support.JdbcDaoSupport;
 import org.springframework.stereotype.Repository;
 import se.dtime.model.report.AccountReport;
@@ -17,8 +16,6 @@ import java.util.Map;
 
 @Repository
 public class ReportRepository extends JdbcDaoSupport {
-    @Autowired
-    private DataSource dataSource;
 
     private final String USERS_TASK_REPORTS =
             "select u.id userId, u.firstname, u.lastname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(tr.reportedtime) totalTime " +
@@ -77,6 +74,12 @@ public class ReportRepository extends JdbcDaoSupport {
                     "having sum(tr.reportedtime) > 0 " +
                     "order by sum(tr.reportedtime) desc";
 
+    private final DataSource dataSource;
+
+    public ReportRepository(DataSource dataSource) {
+        this.dataSource = dataSource;
+    }
+
     @PostConstruct
     private void initialize() {
         setDataSource(dataSource);
@@ -99,7 +102,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<UserReport> getUserReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(USER_REPORTS, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(USER_REPORTS, fromDate, toDate);
 
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
@@ -129,7 +132,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<TaskReport> getTaskReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(TASK_REPORT, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(TASK_REPORT, fromDate, toDate);
 
         List<TaskReport> taskReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -197,7 +200,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<AccountReport> getAccountReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, fromDate, toDate);
 
         List<AccountReport> accountReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {

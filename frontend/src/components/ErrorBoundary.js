@@ -51,7 +51,7 @@ class ErrorBoundary extends Component {
                 <hr />
                 <strong>Error:</strong> {this.state.error && this.state.error.toString()}
                 <br />
-                <strong>Error Info:</strong> {this.state.errorInfo.componentStack}
+                <strong>Error Info:</strong> {this.state.errorInfo ? this.state.errorInfo.componentStack : 'No additional error information available'}
               </details>
             )}
             <hr />

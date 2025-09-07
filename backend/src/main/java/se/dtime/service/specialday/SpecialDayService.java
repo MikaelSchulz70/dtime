@@ -4,7 +4,6 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import se.dtime.dbmodel.SpecialDayPO;
@@ -21,17 +20,17 @@ import java.util.List;
 @Service
 public class SpecialDayService {
 
-    @Autowired
-    private SpecialDayRepository specialDayRepository;
+    private final SpecialDayRepository specialDayRepository;
+    private final SpecialDayConverter specialDayConverter;
+    private final SpecialDayValidator specialDayValidator;
+    private final CalendarService calendarService;
 
-    @Autowired
-    private SpecialDayConverter specialDayConverter;
-
-    @Autowired
-    private SpecialDayValidator specialDayValidator;
-
-    @Autowired
-    private CalendarService calendarService;
+    public SpecialDayService(SpecialDayRepository specialDayRepository, SpecialDayConverter specialDayConverter, SpecialDayValidator specialDayValidator, CalendarService calendarService) {
+        this.specialDayRepository = specialDayRepository;
+        this.specialDayConverter = specialDayConverter;
+        this.specialDayValidator = specialDayValidator;
+        this.calendarService = calendarService;
+    }
 
     public List<SpecialDay> getAllSpecialDays() {
         List<SpecialDayPO> specialDayPOs = specialDayRepository.findAll();

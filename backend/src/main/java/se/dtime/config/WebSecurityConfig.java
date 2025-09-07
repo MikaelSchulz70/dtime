@@ -86,6 +86,10 @@ public class WebSecurityConfig {
                         .permitAll()
                         .deleteCookies("JSESSIONID")
                         .invalidateHttpSession(true)
+                )
+                .rememberMe(rememberMe -> rememberMe
+                        .key("dtime-remember-me-key")
+                        .tokenValiditySeconds(86400) // 24 hours
                 );
 
         // Configure OAuth2 login if enabled and client registration is available
@@ -104,7 +108,8 @@ public class WebSecurityConfig {
         }
 
         http.sessionManagement(session -> session
-                        .maximumSessions(1)
+                        .sessionCreationPolicy(org.springframework.security.config.http.SessionCreationPolicy.IF_REQUIRED)
+                        .maximumSessions(-1) // Allow unlimited sessions for development
                         .maxSessionsPreventsLogin(false)
                 )
                 .headers(headers -> headers

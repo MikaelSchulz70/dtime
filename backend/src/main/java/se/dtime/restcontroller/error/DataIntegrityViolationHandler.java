@@ -8,8 +8,8 @@ import java.util.Map;
 
 @Service
 public class DataIntegrityViolationHandler {
-    private static String[] KNOWN_CONSTRAINT_ERRORS = {"uc_email"};
-    private static Map<String, FieldError> FIELD_ERRORS = new HashMap<>();
+    private static final String[] KNOWN_CONSTRAINT_ERRORS = {"uc_email"};
+    private static final Map<String, FieldError> FIELD_ERRORS = new HashMap<>();
 
     static {
         FIELD_ERRORS.put("uc_email", new FieldError("email", "Email already in use"));

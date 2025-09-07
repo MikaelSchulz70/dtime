@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -19,10 +18,13 @@ import se.dtime.service.account.AccountValidator;
 @RequestMapping("/api/account")
 public class AccountRestController {
 
-    @Autowired
-    private AccountService accountService;
-    @Autowired
-    private AccountValidator accountValidator;
+    private final AccountService accountService;
+    private final AccountValidator accountValidator;
+
+    public AccountRestController(AccountService accountService, AccountValidator accountValidator) {
+        this.accountService = accountService;
+        this.accountValidator = accountValidator;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")
@@ -53,10 +55,10 @@ public class AccountRestController {
             @RequestParam(value = "direction", defaultValue = "asc") String direction,
             @RequestParam(value = "active", required = false) Boolean active,
             @RequestParam(value = "name", required = false) String name) {
-        
+
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
-        
+
         PagedResponse<Account> response = accountService.getAllPaged(pageable, active, name);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }

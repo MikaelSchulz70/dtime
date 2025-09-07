@@ -40,10 +40,22 @@ spring:
           ssl:
             enable: false
 
-# Server Configuration
+# Server Configuration (HTTPS enabled for production)
 server:
-  port: 8080
+  port: 8443
   address: 0.0.0.0
+  ssl:
+    key-store-type: PKCS12
+    key-store: classpath:keystore/dtime_new.p12
+    key-store-password: ${SSL_KEYSTORE_PASSWORD:dt2020}
+    key-alias: dtime
+  servlet:
+    session:
+      cookie:
+        name: JSESSIONID
+        secure: false  # Allow session cookies over HTTP for dev
+        http-only: false  # Allow JavaScript access for debugging
+        same-site: lax  # Allow cross-site requests for development
 
 # Security Configuration
 security:

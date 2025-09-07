@@ -1,7 +1,6 @@
 package se.dtime.service.timeentry;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.ValidatorBase;
@@ -22,12 +21,15 @@ import java.util.Map;
 
 @Service
 public class TimeReportValidator extends ValidatorBase<TimeEntry> {
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private CloseDateRepository closeDateRepository;
+    private final CalendarService calendarService;
+    private final TaskContributorRepository taskContributorRepository;
+    private final CloseDateRepository closeDateRepository;
+
+    public TimeReportValidator(CalendarService calendarService, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+        this.calendarService = calendarService;
+        this.taskContributorRepository = taskContributorRepository;
+        this.closeDateRepository = closeDateRepository;
+    }
 
     public static final int MIN_TIME = 0;
     public static final int MAX_TIME = 24;
@@ -119,7 +121,6 @@ public class TimeReportValidator extends ValidatorBase<TimeEntry> {
             }
 
             check(time > 0 && time <= 24, attribute.getName(), "time.not.within.valid.span");
-            ;
         }
     }
 }

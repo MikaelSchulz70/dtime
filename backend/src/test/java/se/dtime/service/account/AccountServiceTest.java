@@ -13,7 +13,6 @@ import se.dtime.model.ActivationStatus;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.repository.AccountRepository;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -87,7 +86,7 @@ class AccountServiceTest {
     @Test
     void getAll_WithoutFilter_ShouldReturnAllAccounts() {
         // Given
-        List<AccountPO> accountPOs = Arrays.asList(testAccountPO);
+        List<AccountPO> accountPOs = Collections.singletonList(testAccountPO);
         Account[] expectedAccounts = {testAccount};
 
         when(accountRepository.findAll(any(Sort.class))).thenReturn(accountPOs);

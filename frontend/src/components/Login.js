@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
+import { useLocation } from 'react-router-dom';
 import axios from 'axios';
-import logo from '../assets/logo.png';
+// import logo from '../assets/logo.png'; // Using public logo instead
 
 const Login = () => {
+  const location = useLocation();
   const [formData, setFormData] = useState({
     username: '',
     password: ''
@@ -79,7 +81,7 @@ const Login = () => {
   };
 
   // Check if we have error or logout parameters in URL
-  const urlParams = new URLSearchParams(window.location.search);
+  const urlParams = new URLSearchParams(location.search);
   const hasError = urlParams.get('error');
   const hasLogout = urlParams.get('logout');
 
@@ -92,7 +94,7 @@ const Login = () => {
               {/* Logo */}
               <div className="text-center mb-4">
                 <img
-                  src={logo}
+                  src="/logo.png"
                   alt="D-Time"
                   style={{ maxWidth: '60%', height: 'auto' }}
                   className="mb-3"

@@ -1,5 +1,6 @@
 import React from "react";
 import SystemService from '../../service/SystemService';
+import { useToast } from '../../components/Toast';
 
 class SystemPropertyRow extends React.Component {
     constructor(props) {
@@ -25,7 +26,7 @@ class SystemPropertyRow extends React.Component {
                 self.setState({ systemConfig: response.data });
             })
             .catch(error => {
-                alert(error.response.data.error);
+                this.props.showError('Failed to update configuration: ' + (error.response?.data?.error || error.message));
             });
     }
 
@@ -53,9 +54,10 @@ class SystemPropertyTable extends React.Component {
         if (this.state == null || this.state.systemProperties == null) return null;
 
         var systemPropRows = [];
+        var showError = this.props.showError;
         this.state.systemProperties.forEach(function (systemProperty) {
             systemPropRows.push(
-                <SystemPropertyRow key={systemProperty.id} systemProperty={systemProperty} />
+                <SystemPropertyRow key={systemProperty.id} systemProperty={systemProperty} showError={showError} />
             );
         });
 
@@ -78,7 +80,7 @@ class SystemPropertyTable extends React.Component {
 };
 
 
-export default class SystemConfig extends React.Component {
+class SystemConfig extends React.Component {
     constructor(props) {
         super(props);
     }
@@ -95,7 +97,7 @@ export default class SystemConfig extends React.Component {
                 self.setState({ systemConfig: response.data });
             })
             .catch(error => {
-                alert('Failed to load configuration');
+                this.props.showError('Failed to load configuration: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -105,8 +107,13 @@ export default class SystemConfig extends React.Component {
         return (
             <div className="container">
                 <h2>System Properties</h2>
-                <SystemPropertyTable systemProperties={this.state.systemConfig.systemProperties} />
+                <SystemPropertyTable systemProperties={this.state.systemConfig.systemProperties} showError={this.props.showError} />
             </div>
         );
     }
-};
+}
+
+export default function SystemConfigWithToast(props) {
+    const { showError } = useToast();
+    return <SystemConfig {...props} showError={showError} />;
+}

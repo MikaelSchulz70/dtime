@@ -1,6 +1,5 @@
 package se.dtime.service.specialday;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.SpecialDayPO;
 import se.dtime.model.SpecialDay;
@@ -16,12 +15,15 @@ public class SpecialDayValidator {
     private static final int MAX_NAME_LENGTH = 40;
     private static final int MAX_YEARS_IN_PAST = 2;
 
-    @Autowired
-    private SpecialDayRepository specialDayRepository;
+    private final SpecialDayRepository specialDayRepository;
+
+    public SpecialDayValidator(SpecialDayRepository specialDayRepository) {
+        this.specialDayRepository = specialDayRepository;
+    }
 
     public void validateCreate(SpecialDay specialDay) {
         validateCommon(specialDay);
-        
+
         // Check if special day already exists for this date
         if (specialDayRepository.existsByDate(specialDay.getDate())) {
             throw new ValidationException("special.day.date.already.exists");
@@ -30,7 +32,7 @@ public class SpecialDayValidator {
 
     public void validateUpdate(SpecialDay specialDay) {
         validateCommon(specialDay);
-        
+
         if (specialDay.getId() == null) {
             throw new ValidationException("special.day.id.required.for.update");
         }
@@ -39,7 +41,7 @@ public class SpecialDayValidator {
         if (!specialDayRepository.existsById(specialDay.getId())) {
             throw new ValidationException("special.day.not.found");
         }
-        
+
         // Check if another special day already exists for this date (excluding current one)
         Optional<SpecialDayPO> existingSpecialDay = specialDayRepository.findByDate(specialDay.getDate());
         if (existingSpecialDay.isPresent() && !existingSpecialDay.get().getId().equals(specialDay.getId())) {

@@ -1,7 +1,6 @@
 package se.dtime.service.account;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.ValidatorBase;
@@ -21,10 +20,14 @@ import java.util.Map;
 
 @Service
 public class AccountValidator extends ValidatorBase<Account> {
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private TaskRepository taskRepository;
+
+    private final AccountRepository accountRepository;
+    private final TaskRepository taskRepository;
+
+    public AccountValidator(AccountRepository accountRepository, TaskRepository taskRepository) {
+        this.accountRepository = accountRepository;
+        this.taskRepository = taskRepository;
+    }
 
     static final String FIELD_NAME = "name";
     static final String FIELD_ACTIVATION_STATUS = "activationStatus";

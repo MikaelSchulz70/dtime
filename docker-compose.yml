@@ -48,7 +48,6 @@ services:
       OAUTH_GOOGLE_CLIENT_SECRET: ${OAUTH_GOOGLE_CLIENT_SECRET}
       SSL_KEYSTORE_PASSWORD: ${SSL_KEYSTORE_PASSWORD:-dt2020}
     ports:
-      - "8080:8080"
       - "8443:8443"
     depends_on:
       dtime-db:
@@ -56,7 +55,7 @@ services:
     networks:
       - dtime-network
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || curl -f http://localhost:8080/actuator/health || exit 1"]
+      test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -75,7 +74,7 @@ services:
       NODE_ENV: development
       REACT_APP_BACKEND_URL: ${FRONTEND_BACKEND_URL:-https://localhost:8443}
     ports:
-      - "3000:3000"
+      - "3000:9000"
     volumes:
       - ./frontend/src:/app/src:ro
       - ./frontend/public:/app/public:ro

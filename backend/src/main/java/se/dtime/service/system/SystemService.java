@@ -1,7 +1,6 @@
 package se.dtime.service.system;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.SystemPropertyPO;
 import se.dtime.model.SystemConfiguration;
@@ -13,16 +12,15 @@ import se.dtime.repository.UserRepository;
 @Slf4j
 @Service
 public class SystemService {
-    @Autowired
-    private SystemPropertyRepository systemPropertyRepository;
-    @Autowired
-    private SystemConverter systemConverter;
-    @Autowired
-    private SystemValidator systemValidator;
-    @Autowired
-    private EmailSender emailSender;
-    @Autowired
-    private UserRepository userRepository;
+    private final SystemPropertyRepository systemPropertyRepository;
+    private final SystemConverter systemConverter;
+    private final SystemValidator systemValidator;
+
+    public SystemService(SystemPropertyRepository systemPropertyRepository, SystemConverter systemConverter, SystemValidator systemValidator, EmailSender emailSender, UserRepository userRepository) {
+        this.systemPropertyRepository = systemPropertyRepository;
+        this.systemConverter = systemConverter;
+        this.systemValidator = systemValidator;
+    }
 
     public SystemPropertyDB[] getSystemProperties() {
         return systemConverter.toSystemPropertyModel(systemPropertyRepository.findAll());

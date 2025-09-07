@@ -13,7 +13,7 @@ public class TestReportRepositoryConfig {
     @Bean
     @Primary
     public ReportRepository testReportRepository(DataSource dataSource) {
-        ReportRepository repository = new ReportRepository();
+        ReportRepository repository = new ReportRepository(dataSource);
         repository.setDataSource(dataSource);
         return repository;
     }

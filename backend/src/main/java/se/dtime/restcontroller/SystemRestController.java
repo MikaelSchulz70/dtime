@@ -1,6 +1,6 @@
 package se.dtime.restcontroller;
 
-import org.springframework.beans.factory.annotation.Autowired;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -11,18 +11,19 @@ import se.dtime.model.SystemPropertyDB;
 import se.dtime.service.system.SystemOperationService;
 import se.dtime.service.system.SystemService;
 
-import jakarta.validation.Valid;
-
 @RestController
 @RequestMapping("/api/system")
 public class SystemRestController {
 
-    @Autowired
-    private SystemService systemService;
-    @Autowired
-    private SystemOperationService systemOperationService;
-    @Autowired
-    private EmailSendConfig emailSendConfig;
+    private final SystemService systemService;
+    private final SystemOperationService systemOperationService;
+    private final EmailSendConfig emailSendConfig;
+
+    public SystemRestController(SystemService systemService, SystemOperationService systemOperationService, EmailSendConfig emailSendConfig) {
+        this.systemService = systemService;
+        this.systemOperationService = systemOperationService;
+        this.emailSendConfig = emailSendConfig;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/config")

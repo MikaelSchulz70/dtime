@@ -16,17 +16,19 @@ import se.dtime.model.timereport.DayType;
 
 import java.time.LocalDate;
 
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-    "spring.jpa.properties.hibernate.default_schema=PUBLIC",
-    "security.enable-csrf=false"
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
+        "spring.jpa.properties.hibernate.default_schema=PUBLIC",
+        "security.enable-csrf=false"
 })
 @Transactional
 public class SpecialDayRestControllerIT {
@@ -34,7 +36,7 @@ public class SpecialDayRestControllerIT {
     @Autowired
     private MockMvc mockMvc;
 
-    private ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
+    private final ObjectMapper objectMapper = new ObjectMapper().registerModule(new JavaTimeModule());
 
     @Test
     @WithMockUser(roles = "ADMIN")
@@ -45,7 +47,7 @@ public class SpecialDayRestControllerIT {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")  
+    @WithMockUser(roles = "ADMIN")
     void shouldCreateSpecialDaySuccessfully() throws Exception {
         SpecialDay specialDay = SpecialDay.builder()
                 .name("Test Holiday")
@@ -54,8 +56,8 @@ public class SpecialDayRestControllerIT {
                 .build();
 
         mockMvc.perform(post("/api/specialday")
-                .contentType(MediaType.APPLICATION_JSON)
-                .content(objectMapper.writeValueAsString(specialDay)))
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(objectMapper.writeValueAsString(specialDay)))
                 .andExpect(status().isCreated());
     }
 

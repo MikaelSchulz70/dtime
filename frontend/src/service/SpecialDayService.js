@@ -8,7 +8,7 @@ class SpecialDayService extends BaseService {
     constructor() {
         super(BASE_URL);
     }
-    
+
     async getAllSpecialDays() {
         const response = await axios.get(BASE_URL);
         return response.data;
@@ -36,10 +36,23 @@ class SpecialDayService extends BaseService {
     }
 
     async updateSpecialDay(id, specialDay) {
-        const specialDayWithId = { ...specialDay, id };
-        const payLoad = JSON.stringify(specialDayWithId);
-        const response = await axios.put(`${BASE_URL}/${id}`, payLoad, Headers());
-        return response.data;
+        try {
+            console.log('Updating special day:', { id, specialDay });
+            const specialDayWithId = { ...specialDay, id };
+            const payLoad = JSON.stringify(specialDayWithId);
+            const headers = Headers();
+            console.log('Update headers:', headers);
+            console.log('Update payload:', payLoad);
+
+            const response = await axios.put(`${BASE_URL}/${id}`, payLoad, headers);
+            console.log('Update response:', response);
+            return response.data;
+        } catch (error) {
+            console.error('SpecialDayService.updateSpecialDay error:', error);
+            console.error('Error response:', error.response);
+            console.error('Error request:', error.request);
+            throw error;
+        }
     }
 
     async deleteSpecialDay(id) {
@@ -55,7 +68,7 @@ class SpecialDayService extends BaseService {
     async uploadSpecialDays(file) {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const response = await axios.post(`${BASE_URL}/upload`, formData, {
             headers: {
                 'Content-Type': 'multipart/form-data'

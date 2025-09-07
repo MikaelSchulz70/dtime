@@ -4,8 +4,8 @@ import axios from 'axios';
 import './App.css';
 
 // Context Providers
-import { SessionProvider, useSession } from './contexts/SessionContext';
-import ToastProvider from './components/ToastProvider';
+// import { SessionProvider, useSession } from './contexts/SessionContext'; // Temporarily disabled
+import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -113,24 +113,47 @@ const Footer = () => (
 
 
 const AppContent = () => {
-  const { loading, isAuthenticated, error } = useSession();
+  const [session, setSession] = React.useState(null);
+  const [loading, setLoading] = React.useState(true);
+
+  React.useEffect(() => {
+    const checkSession = async () => {
+      try {
+        console.log('Checking session...');
+        const response = await fetch('/api/session');
+        if (response.ok) {
+          const data = await response.json();
+          setSession(data);
+          console.log('Session found:', data);
+        } else {
+          console.log('No session found:', response.status);
+          setSession(null);
+        }
+      } catch (error) {
+        console.log('Session check error:', error);
+        setSession(null);
+      } finally {
+        setLoading(false);
+        console.log('Session check complete');
+      }
+    };
+    
+    checkSession();
+  }, []);
 
   if (loading) {
     return <LoadingSpinner fullPage text="Loading session..." />;
   }
 
-  // Check if current path is /login
-  const isLoginPage = window.location.pathname === '/login';
+  const isAuthenticated = session && session.loggedInUser;
 
-  if (!isAuthenticated() || isLoginPage) {
-    // Show React login component for unauthenticated users or /login path
+  if (!isAuthenticated) {
     return <Login />;
   }
 
-
   return (
     <div className="d-flex flex-column min-vh-100">
-      <NavigationMenu />
+      <NavigationMenu session={session} />
       <div className="flex-grow-1">
         <Main />
       </div>
@@ -142,11 +165,9 @@ const AppContent = () => {
 const App = () => (
   <ErrorBoundary>
     <BrowserRouter>
-      <SessionProvider>
-        <ToastProvider>
-          <AppContent />
-        </ToastProvider>
-      </SessionProvider>
+      <ToastProvider>
+        <AppContent />
+      </ToastProvider>
     </BrowserRouter>
   </ErrorBoundary>
 )

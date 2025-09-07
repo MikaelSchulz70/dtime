@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,7 +10,6 @@ import se.dtime.model.timereport.TimeEntry;
 import se.dtime.model.timereport.TimeReport;
 import se.dtime.model.timereport.TimeReportView;
 import se.dtime.model.timereport.VacationReport;
-import se.dtime.service.calendar.CalendarService;
 import se.dtime.service.timeentry.TimeEntryService;
 
 import java.time.LocalDate;
@@ -19,10 +17,11 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/timereport")
 public class TimeReportRestController {
-    @Autowired
-    private TimeEntryService timeEntryService;
-    @Autowired
-    private CalendarService calendarService;
+    private final TimeEntryService timeEntryService;
+
+    public TimeReportRestController(TimeEntryService timeEntryService) {
+        this.timeEntryService = timeEntryService;
+    }
 
     @PreAuthorize("hasRole('USER')")
     @PostMapping(path = "")

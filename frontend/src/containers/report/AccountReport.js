@@ -26,7 +26,7 @@ export default class AccountReportTable extends React.Component {
             rows.push(
                 <tr key={accountReport.accountId}>
                     <td className="fw-medium">{accountReport.accountName}</td>
-                    <td className="text-end fw-bold text-success">{accountReport.totalHours} hrs</td>
+                    <td className="text-end">{accountReport.totalHours} hrs</td>
                 </tr>);
         });
 
@@ -34,7 +34,7 @@ export default class AccountReportTable extends React.Component {
         rows.push(
             <tr key="summary" className="table-primary border-top border-2">
                 <td className="fw-bold fs-6">📊 Total Time</td>
-                <td className="text-end fw-bold fs-6 text-success">{totalSum.toFixed(2)} hrs</td>
+                <td className="text-end fw-bold fs-6">{totalSum.toFixed(2)} hrs</td>
             </tr>
         );
 
@@ -42,18 +42,16 @@ export default class AccountReportTable extends React.Component {
             <div className="col-12">
                 <div className="card shadow-sm">
                     <div className="card-header bg-success text-white">
-                        <h5 className="mb-0 fw-bold">🏢 Account Time Summary</h5>
+                        <h5 className="mb-0 fw-bold text-white">🏢 Account Time Summary</h5>
                     </div>
                     <div className="card-body p-0">
                         <div className="table-responsive">
                             <table className="table table-hover table-striped mb-0">
-                                <thead className="bg-light">
-                                    <tr>
-                                        <th className="fw-bold text-success">Account Name</th>
-                                        <th className="fw-bold text-success text-end">Total Hours</th>
-                                    </tr>
-                                </thead>
                                 <tbody>
+                                    <tr>
+                                        <th className="fw-bold">Account Name</th>
+                                        <th className="fw-bold text-end">Total Hours</th>
+                                    </tr>
                                     {rows}
                                 </tbody>
                             </table>

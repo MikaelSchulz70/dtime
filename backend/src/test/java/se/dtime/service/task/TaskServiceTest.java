@@ -139,7 +139,7 @@ class TaskServiceTest {
     @Test
     void getAll_WithoutFilter_ShouldReturnAllTasks() {
         // Given
-        List<TaskPO> taskPOs = Arrays.asList(testTaskPO);
+        List<TaskPO> taskPOs = Collections.singletonList(testTaskPO);
         Task[] expectedTasks = {testTask};
 
         when(taskRepository.findAll(any(Sort.class))).thenReturn(taskPOs);

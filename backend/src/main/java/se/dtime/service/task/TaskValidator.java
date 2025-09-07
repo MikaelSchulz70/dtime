@@ -1,7 +1,6 @@
 package se.dtime.service.task;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.ValidatorBase;
@@ -13,7 +12,6 @@ import se.dtime.model.Task;
 import se.dtime.model.TaskType;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.error.ValidationException;
-import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TaskRepository;
 import se.dtime.repository.TimeEntryRepository;
 
@@ -24,12 +22,14 @@ import java.util.Map;
 
 @Service
 public class TaskValidator extends ValidatorBase<Task> {
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private TimeEntryRepository timeEntryRepository;
+
+    private final TaskRepository taskRepository;
+    private final TimeEntryRepository timeEntryRepository;
+
+    public TaskValidator(TaskRepository taskRepository, TimeEntryRepository timeEntryRepository) {
+        this.taskRepository = taskRepository;
+        this.timeEntryRepository = timeEntryRepository;
+    }
 
     static final String FIELD_NAME = "name";
     static final String FIELD_ACTIVATION_STATUS = "activationStatus";

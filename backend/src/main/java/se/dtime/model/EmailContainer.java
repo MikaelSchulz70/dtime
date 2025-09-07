@@ -19,13 +19,11 @@ public class EmailContainer {
 
     @Override
     public String toString() {
-        return new StringBuilder()
-                .append("To: ").append(toList).append("\n")
-                .append("From: ").append(from).append("\n")
-                .append("CC: ").append(ccList).append("\n")
-                .append("Subject: ").append(subject).append("\n")
-                .append("Sent Date: ").append(sentDate).append("\n")
-                .append("Message: ").append(body).append("\n")
-                .toString();
+        return "To: " + toList + "\n" +
+                "From: " + from + "\n" +
+                "CC: " + ccList + "\n" +
+                "Subject: " + subject + "\n" +
+                "Sent Date: " + sentDate + "\n" +
+                "Message: " + body + "\n";
     }
 }

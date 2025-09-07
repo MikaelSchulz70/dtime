@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class BaseException extends RuntimeException {
-    private String messageKey;
+    private final String messageKey;
 
     public BaseException(String messageKey) {
         super(messageKey);
