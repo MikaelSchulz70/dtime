@@ -1,6 +1,5 @@
 package se.dtime.restcontroller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -14,8 +13,11 @@ import se.dtime.service.admin.SessionService;
 @RequestMapping("/api/session")
 public class SessionRestController {
 
-    @Autowired
-    private SessionService sessionService;
+    private final SessionService sessionService;
+
+    public SessionRestController(SessionService sessionService) {
+        this.sessionService = sessionService;
+    }
 
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @GetMapping(path = "")

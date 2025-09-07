@@ -1,7 +1,6 @@
 package se.dtime.service.timeentry;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
@@ -10,13 +9,12 @@ import se.dtime.dbmodel.timereport.CloseDatePO;
 import se.dtime.dbmodel.timereport.TimeEntryPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.ReportDates;
+import se.dtime.model.TaskType;
 import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.timereport.*;
-import se.dtime.model.TaskType;
 import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.TaskContributorRepository;
-import se.dtime.repository.TaskRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 import se.dtime.service.calendar.CalendarService;
@@ -30,24 +28,25 @@ import java.util.Set;
 @Slf4j
 @Service
 public class TimeEntryService {
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TimeEntryRepository timeEntiryRepository;
-    @Autowired
-    private TimeReportConverter timeReportConverter;
-    @Autowired
-    private UserValidator userValidator;
-    @Autowired
-    private TimeReportValidator timeReportValidator;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private TaskRepository taskRepository;
-    @Autowired
-    private CloseDateRepository closeDateRepository;
+    private final CalendarService calendarService;
+    private final UserRepository userRepository;
+    private final TimeEntryRepository timeEntiryRepository;
+    private final TimeReportConverter timeReportConverter;
+    private final UserValidator userValidator;
+    private final TimeReportValidator timeReportValidator;
+    private final TaskContributorRepository taskContributorRepository;
+    private final CloseDateRepository closeDateRepository;
+
+    public TimeEntryService(CalendarService calendarService, UserRepository userRepository, TimeEntryRepository timeEntiryRepository, TimeReportConverter timeReportConverter, UserValidator userValidator, TimeReportValidator timeReportValidator, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+        this.calendarService = calendarService;
+        this.userRepository = userRepository;
+        this.timeEntiryRepository = timeEntiryRepository;
+        this.timeReportConverter = timeReportConverter;
+        this.userValidator = userValidator;
+        this.timeReportValidator = timeReportValidator;
+        this.taskContributorRepository = taskContributorRepository;
+        this.closeDateRepository = closeDateRepository;
+    }
 
     public long addOrUpdate(TimeEntry timeEntry) {
         log.debug("Time: {} {}", timeEntry.getTime(), timeEntry.getDay().getDate());
@@ -117,7 +116,7 @@ public class TimeEntryService {
     private TimeReport getTimeReportBetweenDates(ReportDates reportDates, TimeReportView timeReportView) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserPO userPO;
-        
+
         if (principal instanceof UserExt userExt) {
             userPO = userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
         } else {
@@ -168,7 +167,7 @@ public class TimeEntryService {
         if (timeReportView == null) {
             timeReportView = TimeReportView.WEEK;
         }
-        
+
         LocalDate fromDate;
         LocalDate toDate = switch (timeReportView) {
             case WEEK -> {
@@ -214,9 +213,7 @@ public class TimeEntryService {
         Set<LocalDate> yearMonthSet = new HashSet<>();
         for (Day day : days) {
             LocalDate date = LocalDate.of(day.getYear(), day.getMonth(), 1);
-            if (!yearMonthSet.contains(date)) {
-                yearMonthSet.add(date);
-            }
+            yearMonthSet.add(date);
         }
 
         Set<LocalDate> closedMonths = new HashSet<>();
@@ -247,19 +244,19 @@ public class TimeEntryService {
     private VacationReport getVacationReport(LocalDate date, TimeReportView timeReportView) {
         ReportDates reportDates = getReportDates(timeReportView, date);
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
-        
+
         // Get users who have vacation tasks (TaskType.VACATION)
         List<UserPO> usersWithVacationTasks = getUsersWithVacationTasks();
         log.debug("Found {} users with vacation tasks", usersWithVacationTasks.size());
-        
+
         // Get time entries for vacation tasks only for these specific users
         List<TimeEntryPO> vacationTimeEntries = getVacationTimeEntriesForUsers(usersWithVacationTasks, reportDates.getFromDate(), reportDates.getToDate());
         log.debug("Found {} vacation time entries between {} and {}", vacationTimeEntries.size(), reportDates.getFromDate(), reportDates.getToDate());
-        
+
         // Convert to vacation report
         List<UserVacation> userVacations = timeReportConverter.convertToUserVacations(usersWithVacationTasks, vacationTimeEntries, days);
         log.debug("Created vacation report with {} user vacations", userVacations.size());
-        
+
         return VacationReport.builder()
                 .firstDate(reportDates.getFromDate().toString())
                 .lastDate(reportDates.getToDate().toString())
@@ -289,8 +286,8 @@ public class TimeEntryService {
                         return false;
                     }
                     // Check if the user is in our list of users with vacation tasks
-                    return users.stream().anyMatch(user -> 
-                        user.getId().equals(timeEntry.getTaskContributor().getUser().getId()));
+                    return users.stream().anyMatch(user ->
+                            user.getId().equals(timeEntry.getTaskContributor().getUser().getId()));
                 })
                 .toList();
     }

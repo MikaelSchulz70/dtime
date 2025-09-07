@@ -77,7 +77,6 @@ class SpecialDayRepositoryIT {
         SpecialDayPO specialDay1 = createSpecialDay("Easter Sunday", LocalDate.of(2025, 4, 20), DayType.PUBLIC_HOLIDAY);
         SpecialDayPO specialDay2 = createSpecialDay("Easter Monday", LocalDate.of(2025, 4, 21), DayType.PUBLIC_HOLIDAY);
         SpecialDayPO specialDay3 = createSpecialDay("Good Friday", LocalDate.of(2025, 4, 18), DayType.HALF_DAY);
-        ;
 
         specialDayRepository.save(specialDay1);
         specialDayRepository.save(specialDay2);
@@ -93,7 +92,6 @@ class SpecialDayRepositoryIT {
     @Test
     void shouldCountAllSpecialDays() {
         SpecialDayPO specialDay1 = createSpecialDay("Independence Day", LocalDate.of(2025, 4, 20), DayType.PUBLIC_HOLIDAY);
-        ;
         SpecialDayPO specialDay2 = createSpecialDay("Labor Day", LocalDate.of(2025, 4, 20), DayType.PUBLIC_HOLIDAY);
 
         specialDayRepository.save(specialDay1);

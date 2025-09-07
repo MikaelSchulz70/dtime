@@ -22,7 +22,7 @@ import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -217,7 +217,7 @@ public class UserValidatorTest {
         userPO.setActivationStatus(ActivationStatus.ACTIVE);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(userPO));
-        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(Arrays.asList());
+        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(List.of());
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
             userValidator.validateUpdate(User.builder().id(1L).activationStatus(ActivationStatus.INACTIVE).build());
@@ -278,7 +278,7 @@ public class UserValidatorTest {
         userPO.setActivationStatus(ActivationStatus.ACTIVE);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(userPO));
-        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(Arrays.asList(userPO));
+        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(List.of(userPO));
 
         ValidationException exception = assertThrows(ValidationException.class, () -> {
             userValidator.validateDelete(1L);
@@ -308,7 +308,7 @@ public class UserValidatorTest {
         userPO.setActivationStatus(ActivationStatus.ACTIVE);
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(userPO));
-        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(Arrays.asList(new UserPO(3L)));
+        when(userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE)).thenReturn(List.of(new UserPO(3L)));
 
         userValidator.validateDelete(1L);
     }

@@ -5,7 +5,7 @@ import './App.css';
 
 // Context Providers
 // import { SessionProvider, useSession } from './contexts/SessionContext'; // Temporarily disabled
-import ToastProvider from './components/ToastProvider';
+import { ToastProvider } from './components/Toast';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 

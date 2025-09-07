@@ -1,7 +1,6 @@
 package se.dtime.service.report;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
@@ -25,14 +24,17 @@ import java.util.List;
 @Service
 public class TimeReportStatusService {
 
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private ReportRepository reportRepository;
-    @Autowired
-    private CloseDateRepository closeDateRepository;
-    @Autowired
-    private ReportConverter reportConverter;
+    private final CalendarService calendarService;
+    private final ReportRepository reportRepository;
+    private final CloseDateRepository closeDateRepository;
+    private final ReportConverter reportConverter;
+
+    public TimeReportStatusService(CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportConverter reportConverter) {
+        this.calendarService = calendarService;
+        this.reportRepository = reportRepository;
+        this.closeDateRepository = closeDateRepository;
+        this.reportConverter = reportConverter;
+    }
 
     public UnclosedUserReport getCurrentUnclosedUsers() {
         LocalDate date = calendarService.getNowDate();

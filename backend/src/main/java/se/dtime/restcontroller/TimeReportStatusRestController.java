@@ -1,6 +1,5 @@
 package se.dtime.restcontroller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -16,8 +15,12 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/timereportstatus")
 public class TimeReportStatusRestController {
-    @Autowired
-    private TimeReportStatusService timeReportStatusService;
+    
+    private final TimeReportStatusService timeReportStatusService;
+
+    public TimeReportStatusRestController(TimeReportStatusService timeReportStatusService) {
+        this.timeReportStatusService = timeReportStatusService;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "")

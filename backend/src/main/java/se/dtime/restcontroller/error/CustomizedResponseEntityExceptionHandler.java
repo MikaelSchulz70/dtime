@@ -94,18 +94,48 @@ public class CustomizedResponseEntityExceptionHandler {
     }
 
     @ExceptionHandler(MethodArgumentTypeMismatchException.class)
-    public ResponseEntity<String> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    public ResponseEntity<ApiError> handleMethodArgumentTypeMismatchException(MethodArgumentTypeMismatchException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        ApiError apiError = ApiError.builder()
+                .timestamp(java.time.Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Invalid parameter type")
+                .message("Parameter '" + ex.getName() + "' has invalid type: " + ex.getMessage())
+                .path(path)
+                .build();
+        
+        log.warn("Invalid parameter type at path {}: {}", path, ex.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(MissingServletRequestParameterException.class)
-    public ResponseEntity<String> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    public ResponseEntity<ApiError> handleMissingServletRequestParameterException(MissingServletRequestParameterException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        ApiError apiError = ApiError.builder()
+                .timestamp(java.time.Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Missing required parameter")
+                .message("Required parameter '" + ex.getParameterName() + "' is missing")
+                .path(path)
+                .build();
+        
+        log.warn("Missing required parameter at path {}: {}", path, ex.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(IllegalArgumentException.class)
-    public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException ex) {
-        return ResponseEntity.badRequest().body(ex.getMessage());
+    public ResponseEntity<ApiError> handleIllegalArgument(IllegalArgumentException ex, WebRequest request) {
+        String path = request.getDescription(false).replace("uri=", "");
+        ApiError apiError = ApiError.builder()
+                .timestamp(java.time.Instant.now())
+                .status(HttpStatus.BAD_REQUEST.value())
+                .error("Invalid argument")
+                .message(ex.getMessage())
+                .path(path)
+                .build();
+        
+        log.warn("Invalid argument at path {}: {}", path, ex.getMessage());
+        return new ResponseEntity<>(apiError, HttpStatus.BAD_REQUEST);
     }
 
     @ExceptionHandler(org.springframework.web.HttpRequestMethodNotSupportedException.class)

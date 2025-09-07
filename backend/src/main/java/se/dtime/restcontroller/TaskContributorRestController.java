@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -17,10 +16,14 @@ import java.util.List;
 @RequestMapping("/api/taskcontributor")
 public class TaskContributorRestController {
 
-    @Autowired
-    private TaskContributorService taskContributorService;
-    @Autowired
-    private TaskContributorValidator taskContributorValidator;
+    private final TaskContributorService taskContributorService;
+    private final TaskContributorValidator taskContributorValidator;
+
+    public TaskContributorRestController(TaskContributorService taskContributorService, 
+                                       TaskContributorValidator taskContributorValidator) {
+        this.taskContributorService = taskContributorService;
+        this.taskContributorValidator = taskContributorValidator;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")

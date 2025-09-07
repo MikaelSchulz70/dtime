@@ -1,6 +1,5 @@
 package se.dtime.service.admin;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.model.LoggedInUser;
@@ -8,28 +7,29 @@ import se.dtime.model.SessionInfo;
 import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.timereport.Day;
-import se.dtime.repository.TaskContributorRepository;
 import se.dtime.service.calendar.CalendarService;
 import se.dtime.utils.UserUtil;
 
 @Service
 public class SessionService {
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
+
+    private final CalendarService calendarService;
+
+    public SessionService(CalendarService calendarService) {
+        this.calendarService = calendarService;
+    }
 
     public SessionInfo getSessionInfo() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         UserExt userExt = null;
-        
+
         if (principal instanceof UserExt) {
             userExt = (UserExt) principal;
         } else {
             // For test scenarios with mock users, create a default UserExt
             // In production, this would be a proper UserExt from authentication
-            java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities = 
-                java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
+            java.util.List<org.springframework.security.core.authority.SimpleGrantedAuthority> authorities =
+                    java.util.List.of(new org.springframework.security.core.authority.SimpleGrantedAuthority("ROLE_USER"));
             userExt = new UserExt("testuser", "password", authorities, 1L, "Test", "User");
         }
 

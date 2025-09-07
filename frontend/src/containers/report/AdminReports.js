@@ -5,8 +5,9 @@ import TaskReportTable from './TaskReport';
 import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
+import { useToast } from '../../components/Toast';
 
-export default class AdminReports extends React.Component {
+class AdminReports extends React.Component {
     constructor(props) {
         super(props);
         this.handlePreviousReport = this.handlePreviousReport.bind(this);
@@ -46,7 +47,7 @@ export default class AdminReports extends React.Component {
                 self.setState({ report: response.data, reportView: view, reportType: type });
             })
             .catch(error => {
-                alert('Failed to load report');
+                this.props.showError('Failed to load report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -90,7 +91,7 @@ export default class AdminReports extends React.Component {
                 self.setState({ report: response.data });
             })
             .catch(error => {
-                alert('Failed to load previous report');
+                this.props.showError('Failed to load previous report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -104,7 +105,7 @@ export default class AdminReports extends React.Component {
                 self.setState({ report: response.data });
             })
             .catch(error => {
-                alert('Failed to load next report');
+                this.props.showError('Failed to load next report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -170,4 +171,9 @@ export default class AdminReports extends React.Component {
             </div>
         );
     }
-};
+}
+
+export default function AdminReportsWithToast(props) {
+    const { showError } = useToast();
+    return <AdminReports {...props} showError={showError} />;
+}

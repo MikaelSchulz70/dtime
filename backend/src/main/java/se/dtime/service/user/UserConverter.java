@@ -1,6 +1,5 @@
 package se.dtime.service.user;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.util.StringUtils;
@@ -15,8 +14,11 @@ public class UserConverter extends BaseConverter {
 
     private static final String DUMMY_PWD = "dummy1234";
 
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
+    private final BCryptPasswordEncoder passwordEncoder;
+
+    public UserConverter(BCryptPasswordEncoder passwordEncoder) {
+        this.passwordEncoder = passwordEncoder;
+    }
 
     public User toModel(UserPO userPO) {
         if (userPO == null) {

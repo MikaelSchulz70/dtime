@@ -1,8 +1,6 @@
 package se.dtime.service.system;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Autowired;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
@@ -13,9 +11,9 @@ import se.dtime.model.error.BaseException;
 
 import java.util.Properties;
 
+@Slf4j
 @Service
 public class EmailSender {
-    private static final Logger log = LoggerFactory.getLogger(EmailSender.class);
     private final static String REMINDER_SUBJECT = "Dtime!";
     private final static String REMINDER_TEXT = "En vänlig påminnelse att rapporera månadens tid J.\n\nMvh\nDtime";
 

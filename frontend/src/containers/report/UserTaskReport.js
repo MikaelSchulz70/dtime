@@ -2,6 +2,7 @@ import React from "react";
 import Modal from 'react-modal';
 import * as Constants from '../../common/Constants';
 import TimeService from '../../service/TimeService';
+import { useToast } from '../../components/Toast';
 
 Modal.setAppElement('#root');
 
@@ -141,7 +142,7 @@ class UserReportRows extends React.Component {
             <th className={`fw-bold fs-6`}>{this.state.userReport.totalTime} hrs</th>
             <th>
                 {this.state.reportView === Constants.MONTH_VIEW ? (
-                    <UserDetailReport userId={this.state.userReport.userId} fromDate={this.state.fromDate} toDate={this.state.toDate} />
+                    <UserDetailReport userId={this.state.userReport.userId} fromDate={this.state.fromDate} toDate={this.state.toDate} showError={this.props.showError} />
                 ) : ''}
             </th>
         </tr>);
@@ -233,7 +234,7 @@ class UserDetailReport extends React.Component {
             })
             .catch(error => {
                 console.error('Error loading user report:', error);
-                alert('Failed to load user report: ' + (error.response?.data?.message || error.message));
+                this.props.showError('Failed to load user report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -314,7 +315,7 @@ class UserDetailReport extends React.Component {
     }
 }
 
-export default class UserTaskReportTable extends React.Component {
+class UserTaskReportTable extends React.Component {
     constructor(props) {
         super(props);
         this.state = { report: this.props.report, reportView: this.props.reportView, fromDate: this.props.fromDate };
@@ -334,9 +335,10 @@ export default class UserTaskReportTable extends React.Component {
         var workableHours = this.state.report.workableHours;
         var reportView = this.state.reportView;
         var fromDate = this.state.report.fromDate;
+        var showError = this.props.showError;
         if (this.state.report.userReports != null) {
             this.state.report.userReports.forEach(function (userReport) {
-                rows.push(<UserReportRows key={userReport.userId} userReport={userReport} workableHours={workableHours} reportView={reportView} fromDate={fromDate} />);
+                rows.push(<UserReportRows key={userReport.userId} userReport={userReport} workableHours={workableHours} reportView={reportView} fromDate={fromDate} showError={showError} />);
             });
         }
 
@@ -357,4 +359,9 @@ export default class UserTaskReportTable extends React.Component {
             </div>
         );
     }
-};
+}
+
+export default function UserTaskReportTableWithToast(props) {
+    const { showError } = useToast();
+    return <UserTaskReportTable {...props} showError={showError} />;
+}

@@ -99,7 +99,7 @@ public class TestReportRepository extends JdbcDaoSupport {
     }
 
     public List<UserReport> getUserReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(USER_REPORTS, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(USER_REPORTS, fromDate, toDate);
 
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
@@ -128,7 +128,7 @@ public class TestReportRepository extends JdbcDaoSupport {
     }
 
     public List<TaskReport> getTaskReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(TASK_REPORT, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(TASK_REPORT, fromDate, toDate);
 
         List<TaskReport> taskReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -196,7 +196,7 @@ public class TestReportRepository extends JdbcDaoSupport {
     }
 
     public List<AccountReport> getAccountReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, new Object[]{fromDate, toDate});
+        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, fromDate, toDate);
 
         List<AccountReport> accountReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {

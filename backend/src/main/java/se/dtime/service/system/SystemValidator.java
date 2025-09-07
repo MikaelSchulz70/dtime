@@ -1,6 +1,5 @@
 package se.dtime.service.system;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.util.StringUtils;
 import se.dtime.common.ValidatorBase;
@@ -11,9 +10,13 @@ import se.dtime.model.error.NotFoundException;
 import se.dtime.repository.SystemPropertyRepository;
 
 @Service
-public class SystemValidator extends ValidatorBase<SystemPropertyDB>  {
-    @Autowired
-    private SystemPropertyRepository systemPropertyRepository;
+public class SystemValidator extends ValidatorBase<SystemPropertyDB> {
+
+    private final SystemPropertyRepository systemPropertyRepository;
+
+    public SystemValidator(SystemPropertyRepository systemPropertyRepository) {
+        this.systemPropertyRepository = systemPropertyRepository;
+    }
 
     @Override
     public void validateAdd(SystemPropertyDB entity) {

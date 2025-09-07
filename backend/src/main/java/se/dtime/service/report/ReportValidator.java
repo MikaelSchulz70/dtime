@@ -1,6 +1,5 @@
 package se.dtime.service.report;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
@@ -12,8 +11,12 @@ import se.dtime.utils.UserUtil;
 
 @Service
 public class ReportValidator {
-    @Autowired
-    private UserRepository userRepository;
+
+    private final UserRepository userRepository;
+
+    public ReportValidator(UserRepository userRepository) {
+        this.userRepository = userRepository;
+    }
 
     public void validateCloseTimeReport(CloseDate closeDate) {
         userRepository.findById(closeDate.getUserId()).orElseThrow(() -> new ValidationException("user.not.found"));

@@ -1,7 +1,6 @@
 package se.dtime.service.taskcontributor;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.ValidatorBase;
@@ -21,12 +20,16 @@ import java.util.Map;
 
 @Service
 public class TaskContributorValidator extends ValidatorBase<TaskContributor> {
-    @Autowired
-    private AccountRepository accountRepository;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TaskRepository taskRepository;
+
+    private final AccountRepository accountRepository;
+    private final UserRepository userRepository;
+    private final TaskRepository taskRepository;
+
+    public TaskContributorValidator(AccountRepository accountRepository, UserRepository userRepository, TaskRepository taskRepository) {
+        this.accountRepository = accountRepository;
+        this.userRepository = userRepository;
+        this.taskRepository = taskRepository;
+    }
 
     static final String FIELD_NAME = "name";
     static final String FIELD_ACTIVATION_STATUS = "activationStatus";

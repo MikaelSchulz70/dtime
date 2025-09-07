@@ -1,8 +1,9 @@
 import React from "react";
 import UserService from '../../service/UserService';
 import BaseDetails from '../BaseDetails';
+import { useToast } from '../../components/Toast';
 
-export default class PasswordChanger extends BaseDetails {
+class PasswordChanger extends BaseDetails {
     constructor(props) {
         super(props);
         this.handleError = this.handleError.bind(this);
@@ -31,7 +32,7 @@ export default class PasswordChanger extends BaseDetails {
         var service = new UserService();
         service.changePwd(this.state.userPwd)
             .then(response => {
-                alert('Password changed successfully!');
+                this.props.showSuccess('Password changed successfully!');
             })
             .catch(error => {
                 self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
@@ -79,4 +80,9 @@ export default class PasswordChanger extends BaseDetails {
             </div>
         );
     }
-};
+}
+
+export default function PasswordChangerWithToast(props) {
+    const { showSuccess, showError } = useToast();
+    return <PasswordChanger {...props} showSuccess={showSuccess} showError={showError} />;
+}

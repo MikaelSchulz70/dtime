@@ -1,7 +1,6 @@
 package se.dtime.service.system;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
@@ -14,12 +13,16 @@ import java.util.List;
 @Slf4j
 @Service
 public class SystemOperationService {
-    @Autowired
-    private EmailSender emailSender;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TimeReportStatusService timeReportStatusService;
+
+    private final EmailSender emailSender;
+    private final UserRepository userRepository;
+    private final TimeReportStatusService timeReportStatusService;
+
+    public SystemOperationService(EmailSender emailSender, UserRepository userRepository, TimeReportStatusService timeReportStatusService) {
+        this.emailSender = emailSender;
+        this.userRepository = userRepository;
+        this.timeReportStatusService = timeReportStatusService;
+    }
 
     public void sendMailReminder() {
         List<UserPO> userPOList = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
@@ -29,7 +32,7 @@ public class SystemOperationService {
     public void sendMailReminderToUnclosedUsers() {
         log.info("Sending email reminders to users with unclosed time reports");
         UnclosedUserReport report = timeReportStatusService.getCurrentUnclosedUsers();
-        
+
         if (report.getUnclosedUsers() == null || report.getUnclosedUsers().isEmpty()) {
             log.info("No unclosed users found, no emails will be sent");
             return;
@@ -42,7 +45,7 @@ public class SystemOperationService {
                 emailCount++;
             }
         }
-        
+
         log.info("Email reminders sent to {} users with unclosed time reports", emailCount);
     }
 }

@@ -2,7 +2,6 @@ package se.dtime.service.scheduler;
 
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import se.dtime.config.EmailSendConfig;
@@ -18,20 +17,23 @@ import java.util.List;
 @Slf4j
 @Component
 public class Scheduler {
-    
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private EmailSender emailSender;
-    @Autowired
-    private EmailSendConfig emailSendConfig;
+
+    private final CalendarService calendarService;
+    private final UserRepository userRepository;
+    private final EmailSender emailSender;
+    private final EmailSendConfig emailSendConfig;
+
+    public Scheduler(CalendarService calendarService, UserRepository userRepository, EmailSender emailSender, EmailSendConfig emailSendConfig) {
+        this.calendarService = calendarService;
+        this.userRepository = userRepository;
+        this.emailSender = emailSender;
+        this.emailSendConfig = emailSendConfig;
+    }
 
     @Scheduled(cron = "0 0 10 27-31 * ?")
     public void emailReminder() {
         log.info("Starting scheduled email reminder check");
-        
+
         if (!emailSendConfig.isMailEnabled()) {
             log.info("Email reminders are disabled - mail.enabled is false");
             return;

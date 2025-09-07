@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,10 +19,13 @@ import se.dtime.service.user.UserValidator;
 @RequestMapping("/api/users")
 public class UserRestController {
 
-    @Autowired
-    private UserService userService;
-    @Autowired
-    private UserValidator userValidator;
+    private final UserService userService;
+    private final UserValidator userValidator;
+
+    public UserRestController(UserService userService, UserValidator userValidator) {
+        this.userService = userService;
+        this.userValidator = userValidator;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "")

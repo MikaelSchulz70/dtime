@@ -1,8 +1,6 @@
 package se.dtime.service.report;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.env.Environment;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
@@ -14,7 +12,6 @@ import se.dtime.model.report.*;
 import se.dtime.model.timereport.CloseDate;
 import se.dtime.model.timereport.Day;
 import se.dtime.repository.CloseDateRepository;
-import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.jdbc.ReportRepository;
 import se.dtime.service.calendar.CalendarService;
 import se.dtime.service.user.UserValidator;
@@ -26,22 +23,21 @@ import java.util.List;
 @Service
 public class ReportService {
 
-    @Autowired
-    private TimeEntryRepository timeEntryRepository;
-    @Autowired
-    private UserValidator userValidator;
-    @Autowired
-    private CalendarService calendarService;
-    @Autowired
-    private ReportRepository reportRepository;
-    @Autowired
-    private CloseDateRepository closeDateRepository;
-    @Autowired
-    private ReportValidator reportValidator;
-    @Autowired
-    private ReportConverter reportConverter;
-    @Autowired
-    private Environment environment;
+    private final UserValidator userValidator;
+    private final CalendarService calendarService;
+    private final ReportRepository reportRepository;
+    private final CloseDateRepository closeDateRepository;
+    private final ReportValidator reportValidator;
+    private final ReportConverter reportConverter;
+
+    public ReportService(UserValidator userValidator, CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportValidator reportValidator, ReportConverter reportConverter) {
+        this.userValidator = userValidator;
+        this.calendarService = calendarService;
+        this.reportRepository = reportRepository;
+        this.closeDateRepository = closeDateRepository;
+        this.reportValidator = reportValidator;
+        this.reportConverter = reportConverter;
+    }
 
     public Report getCurrentReports(ReportView reportView, ReportType reportType) {
         return getReport(reportView, reportType, calendarService.getNowDate());
@@ -89,7 +85,7 @@ public class ReportService {
 
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
         long userId;
-        
+
         if (principal instanceof UserExt userExt) {
             userId = userExt.getId();
         } else {

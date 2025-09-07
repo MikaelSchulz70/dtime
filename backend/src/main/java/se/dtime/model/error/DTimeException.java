@@ -4,7 +4,7 @@ import lombok.Getter;
 
 @Getter
 public class DTimeException extends RuntimeException {
-    private String messageKey;
+    private final String messageKey;
 
     public DTimeException(String messageKey, Exception e) {
         super(messageKey, e);

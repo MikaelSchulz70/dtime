@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,8 +15,11 @@ import java.util.List;
 @RequestMapping("/api/specialday")
 public class SpecialDayRestController {
 
-    @Autowired
-    private SpecialDayService specialDayService;
+    private final SpecialDayService specialDayService;
+
+    public SpecialDayRestController(SpecialDayService specialDayService) {
+        this.specialDayService = specialDayService;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping

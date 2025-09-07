@@ -1,7 +1,6 @@
 package se.dtime.service.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -30,20 +29,23 @@ import java.util.List;
 @Service
 public class UserService {
 
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private UserConverter userConverter;
-    @Autowired
-    private UserValidator userValidator;
-    @Autowired
-    private BCryptPasswordEncoder passwordEncoder;
-    @Autowired
-    private TimeEntryRepository timeEntryRepository;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private CloseDateRepository closeDateRepository;
+    private final UserRepository userRepository;
+    private final UserConverter userConverter;
+    private final UserValidator userValidator;
+    private final BCryptPasswordEncoder passwordEncoder;
+    private final TimeEntryRepository timeEntryRepository;
+    private final TaskContributorRepository taskContributorRepository;
+    private final CloseDateRepository closeDateRepository;
+
+    public UserService(UserRepository userRepository, UserConverter userConverter, UserValidator userValidator, BCryptPasswordEncoder passwordEncoder, TimeEntryRepository timeEntryRepository, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+        this.userRepository = userRepository;
+        this.userConverter = userConverter;
+        this.userValidator = userValidator;
+        this.passwordEncoder = passwordEncoder;
+        this.timeEntryRepository = timeEntryRepository;
+        this.taskContributorRepository = taskContributorRepository;
+        this.closeDateRepository = closeDateRepository;
+    }
 
     public User add(User user) {
         userValidator.validateAdd(user);
@@ -84,33 +86,33 @@ public class UserService {
 
     public PagedResponse<User> getAllPaged(Pageable pageable, Boolean active, String firstName, String lastName) {
         Page<UserPO> page;
-        
+
         if (active != null) {
             ActivationStatus activationStatus = active ? ActivationStatus.ACTIVE : ActivationStatus.INACTIVE;
             page = userRepository.findByActivationStatus(pageable, activationStatus);
         } else {
             page = userRepository.findAll(pageable);
         }
-        
+
         // Filter out system user and apply additional filters
         List<UserPO> filteredUserPOS = page.getContent().stream()
                 .filter(u -> u.getId() != CommonData.SYSTEM_USER_ID)
-                .filter(u -> firstName == null || firstName.isEmpty() || 
-                    u.getFirstName().toLowerCase().contains(firstName.toLowerCase()))
-                .filter(u -> lastName == null || lastName.isEmpty() || 
-                    u.getLastName().toLowerCase().contains(lastName.toLowerCase()))
+                .filter(u -> firstName == null || firstName.isEmpty() ||
+                        u.getFirstName().toLowerCase().contains(firstName.toLowerCase()))
+                .filter(u -> lastName == null || lastName.isEmpty() ||
+                        u.getLastName().toLowerCase().contains(lastName.toLowerCase()))
                 .toList();
-        
+
         User[] users = userConverter.toModel(filteredUserPOS);
-        
+
         return new PagedResponse<>(
-            Arrays.asList(users),
-            page.getNumber(),
-            page.getTotalPages(),
-            page.getTotalElements(),
-            page.getSize(),
-            page.isFirst(),
-            page.isLast()
+                Arrays.asList(users),
+                page.getNumber(),
+                page.getTotalPages(),
+                page.getTotalElements(),
+                page.getSize(),
+                page.isFirst(),
+                page.isLast()
         );
     }
 

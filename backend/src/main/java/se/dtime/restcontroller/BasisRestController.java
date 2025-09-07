@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -16,8 +15,11 @@ import se.dtime.service.basis.BasisService;
 @RequestMapping("/api/basis")
 public class BasisRestController {
 
-    @Autowired
-    private BasisService basisService;
+    private final BasisService basisService;
+
+    public BasisRestController(BasisService basisService) {
+        this.basisService = basisService;
+    }
 
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping(path = "/invoice/monthlycheck")

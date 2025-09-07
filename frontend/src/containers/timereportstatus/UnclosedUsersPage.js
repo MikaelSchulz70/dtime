@@ -1,6 +1,7 @@
 import React from "react";
 import TimeReportStatusService from '../../service/TimeReportStatusService';
 import SystemService from '../../service/SystemService';
+import { useToast } from '../../components/Toast';
 
 class UnclosedUsersTable extends React.Component {
     constructor(props) {
@@ -58,7 +59,7 @@ class UnclosedUsersTable extends React.Component {
             .catch(error => {
                 console.error('Error toggling report status:', error);
                 const errorMessage = error.response?.data?.message || error.message || 'Failed to open/close report';
-                alert(errorMessage);
+                this.props.showError(errorMessage);
 
                 // Revert the checkbox on error
                 event.target.checked = user.closed;
@@ -160,7 +161,7 @@ class UnclosedUsersTable extends React.Component {
     }
 }
 
-export default class UnclosedUsersPage extends React.Component {
+class UnclosedUsersPage extends React.Component {
     constructor(props) {
         super(props);
         this.handlePreviousReport = this.handlePreviousReport.bind(this);
@@ -186,7 +187,7 @@ export default class UnclosedUsersPage extends React.Component {
             .catch(error => {
                 console.error('Error loading unclosed users report:', error);
                 const errorMessage = error.response?.data?.message || error.message || 'Failed to load unclosed users report';
-                alert(errorMessage);
+                this.props.showError(errorMessage);
             });
     }
 
@@ -202,7 +203,7 @@ export default class UnclosedUsersPage extends React.Component {
             .catch(error => {
                 console.error('Error loading previous unclosed users report:', error);
                 const errorMessage = error.response?.data?.message || error.message || 'Failed to load previous unclosed users report';
-                alert(errorMessage);
+                this.props.showError(errorMessage);
             });
     }
 
@@ -218,7 +219,7 @@ export default class UnclosedUsersPage extends React.Component {
             .catch(error => {
                 console.error('Error loading next unclosed users report:', error);
                 const errorMessage = error.response?.data?.message || error.message || 'Failed to load next unclosed users report';
-                alert(errorMessage);
+                this.props.showError(errorMessage);
             });
     }
 
@@ -244,7 +245,7 @@ export default class UnclosedUsersPage extends React.Component {
         const unclosedCount = unclosedUsers.length;
         
         if (unclosedCount === 0) {
-            alert('No users have unclosed time reports. No emails will be sent.');
+            this.props.showWarning('No users have unclosed time reports. No emails will be sent.');
             return;
         }
 
@@ -256,7 +257,7 @@ export default class UnclosedUsersPage extends React.Component {
         const systemService = new SystemService();
         systemService.sendEmailReminderToUnclosedUsers()
             .then(response => {
-                alert(`Email reminders sent successfully to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} with unclosed time reports`);
+                this.props.showSuccess(`Email reminders sent successfully to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} with unclosed time reports`);
             })
             .catch(error => {
                 console.error('Error sending email reminders:', error);
@@ -319,10 +320,15 @@ export default class UnclosedUsersPage extends React.Component {
                 </div>
                 <div className="row">
                     <div className="col-sm-12">
-                        <UnclosedUsersTable report={this.state.report} onReportUpdate={this.handleReportUpdate} />
+                        <UnclosedUsersTable report={this.state.report} onReportUpdate={this.handleReportUpdate} showError={this.props.showError} />
                     </div>
                 </div>
             </div>
         );
     }
-};
+}
+
+export default function UnclosedUsersPageWithToast(props) {
+    const { showError, showSuccess, showWarning } = useToast();
+    return <UnclosedUsersPage {...props} showError={showError} showSuccess={showSuccess} showWarning={showWarning} />;
+}

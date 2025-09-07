@@ -1,6 +1,7 @@
 import React from "react";
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
+import { useToast } from '../../components/Toast';
 
 
 
@@ -96,7 +97,7 @@ class UserReportTable extends React.Component {
     }
 };
 
-export default class UserReports extends React.Component {
+class UserReports extends React.Component {
     constructor(props) {
         super(props);
         this.handlePreviousReport = this.handlePreviousReport.bind(this);
@@ -121,7 +122,7 @@ export default class UserReports extends React.Component {
                 self.setState({ report: response.data, reportView: view });
             })
             .catch(error => {
-                alert('Failed to load report');
+                this.props.showError('Failed to load report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -135,7 +136,7 @@ export default class UserReports extends React.Component {
                 self.setState({ report: response.data });
             })
             .catch(error => {
-                alert('Failed to load report');
+                this.props.showError('Failed to load report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -148,7 +149,7 @@ export default class UserReports extends React.Component {
                 self.setState({ report: response.data });
             })
             .catch(error => {
-                alert('Failed to load report');
+                this.props.showError('Failed to load report: ' + (error.response?.data?.message || error.message));
             });
     }
 
@@ -203,4 +204,9 @@ export default class UserReports extends React.Component {
             </div>
         );
     }
-};
+}
+
+export default function UserReportsWithToast(props) {
+    const { showError } = useToast();
+    return <UserReports {...props} showError={showError} />;
+}

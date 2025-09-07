@@ -17,7 +17,6 @@ import se.dtime.model.error.ValidationException;
 import se.dtime.repository.AccountRepository;
 import se.dtime.repository.TaskRepository;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
@@ -117,9 +116,9 @@ public class AccountValidatorTest {
     public void validateDeleteHasActiveTasks() {
         AccountPO accountPO = new AccountPO(1L);
         when(accountRepository.findById(1L)).thenReturn(Optional.of(accountPO));
-        when(taskRepository.findByAccount(accountPO)).thenReturn(Arrays.asList(new TaskPO(1L)));
+        when(taskRepository.findByAccount(accountPO)).thenReturn(List.of(new TaskPO(1L)));
 
-        ValidationException exception = assertThrows(ValidationException.class, () -> accountValidator.validateDelete(1l));
+        ValidationException exception = assertThrows(ValidationException.class, () -> accountValidator.validateDelete(1L));
         assertThat(exception.getMessage()).isEqualTo("account.cannot.delete.account.with.tasks");
     }
 }

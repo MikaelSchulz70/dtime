@@ -1,7 +1,6 @@
 package se.dtime.service.user;
 
 import jakarta.annotation.PostConstruct;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import se.dtime.common.AttributeValidator;
 import se.dtime.common.CommonData;
@@ -13,7 +12,6 @@ import se.dtime.model.User;
 import se.dtime.model.UserRole;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.error.ValidationException;
-import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
@@ -26,12 +24,13 @@ import java.util.regex.Pattern;
 
 @Service
 public class UserValidator extends ValidatorBase<User> {
-    @Autowired
-    private UserRepository userRepository;
-    @Autowired
-    private TaskContributorRepository taskContributorRepository;
-    @Autowired
-    private TimeEntryRepository timeEntryRepository;
+    private final UserRepository userRepository;
+    private final TimeEntryRepository timeEntryRepository;
+
+    public UserValidator(UserRepository userRepository, TimeEntryRepository timeEntryRepository) {
+        this.userRepository = userRepository;
+        this.timeEntryRepository = timeEntryRepository;
+    }
 
     static final String FIELD_FIRST_NAME = "firstName";
     static final String FIELD_LAST_NAME = "lastName";
@@ -39,8 +38,6 @@ public class UserValidator extends ValidatorBase<User> {
     static final String FIELD_PASSWORD = "password";
     static final String FIELD_ACTIVATION_STATUS = "activationStatus";
     static final String FIELD_ROLE = "userRole";
-
-    private static Pattern REGEX_PATTERN_MOBILE_NUMBER = Pattern.compile("((\\+)(\\d{10,19}))");
 
     private static Map<String, AttributeValidator> VALIDATOR_MAP;
 
