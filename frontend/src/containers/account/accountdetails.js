@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { useBaseDetails } from '../BaseDetails';
@@ -7,7 +7,7 @@ import { useToast } from '../../components/Toast';
 
 export default function AccountDetails(props) {
     const { accountId } = useParams();
-    const history = useHistory();
+    const navigate = useNavigate();
     const { handleError, clearError, clearErrors } = useBaseDetails();
     const { showError } = useToast();
     
@@ -41,16 +41,16 @@ export default function AccountDetails(props) {
 
         serviceCall
             .then(response => {
-                history.replace('/account?refresh=' + Date.now());
+                navigate('/account?refresh=' + Date.now(), { replace: true });
             })
             .catch(error => {
                 handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }, [account, history, clearErrors, handleError]);
+    }, [account, navigate, clearErrors, handleError]);
 
     const canelAddEdit = useCallback(() => {
-        history.push('/account');
-    }, [history]);
+        navigate('/account');
+    }, [navigate]);
 
     const validate = useCallback((event) => {
         let field = event.target.name;

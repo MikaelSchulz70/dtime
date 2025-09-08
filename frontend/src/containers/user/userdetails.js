@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useHistory } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router-dom';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useBaseDetails } from '../BaseDetails';
@@ -7,7 +7,7 @@ import { useToast } from '../../components/Toast';
 
 export default function UserDetails(props) {
     const { userId } = useParams();
-    const history = useHistory();
+    const navigate = useNavigate();
     const { handleError, clearError, clearErrors } = useBaseDetails();
     const { showError } = useToast();
     
@@ -41,16 +41,16 @@ export default function UserDetails(props) {
 
         serviceCall
             .then(response => {
-                history.push('/users');
+                navigate('/users');
             })
             .catch(error => {
                 handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }, [user, history, clearErrors, handleError]);
+    }, [user, navigate, clearErrors, handleError]);
 
     const canelAddEdit = useCallback(() => {
-        history.push('/users');
-    }, [history]);
+        navigate('/users');
+    }, [navigate]);
 
 
     const validate = useCallback((event) => {

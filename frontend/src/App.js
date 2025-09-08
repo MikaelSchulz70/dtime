@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
-import { Switch, Route, BrowserRouter, Redirect, Link } from 'react-router-dom';
+import { Routes, Route, BrowserRouter, Navigate, Link } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
 
@@ -67,30 +67,30 @@ const Main = () => (
     <div className="container-fluid mr-10" style={{ marginTop: '20px' }}>
       <ErrorBoundary>
         <Suspense fallback={<LoadingSpinner fullPage text="Loading page..." />}>
-          <Switch>
-            <Route exact path='/' component={Times} />
-            <Route exact path='/time' component={Times} />
-            <Route exact path='/users' component={UsersModal} />
-            <Route exact path='/users-old' component={Users} />
-            <Route exact path='/users/:userId' component={UserDetails} />
-            <Route exact path='/account' component={AccountsModal} />
-            <Route exact path='/account-old' component={Account} />
-            <Route exact path='/account/:accountId' component={AccountDetails} />
-            <Route exact path='/task' component={TasksModal} />
-            <Route exact path='/task-old' component={Task} />
-            <Route exact path='/task/:taskId' component={TaskDetails} />
-            <Route exact path='/tasks/:taskId' component={TaskDetails} />
-            <Route exact path='/taskcontributor' component={TaskContributor} />
-            <Route exact path='/reports' component={AdminReports} />
-            <Route exact path='/userreport' component={UserReports} />
-            <Route exact path='/vacations' component={Vacations} />
-            <Route exact path='/timereportstatus' component={UnclosedUsersPage} />
-            <Route exact path='/changepwd' component={PasswordChanger} />
-            <Route exact path='/system/properties' component={SystemConfig} />
-            <Route exact path='/specialdays' component={SpecialDays} />
-            <Route exact path='/logout' component={Logout} />
-            <Redirect to="/" />
-          </Switch>
+          <Routes>
+            <Route path='/' element={<Times />} />
+            <Route path='/time' element={<Times />} />
+            <Route path='/users' element={<UsersModal />} />
+            <Route path='/users-old' element={<Users />} />
+            <Route path='/users/:userId' element={<UserDetails />} />
+            <Route path='/account' element={<AccountsModal />} />
+            <Route path='/account-old' element={<Account />} />
+            <Route path='/account/:accountId' element={<AccountDetails />} />
+            <Route path='/task' element={<TasksModal />} />
+            <Route path='/task-old' element={<Task />} />
+            <Route path='/task/:taskId' element={<TaskDetails />} />
+            <Route path='/tasks/:taskId' element={<TaskDetails />} />
+            <Route path='/taskcontributor' element={<TaskContributor />} />
+            <Route path='/reports' element={<AdminReports />} />
+            <Route path='/userreport' element={<UserReports />} />
+            <Route path='/vacations' element={<Vacations />} />
+            <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
+            <Route path='/changepwd' element={<PasswordChanger />} />
+            <Route path='/system/properties' element={<SystemConfig />} />
+            <Route path='/specialdays' element={<SpecialDays />} />
+            <Route path='/logout' element={<Logout />} />
+            <Route path='*' element={<Navigate to="/" replace />} />
+          </Routes>
         </Suspense>
       </ErrorBoundary>
     </div>
