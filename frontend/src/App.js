@@ -1,4 +1,4 @@
-import React, { Suspense } from 'react';
+import React, { Suspense, useEffect } from 'react';
 import { Switch, Route, BrowserRouter, Redirect, Link } from 'react-router-dom';
 import axios from 'axios';
 import './App.css';
@@ -44,9 +44,9 @@ import SpecialDays from './containers/specialday/SpecialDays';
 // axios.defaults.xsrfHeaderName = 'X-XSRF-TOKEN';
 // axios.defaults.xsrfCookieName = 'XSRF-TOKEN';
 
-// Logout component - could be converted to functional component later
-class Logout extends React.Component {
-  componentDidMount() {
+// Logout component - converted to functional component with hooks
+function Logout() {
+  useEffect(() => {
     axios.get('/logout')
       .then(response => {
         window.location.href = '/';
@@ -56,11 +56,9 @@ class Logout extends React.Component {
         // Force redirect even if logout fails
         window.location.href = '/';
       });
-  }
+  }, []);
 
-  render() {
-    return <LoadingSpinner fullPage text="Logging out..." />;
-  }
+  return <LoadingSpinner fullPage text="Logging out..." />;
 }
 
 

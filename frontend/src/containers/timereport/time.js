@@ -1,31 +1,24 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import TimeService from '../../service/TimeService';
 import * as Constants from '../../common/Constants';
 import ReportService from '../../service/ReportService';
+import { useToast } from '../../components/Toast';
 
-class TimeReportTableEntry extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleChange = this.handleChange.bind(this);
-        this.addUpdate = this.addUpdate.bind(this);
-        this.isTextAllowed = this.isTextAllowed.bind(this);
-        this.handleError = this.handleError.bind(this);
-        this.timeChanged = this.timeChanged.bind(this);
-        this.state = { timeReportDay: this.props.timeReportDay, fieldError: false };
-    }
+function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged, id }) {
+    const [timeReportDay, setTimeReportDay] = useState(initialTimeReportDay);
+    const [fieldError, setFieldError] = useState(false);
+    const { showError } = useToast();
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
+    useEffect(() => {
+        setTimeReportDay(initialTimeReportDay);
+    }, [initialTimeReportDay]);
 
-    timeChanged(timeReportDay, id) {
-        timeReportDay.id = id;
-        this.props.timeChanged(timeReportDay);
-    }
+    const timeChangedCallback = useCallback((updatedTimeReportDay, newId) => {
+        updatedTimeReportDay.id = newId;
+        timeChanged(updatedTimeReportDay);
+    }, [timeChanged]);
 
-    isTextAllowed(text) {
+    const isTextAllowed = useCallback((text) => {
         if (text == null) {
             return true;
         }
@@ -47,46 +40,42 @@ class TimeReportTableEntry extends React.Component {
         }
 
         return true;
-    }
+    }, []);
 
-    addUpdate(event) {
-        if (this.state.timeReportDay.closed) {
+    const addUpdate = useCallback((event) => {
+        if (timeReportDay.closed) {
             return;
         }
 
         var value = event.target.value;
 
-        var isInputOk = this.isTextAllowed(value);
+        var isInputOk = isTextAllowed(value);
         if (!isInputOk) {
             return;
         }
 
-        var handleError = this.handleError;
-        var timeChanged = this.timeChanged;
-        var timeReportDay = this.state.timeReportDay;
-
         const timeService = new TimeService();
-        timeService.updateTime(this.state.timeReportDay)
+        timeService.updateTime(timeReportDay)
             .then(response => {
-                timeChanged(timeReportDay, response.data);
+                timeChangedCallback(timeReportDay, response.data);
             })
             .catch(error => {
                 handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [timeReportDay, isTextAllowed, timeChangedCallback]);
 
-    handleError(status, error) {
+    const handleError = useCallback((status, error) => {
         if (status === 400 && error != null) {
-            alert(error);
+            showError(error);
         } else if (status === 500) {
-            alert("Internal server error:\n" + error);
+            showError("Internal server error: " + error);
         } else {
-            alert("Error:\n" + error);
+            showError("Error: " + error);
         }
-    }
+    }, [showError]);
 
-    handleChange(event) {
-        if (this.state.timeReportDay.closed) {
+    const handleChange = useCallback((event) => {
+        if (timeReportDay.closed) {
             return;
         }
 
@@ -95,206 +84,157 @@ class TimeReportTableEntry extends React.Component {
             value = value.replace(",", ".")
         }
 
-        var fieldError = !this.isTextAllowed(value);
+        var newFieldError = !isTextAllowed(value);
 
-        let timeReportDay = JSON.parse(JSON.stringify(this.state.timeReportDay));
-        timeReportDay['time'] = value;
-        this.setState(() => ({ timeReportDay: timeReportDay, fieldError: fieldError }));
+        let updatedTimeReportDay = JSON.parse(JSON.stringify(timeReportDay));
+        updatedTimeReportDay['time'] = value;
+        setTimeReportDay(updatedTimeReportDay);
+        setFieldError(newFieldError);
+    }, [timeReportDay, isTextAllowed]);
+
+    if (timeReportDay == null) return null;
+
+    var isClosed = timeReportDay.closed;
+    var backGroundColor = '';
+    if (isClosed) {
+        backGroundColor = Constants.CLOSED_COLOR;
+        if (timeReportDay.day.weekend) {
+            backGroundColor = Constants.CLOSED_WEEK_END_COLOR;
+        } else if (timeReportDay.day.majorHoliday) {
+            backGroundColor = Constants.CLOSED_MAJOR_HOLIDAY_COLOR;
+        } else if (timeReportDay.day.halfDay) {
+            backGroundColor = Constants.CLOSED_HALF_DAY_COLOR;
+        }
+    } else if (timeReportDay.day.weekend) {
+        backGroundColor = Constants.WEEKEND_COLOR;
+    } else if (timeReportDay.day.majorHoliday) {
+        backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+    } else if (timeReportDay.day.halfDay) {
+        backGroundColor = Constants.HALF_DAY_COLOR;
+    } else {
+        backGroundColor = Constants.DAY_COLOR;
     }
 
-    render() {
-        if (this.state == null) return null;
+    var time = (timeReportDay.time == null || timeReportDay.time === 0 ? '' : timeReportDay.time);
+    var classes = "time " + (fieldError ? "border border-danger" : '');
+    var inputName = JSON.stringify(timeReportDay.day.date);
 
-        var isClosed = this.state.timeReportDay.closed;
-        var backGroundColor = '';
-        if (isClosed) {
-            backGroundColor = Constants.CLOSED_COLOR;
-            if (this.state.timeReportDay.day.weekend) {
-                backGroundColor = Constants.CLOSED_WEEK_END_COLOR;
-            } else if (this.state.timeReportDay.day.majorHoliday) {
-                backGroundColor = Constants.CLOSED_MAJOR_HOLIDAY_COLOR;
-            } else if (this.state.timeReportDay.day.halfDay) {
-                backGroundColor = Constants.CLOSED_HALF_DAY_COLOR;
+    const inputStyle = {
+        backgroundColor: backGroundColor,
+        width: '40px'
+    }
+
+    return (
+        <td key={id} style={{ padding: "0px" }}>
+            <input style={inputStyle} className={classes} readOnly={isClosed} name={inputName} type="text" value={time} maxLength="5" onChange={handleChange} onBlur={addUpdate} />
+        </td>
+    );
+}
+
+function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged }) {
+    const timeChangedCallback = useCallback((timeReportDay) => {
+        timeChanged(timeReportDay);
+    }, [timeChanged]);
+
+    if (timeReportTask == null) return null;
+
+    var keyBase = timeReportTask.task.id;
+
+    var entries = [];
+    if (timeReportTask != null) {
+        var i = 3;
+        timeReportTask.timeEntries.forEach(function (timeReportDay) {
+            var key = keyBase + '-' + i;
+            entries.push(
+                <TimeReportTableEntry key={key} id={key} timeReportDay={timeReportDay} timeChanged={timeChangedCallback} />);
+            i++;
+        });
+    }
+
+    var accountName = timeReportTask.task.account.name;
+    var accountShortName = accountName.substring(0, Math.min(8, accountName.length));
+    var taskName = timeReportTask.task.name;
+    var taskShortName = taskName.substring(0, Math.min(8, taskName.length));
+
+    return (
+        <tr key={keyBase}>
+            <th key={keyBase + '-0'} className="text-nowrap" title={accountName}>{accountShortName}</th>
+            <th key={keyBase + '-1'} className="text-nowrap" title={taskName}>{taskShortName}</th>
+            <th key={keyBase + '-2  '}><input className="time" style={{ width: "50px" }} readOnly={true} name={timeReportTask.task.name} type="text" value={totalTaskTime} /></th>
+            {entries}
+        </tr>
+    );
+}
+
+function TimeReportTableHeaderRow({ days }) {
+    if (days == null)
+        return null;
+
+    var columns = [];
+    if (days != null) {
+        var i = 3;
+        days.forEach(function (day) {
+            var backGroundColor = '';
+            if (day.weekend) {
+                backGroundColor = Constants.WEEKEND_COLOR;
+            } else if (day.majorHoliday) {
+                backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+            } else if (day.halfDay) {
+                backGroundColor = Constants.HALF_DAY_COLOR;
+            } else {
+                backGroundColor = Constants.DAY_COLOR;
             }
-        } else if (this.state.timeReportDay.day.weekend) {
-            backGroundColor = Constants.WEEKEND_COLOR;
-        } else if (this.state.timeReportDay.day.majorHoliday) {
-            backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
-        } else if (this.state.timeReportDay.day.halfDay) {
-            backGroundColor = Constants.HALF_DAY_COLOR;
-        } else {
-            backGroundColor = Constants.DAY_COLOR;
-        }
 
-        var time = (this.state.timeReportDay.time == null || this.state.timeReportDay.time === 0 ? '' : this.state.timeReportDay.time);
-        var classes = "time " + (this.state.fieldError ? "border border-danger" : '');
-        var inputName = JSON.stringify(this.state.timeReportDay.day.date);
-
-        const inputStyle = {
-            backgroundColor: backGroundColor,
-            width: '40px'
-        }
-
-        return (
-            <td key={this.props.id} style={{ padding: "0px" }}>
-                <input style={inputStyle} className={classes} readOnly={isClosed} name={inputName} type="text" value={time} maxLength="5" onChange={this.handleChange} onBlur={this.addUpdate} />
-            </td>
-        );
+            var key = 'header-' + i;
+            columns.push(
+                <th key={key}><font color={backGroundColor}>{day.day}</font></th>);
+            i++;
+        });
     }
+
+    return (
+        <tr key="0">
+            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>Time</font></th>
+            {columns}
+        </tr>
+    );
 }
 
-class TimeReportTableRow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.timeChanged = this.timeChanged.bind(this);
-        this.state = { timeReportTask: this.props.timeReportTask, totalTaskTime: this.props.totalTaskTime };
+function TimeReportTableFooterRow({ days, time, label, id }) {
+    if (days == null)
+        return null;
+
+    var columns = [];
+    if (days != null) {
+        var i = 3;
+        var baseKey = id + '-';
+        days.forEach(function (day) {
+            var key = baseKey + i;
+            columns.push(<th key={key}></th>);
+            i++;
+        });
     }
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
-
-    timeChanged(timeReportDay) {
-        this.props.timeChanged(timeReportDay);
-    }
-
-    render() {
-        if (this.state == null) return null;
-
-        var keyBase = this.state.timeReportTask.task.id;
-
-        var timeChanged = this.timeChanged;
-        var entries = [];
-        if (this.state.timeReportTask != null) {
-            var i = 3;
-            this.state.timeReportTask.timeEntries.forEach(function (timeReportDay) {
-                var key = keyBase + '-' + i;
-                entries.push(
-                    <TimeReportTableEntry key={key} timeReportDay={timeReportDay} timeChanged={timeChanged} />);
-                i++;
-            });
-        }
-
-        var accountName = this.state.timeReportTask.task.account.name;
-        var accountShortName = accountName.substring(0, Math.min(8, accountName.length));
-        var taskName = this.state.timeReportTask.task.name;
-        var taskShortName = taskName.substring(0, Math.min(8, taskName.length));
-
-        return (
-            <tr key={keyBase}>
-                <th key={keyBase + '-0'} className="text-nowrap" title={accountName}>{accountShortName}</th>
-                <th key={keyBase + '-1'} className="text-nowrap" title={taskName}>{taskShortName}</th>
-                <th key={keyBase + '-2  '}><input className="time" style={{ width: "50px" }} readOnly={true} name={this.state.timeReportTask.task.name} type="text" value={this.state.totalTaskTime} /></th>
-                {entries}
-            </tr>
-        );
-    }
+    return (
+        <tr key={id} className="table-secondary">
+            <th key={id + '-0'}></th>
+            <th key={id + '-1'} className="text-nowrap">{label}</th>
+            <th key={id + '-2'}>{time}</th>
+            {columns}
+        </tr>
+    );
 }
 
-class TimeReportTableHeaderRow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { days: this.props.days };
-    }
+function TimeReportTable({ timeReport: initialTimeReport }) {
+    const [timeReport, setTimeReport] = useState(initialTimeReport);
 
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
+    useEffect(() => {
+        setTimeReport(initialTimeReport);
+    }, [initialTimeReport]);
 
-    render() {
-        if (this.state == null || this.state.days == null)
-            return null;
-
-        var columns = [];
-        if (this.state.days != null) {
-            var i = 3;
-            this.state.days.forEach(function (day) {
-                var backGroundColor = '';
-                if (day.weekend) {
-                    backGroundColor = Constants.WEEKEND_COLOR;
-                } else if (day.majorHoliday) {
-                    backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
-                } else if (day.halfDay) {
-                    backGroundColor = Constants.HALF_DAY_COLOR;
-                } else {
-                    backGroundColor = Constants.DAY_COLOR;
-                }
-
-                var key = 'header-' + i;
-                columns.push(
-                    <th key={key}><font color={backGroundColor}>{day.day}</font></th>);
-                i++;
-            });
-        }
-
-        return (
-            <tr key="0">
-                <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
-                <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
-                <th key="header-2"><font color={Constants.DAY_COLOR}>Time</font></th>
-                {columns}
-            </tr>
-        );
-    }
-}
-
-class TimeReportTableFooterRow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { days: this.props.days, time: this.props.time, label: this.props.label };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
-
-    render() {
-        if (this.state == null || this.state.days == null)
-            return null;
-
-        var columns = [];
-        if (this.state.days != null) {
-            var i = 3;
-            var baseKey = this.props.id + '-';
-            this.state.days.forEach(function (day) {
-                var key = baseKey + i;
-                columns.push(<th key={key}></th>);
-                i++;
-            });
-        }
-
-        return (
-            <tr key={this.props.id} className="table-secondary">
-                <th key={this.props.id + '-0'}></th>
-                <th key={this.props.id + '-1'} className="text-nowrap">{this.state.label}</th>
-                <th key={this.props.id + '-2'}>{this.state.time}</th>
-                {columns}
-            </tr>
-        );
-    }
-}
-
-class TimeReportTable extends React.Component {
-    constructor(props) {
-        super(props);
-        this.timeChanged = this.timeChanged.bind(this);
-        this.updateTime = this.updateTime.bind(this);
-        this.state = { timeReport: this.props.timeReport };
-    }
-
-    componentWillReceiveProps(nextProps) {
-        if (this.props !== nextProps) {
-            this.setState(nextProps);
-        }
-    }
-
-    updateTime(timeReportDayUpdated, timeReportTasks) {
+    const updateTime = useCallback((timeReportDayUpdated, timeReportTasks) => {
         for (var timeReportTaskKey in timeReportTasks) {
             var timeReportTask = timeReportTasks[timeReportTaskKey];
             for (var timeReportEntryKey in timeReportTask.timeEntries) {
@@ -305,177 +245,164 @@ class TimeReportTable extends React.Component {
                 }
             }
         }
-    }
+    }, []);
 
-    timeChanged(timeReportDayUpdated) {
-        this.updateTime(timeReportDayUpdated, this.state.timeReport.timeReportTasks);
-        this.setState({ timeReport: this.state.timeReport });
-    }
+    const timeChanged = useCallback((timeReportDayUpdated) => {
+        updateTime(timeReportDayUpdated, timeReport.timeReportTasks);
+        setTimeReport({ ...timeReport });
+    }, [timeReport, updateTime]);
 
-    render() {
-        if (this.state == null || this.state.timeReport == null) return null;
+    if (timeReport == null) return null;
 
-        var headerRow = <TimeReportTableHeaderRow days={this.state.timeReport.days} />;
+    var headerRow = <TimeReportTableHeaderRow days={timeReport.days} />;
 
-        var rows = [];
-        var timeChanged = this.timeChanged;
-        var totalTime = 0;
+    var rows = [];
+    var totalTime = 0;
 
-        if (this.state.timeReport.timeReportTasks != null) {
-            this.state.timeReport.timeReportTasks.forEach(function (timeReportTask) {
-                var totalTaskTime = 0;
-                timeReportTask.timeEntries.forEach(function (timeReportDay) {
-                    if (timeReportDay.time != null) {
-                        var time = parseFloat(timeReportDay.time);
-                        if (!isNaN(time)) {
-                            totalTaskTime += time;
-                        }
+    if (timeReport.timeReportTasks != null) {
+        timeReport.timeReportTasks.forEach(function (timeReportTask) {
+            var totalTaskTime = 0;
+            timeReportTask.timeEntries.forEach(function (timeReportDay) {
+                if (timeReportDay.time != null) {
+                    var time = parseFloat(timeReportDay.time);
+                    if (!isNaN(time)) {
+                        totalTaskTime += time;
                     }
-                });
-
-                totalTime += totalTaskTime;
-
-                rows.push(
-                    <TimeReportTableRow key={timeReportTask.task.id} timeReportTask={timeReportTask} totalTaskTime={totalTaskTime} timeChanged={timeChanged} />);
+                }
             });
-        }
 
-        rows.push(<TimeReportTableFooterRow key="footer3" days={this.state.timeReport.days} time={totalTime} label='Sum total' />);
-        rows.push(<TimeReportTableFooterRow key="footer4" days={this.state.timeReport.days} time={this.state.timeReport.workableHours} label='Workable hours' />);
+            totalTime += totalTaskTime;
 
-        return (
-            <table className="table-sm time-report-table">
-                <thead className="bg-success">
-                    {headerRow}
-                </thead>
-                <tbody>
-                    {rows}
-                </tbody>
-            </table>
-        );
+            rows.push(
+                <TimeReportTableRow key={timeReportTask.task.id} timeReportTask={timeReportTask} totalTaskTime={totalTaskTime} timeChanged={timeChanged} />);
+        });
     }
+
+    rows.push(<TimeReportTableFooterRow key="footer3" id="footer3" days={timeReport.days} time={totalTime} label='Sum total' />);
+    rows.push(<TimeReportTableFooterRow key="footer4" id="footer4" days={timeReport.days} time={timeReport.workableHours} label='Workable hours' />);
+
+    return (
+        <table className="table-sm time-report-table">
+            <thead className="bg-success">
+                {headerRow}
+            </thead>
+            <tbody>
+                {rows}
+            </tbody>
+        </table>
+    );
 }
 
 
-export default class Times extends React.Component {
+function Times(props) {
+    const [timeReport, setTimeReport] = useState(null);
+    const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
+    const { showError, showSuccess } = useToast();
 
-    constructor(props) {
-        super(props);
-        this.loadCurrentTimes = this.loadCurrentTimes.bind(this);
-        this.loadPreviousTimes = this.loadPreviousTimes.bind(this);
-        this.loadNextTimes = this.loadNextTimes.bind(this);
-        this.closeReport = this.closeReport.bind(this);
-        this.viewChange = this.viewChange.bind(this);
+    useEffect(() => {
+        loadCurrentTimes(Constants.MONTH_VIEW);
+    }, []);
 
-        this.state = { reportView: Constants.MONTH_VIEW };
-    }
-
-    componentDidMount() {
-        this.loadCurrentTimes(Constants.MONTH_VIEW);
-    }
-
-    loadCurrentTimes(view) {
-        var self = this;
+    const loadCurrentTimes = useCallback((view) => {
         var timeService = new TimeService();
         timeService.getTimes(view)
             .then(response => {
-                self.setState({ timeReport: response.data, reportView: view });
+                setTimeReport(response.data);
+                setReportView(view);
             })
             .catch(error => {
-                alert('Failed to load time report');
+                showError('Failed to load time report');
             });
-    }
+    }, [showError]);
 
-    loadPreviousTimes(event) {
+    const loadPreviousTimes = useCallback((event) => {
         const date = event.target.name;
-        var self = this;
 
         const timeService = new TimeService();
-        timeService.getPreviousTimes(this.state.reportView, date)
+        timeService.getPreviousTimes(reportView, date)
             .then(response => {
-                self.setState({ timeReport: response.data, reportView: self.state.reportView });
+                setTimeReport(response.data);
             })
             .catch(error => {
-                alert('Failed to load time report');
+                showError('Failed to load time report');
             });
-    }
+    }, [reportView, showError]);
 
-    loadNextTimes(event) {
+    const loadNextTimes = useCallback((event) => {
         const date = event.target.name;
-        var self = this;
 
         const timeService = new TimeService();
-        timeService.getNextTimes(this.state.reportView, date)
+        timeService.getNextTimes(reportView, date)
             .then(response => {
-                self.setState({ timeReport: response.data, reportView: self.state.reportView });
+                setTimeReport(response.data);
             })
             .catch(error => {
-                alert('Failed to load time report');
+                showError('Failed to load time report');
             });
-    }
+    }, [reportView, showError]);
 
-    closeReport(event) {
+    const closeReport = useCallback((event) => {
         const shallClose = confirm('Are you really sure you want close this month?\nYou will not be able to open it again.');
         if (!shallClose) {
             return;
         }
         const date = event.target.name;
-        var self = this;
 
-        var payLoad = '{ "userId": "' + this.state.timeReport.user.id + '", "closeDate": "' + date + '"}';
+        var payLoad = '{ "userId": "' + timeReport.user.id + '", "closeDate": "' + date + '"}';
         var service = new ReportService();
         service.updateOpenCloseReport(payLoad, 'close')
             .then(response => {
-                self.loadCurrentTimes(Constants.MONTH_VIEW);
+                loadCurrentTimes(Constants.MONTH_VIEW);
+                showSuccess('Report closed successfully');
             })
             .catch(error => {
-                alert('Failed to close report');
+                showError('Failed to close report');
             });
-    }
+    }, [timeReport, loadCurrentTimes, showSuccess, showError]);
 
-    viewChange(event) {
+    const viewChange = useCallback((event) => {
         const view = event.target.value;
-        this.loadCurrentTimes(view);
-    }
+        loadCurrentTimes(view);
+    }, [loadCurrentTimes]);
 
-    render() {
-        if (this.state == null || this.state.timeReport == null) return null;
+    if (timeReport == null) return null;
 
-        return (
-            <div className="container-fluid ml-2 mr-2">
-                <h2>Time</h2>
-                <div className="row mb-2">
-                    <div className="col-auto">
-                        <button className="btn btn-success btn-sm" name={this.state.timeReport.firstDate} onClick={this.loadPreviousTimes}>&lt;&lt;</button>
-                    </div>
-                    <div className="col-auto">
-                        <button className="btn btn-success btn-sm" name={this.state.timeReport.lastDate} onClick={this.loadNextTimes}>&gt;&gt;</button>
-                    </div>
-                    <div className="col-auto">
-                        <select className="form-control form-control-sm" value={this.state.reportView} name="reportView" onChange={this.viewChange}>
-                            <option value={Constants.WEEK_VIEW}>Week</option>
-                            <option value={Constants.MONTH_VIEW}>Month</option>
-                        </select>
-                    </div>
-                    <div className="col">
-                        {this.state.reportView === Constants.MONTH_VIEW && !this.state.timeReport.closed ? (
-                            <span className="float-right">
-                                <button className="btn btn-success btn-sm" name={this.state.timeReport.firstDate} onClick={this.closeReport}>Close report</button>
-                            </span>
-                        ) : ''}
-                    </div>
-                    <div className="col-auto">
-                        <span className="text-nowrap">
-                            <b>{this.state.timeReport.firstDate} - {this.state.timeReport.lastDate}</b>
+    return (
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Time</h2>
+            <div className="row mb-2">
+                <div className="col-auto">
+                    <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={loadPreviousTimes}>&lt;&lt;</button>
+                </div>
+                <div className="col-auto">
+                    <button className="btn btn-success btn-sm" name={timeReport.lastDate} onClick={loadNextTimes}>&gt;&gt;</button>
+                </div>
+                <div className="col-auto">
+                    <select className="form-control form-control-sm" value={reportView} name="reportView" onChange={viewChange}>
+                        <option value={Constants.WEEK_VIEW}>Week</option>
+                        <option value={Constants.MONTH_VIEW}>Month</option>
+                    </select>
+                </div>
+                <div className="col">
+                    {reportView === Constants.MONTH_VIEW && !timeReport.closed ? (
+                        <span className="float-right">
+                            <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={closeReport}>Close report</button>
                         </span>
-                    </div>
+                    ) : ''}
                 </div>
-                <div className="row">
-                    <div className="table-responsive">
-                        <TimeReportTable timeReport={this.state.timeReport} />
-                    </div>
+                <div className="col-auto">
+                    <span className="text-nowrap">
+                        <b>{timeReport.firstDate} - {timeReport.lastDate}</b>
+                    </span>
                 </div>
-            </div >
-        );
-    }
+            </div>
+            <div className="row">
+                <div className="table-responsive">
+                    <TimeReportTable timeReport={timeReport} />
+                </div>
+            </div>
+        </div >
+    );
 }
+
+export default Times;

@@ -1,156 +1,143 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useHistory } from 'react-router-dom';
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { TaskType, TaskTypeLabels } from '../../common/TaskType';
-import BaseDetails from '../BaseDetails';
+import { useBaseDetails } from '../BaseDetails';
+import { useToast } from '../../components/Toast';
 
-export default class TaskDetails extends BaseDetails {
-
-    constructor(props) {
-        super(props);
-        this.handleCreateUpdate = this.handleCreateUpdate.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.canelAddEdit = this.canelAddEdit.bind(this);
-        this.validate = this.validate.bind(this);
-        this.setValue = this.setValue.bind(this);
-
-        const id = this.props.match.params.taskId;
-
-        if (id === '0') {
-            const task = {
+export default function TaskDetails(props) {
+    const { taskId } = useParams();
+    const history = useHistory();
+    const { handleError, clearError, clearErrors } = useBaseDetails();
+    const { showError } = useToast();
+    
+    const [task, setTask] = useState(() => {
+        if (taskId === '0') {
+            return {
                 id: '0', name: '', activationStatus: Constants.ACTIVE_STATUS,
                 taskType: TaskType.NORMAL,
                 account: { id: '0', name: '' }
             };
-            this.state = { task: task, id: id };
-        } else {
-            this.state = { id: id };
         }
-    }
+        return null;
+    });
+    const [companies, setCompanies] = useState(null);
 
-    componentDidMount() {
-        const self = this;
-        if (this.state.id !== '0') {
+    useEffect(() => {
+        if (taskId !== '0') {
             const service = new TaskService();
-            service.get(this.state.id)
+            service.get(taskId)
                 .then(response => {
-                    // Ensure taskType is set for existing tasks
-                    const task = response.data;
-                    if (!task.taskType) {
-                        task.taskType = TaskType.NORMAL;
+                    const fetchedTask = response.data;
+                    if (!fetchedTask.taskType) {
+                        fetchedTask.taskType = TaskType.NORMAL;
                     }
-                    self.setState({ task: task });
+                    setTask(fetchedTask);
                 })
                 .catch(error => {
-                    alert('Failed to fetch task');
+                    showError?.('Failed to fetch task') || alert('Failed to fetch task');
                 });
         }
 
         const accountService = new AccountService();
         accountService.getByStatus(true)
             .then(response => {
-                self.setState({ companies: response.data });
+                setCompanies(response.data);
             })
             .catch(error => {
-                alert('Failed to fetch accounts');
+                showError?.('Failed to fetch accounts') || alert('Failed to fetch accounts');
             });
-    }
+    }, [taskId, showError]);
 
-    handleCreateUpdate(id) {
-        this.clearErrors();
-        const self = this;
+    const handleCreateUpdate = useCallback((id) => {
+        clearErrors();
         const service = new TaskService();
-        const isUpdate = this.state.task.id && this.state.task.id !== 0;
+        const isUpdate = task.id && task.id !== 0;
         const serviceCall = isUpdate
-            ? service.update(this.state.task)
-            : service.create(this.state.task);
+            ? service.update(task)
+            : service.create(task);
 
         serviceCall
             .then(response => {
-                // Force a full reload by using replace with a timestamp
-                self.props.history.replace('/task?refresh=' + Date.now());
+                history.replace('/task?refresh=' + Date.now());
             })
             .catch(error => {
-                self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
+                handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [task, history, clearErrors, handleError]);
 
-    canelAddEdit() {
-        this.props.history.push('/task');
-    }
+    const canelAddEdit = useCallback(() => {
+        history.push('/task');
+    }, [history]);
 
-    validate(event) {
+    const validate = useCallback((event) => {
         let field = event.target.name;
         let value = event.target.value;
 
-        const self = this;
         const service = new TaskService();
-        service.validate(this.state.id, field, value)
+        service.validate(taskId, field, value)
             .then(response => {
-                self.clearError(field);
+                clearError(field);
             })
             .catch(error => {
-                self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
+                handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [taskId, clearError, handleError]);
 
-    setValue(fieldPath, value, task) {
+    const setValue = useCallback((fieldPath, value, taskObj) => {
         let properties = Array.isArray(fieldPath) ? fieldPath : fieldPath.split(".")
 
         if (properties.length > 1) {
-            if (!task.hasOwnProperty(properties[0]) || typeof task[properties[0]] !== "object")
-                task[properties[0]] = {};
-            return this.setValue(properties.slice(1), value, task[properties[0]]);
+            if (!taskObj.hasOwnProperty(properties[0]) || typeof taskObj[properties[0]] !== "object")
+                taskObj[properties[0]] = {};
+            return setValue(properties.slice(1), value, taskObj[properties[0]]);
         } else {
-            task[properties[0]] = value;
+            taskObj[properties[0]] = value;
             return true;
         }
-    }
+    }, []);
 
-    handleChange(event) {
+    const handleChange = useCallback((event) => {
         let field = event.target.name;
         let value = event.target.value;
-
-        let task = JSON.parse(JSON.stringify(this.state.task));
 
         if (event.target.type === 'checkbox') {
             value = event.target.checked;
         }
 
-        this.setValue(field, value, task);
-        this.setState(() => ({ task: task }));
+        setTask(prevTask => {
+            const updatedTask = JSON.parse(JSON.stringify(prevTask));
+            setValue(field, value, updatedTask);
+            return updatedTask;
+        });
+    }, [setValue]);
+
+    if (task == null || companies == null) return null;
+
+    var isAdd = (taskId === '0');
+    var buttonText = (isAdd ? "Add" : "Update");
+
+    let accountOptions = companies.map(c => (
+        <option key={c.id} value={c.id}>{c.name}</option>
+    ));
+
+    if (task.account.id === '0' && companies != null && companies.length >= 1) {
+        task.account.id = companies[0].id;
     }
 
-    render() {
-        if (this.state == null || this.state.task == null || this.state.companies == null)
-            return null;
+    if (!task.taskType) {
+        task.taskType = TaskType.NORMAL;
+    }
 
-        var handleCreateUpdate = this.handleCreateUpdate;
-        var canelAddEdit = this.canelAddEdit;
-        var id = this.state.id;
-        var isAdd = (id === '0');
-        var buttonText = (isAdd ? "Add" : "Update");
+    return (
 
-        let accountOptions = this.state.companies.map(c => (
-            <option key={c.id} value={c.id}>{c.name}</option>
-        ));
-
-        if (this.state.task.account.id === '0' && this.state.companies != null && this.state.companies.length >= 1) {
-            this.state.task.account.id = this.state.companies[0].id;
-        }
-
-        // Ensure taskType is always set
-        if (!this.state.task.taskType) {
-            this.state.task.taskType = TaskType.NORMAL;
-        }
-
-        return (
             <div className="container">
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Account name</label>
                     <div className="col-sm-6">
-                        <select className="form-control" value={this.state.task.account.id} name="account.id" onChange={this.handleChange}>
+                        <select className="form-control" value={task.account.id} name="account.id" onChange={handleChange}>
                             {accountOptions}
                         </select>
                     </div>
@@ -161,7 +148,7 @@ export default class TaskDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Name</label>
                     <div className="col-sm-6">
-                        <input className="form-control" type="text" value={this.state.task.name} name="name" maxLength="80" onChange={this.handleChange} onBlur={this.validate} />
+                        <input className="form-control" type="text" value={task.name} name="name" maxLength="80" onChange={handleChange} onBlur={validate} />
                     </div>
                     <div className="col-sm-4">
                         <small className="text-danger" id="nameErrorMsg"></small>
@@ -170,7 +157,7 @@ export default class TaskDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Task Type</label>
                     <div className="col-sm-6">
-                        <select className="form-control" value={this.state.task.taskType} name="taskType" onChange={this.handleChange}>
+                        <select className="form-control" value={task.taskType} name="taskType" onChange={handleChange}>
                             {Object.keys(TaskType).map(key => (
                                 <option key={TaskType[key]} value={TaskType[key]}>
                                     {TaskTypeLabels[TaskType[key]]}
@@ -185,7 +172,7 @@ export default class TaskDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Status</label>
                     <div className="col-sm-6">
-                        <select className="form-control" value={this.state.task.activationStatus} name="activationStatus" onChange={this.handleChange}>
+                        <select className="form-control" value={task.activationStatus} name="activationStatus" onChange={handleChange}>
                             <option value={Constants.ACTIVE_STATUS}>Active</option>
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>
@@ -197,10 +184,9 @@ export default class TaskDetails extends BaseDetails {
                 <div className="form-group row">
                     <div className="col-sm-8">
                         <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>Cancel</button>
-                        <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(id)}>{buttonText}</button>
+                        <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(taskId)}>{buttonText}</button>
                     </div>
                 </div>
             </div>
-        );
-    }
+    );
 }

@@ -1,88 +1,72 @@
-import React from "react";
+import React, { useState, useCallback } from "react";
 import UserService from '../../service/UserService';
-import BaseDetails from '../BaseDetails';
+import { useBaseDetails } from '../BaseDetails';
 import { useToast } from '../../components/Toast';
 
-class PasswordChanger extends BaseDetails {
-    constructor(props) {
-        super(props);
-        this.handleError = this.handleError.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.changePassword = this.changePassword.bind(this);
-        this.clearErrors = this.clearErrors.bind(this);
+function PasswordChanger(props) {
+    const [userPwd, setUserPwd] = useState({ currentPassword: "", newPassword1: "", newPassword2: "" });
+    const { showSuccess } = useToast();
+    const { handleError, clearErrors } = useBaseDetails();
 
-        var userPwd = { currentPassword: "", newPassword1: "", newPassword2: "" };
-        this.state = { userPwd: userPwd };
-
-    }
-
-    handleChange(event) {
-        let userPwd = JSON.parse(JSON.stringify(this.state.userPwd));
+    const handleChange = useCallback((event) => {
+        let updatedUserPwd = JSON.parse(JSON.stringify(userPwd));
         let field = event.target.name;
         let value = event.target.value;
-        userPwd[field] = value;
+        updatedUserPwd[field] = value;
 
-        this.setState(() => ({ userPwd: userPwd }));
-    }
+        setUserPwd(updatedUserPwd);
+    }, [userPwd]);
 
-    changePassword() {
-        this.clearErrors();
+    const changePassword = useCallback(() => {
+        clearErrors();
 
-        var self = this;
         var service = new UserService();
-        service.changePwd(this.state.userPwd)
+        service.changePwd(userPwd)
             .then(response => {
-                this.props.showSuccess('Password changed successfully!');
+                showSuccess('Password changed successfully!');
             })
             .catch(error => {
-                self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
+                handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [userPwd, clearErrors, showSuccess, handleError]);
 
-    render() {
-        var changePassword = this.changePassword;
-
-        return (
-            <div className="container">
-                <h2>Change Password</h2>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Current password</label>
-                    <div className="col-sm-6">
-                        <input className="form-control" type="password" value={this.state.userPwd.currentPassword} name="currentPassword" maxLength="80" onChange={this.handleChange} onBlur={this.validate} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="currentPasswordErrorMsg"></small>
-                    </div>
+    return (
+        <div className="container">
+            <h2>Change Password</h2>
+            <div className="form-group row">
+                <label className="col-sm-2 col-form-label">Current password</label>
+                <div className="col-sm-6">
+                    <input className="form-control" type="password" value={userPwd.currentPassword} name="currentPassword" maxLength="80" onChange={handleChange} />
                 </div>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">New password</label>
-                    <div className="col-sm-6">
-                        <input className="form-control" type="password" value={this.state.userPwd.newPassword1} name="newPassword1" maxLength="80" onChange={this.handleChange} onBlur={this.validate} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="newPassword1ErrorMsg"></small>
-                    </div>
-                </div>
-                <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">New password</label>
-                    <div className="col-sm-6">
-                        <input className="form-control" type="password" value={this.state.userPwd.newPassword2} name="newPassword2" maxLength="80" onChange={this.handleChange} onBlur={this.validate} />
-                    </div>
-                    <div className="col-sm-4">
-                        <small className="text-danger" id="newPassword2ErrorMsg"></small>
-                    </div>
-                </div>
-                <div className="form-group row">
-                    <div className="col-sm-8">
-                        <button className="btn btn-success float-sm-right" onClick={() => changePassword()}>Change password</button>
-                    </div>
+                <div className="col-sm-4">
+                    <small className="text-danger" id="currentPasswordErrorMsg"></small>
                 </div>
             </div>
-        );
-    }
+            <div className="form-group row">
+                <label className="col-sm-2 col-form-label">New password</label>
+                <div className="col-sm-6">
+                    <input className="form-control" type="password" value={userPwd.newPassword1} name="newPassword1" maxLength="80" onChange={handleChange} />
+                </div>
+                <div className="col-sm-4">
+                    <small className="text-danger" id="newPassword1ErrorMsg"></small>
+                </div>
+            </div>
+            <div className="form-group row">
+                <label className="col-sm-2 col-form-label">New password</label>
+                <div className="col-sm-6">
+                    <input className="form-control" type="password" value={userPwd.newPassword2} name="newPassword2" maxLength="80" onChange={handleChange} />
+                </div>
+                <div className="col-sm-4">
+                    <small className="text-danger" id="newPassword2ErrorMsg"></small>
+                </div>
+            </div>
+            <div className="form-group row">
+                <div className="col-sm-8">
+                    <button className="btn btn-success float-sm-right" onClick={changePassword}>Change password</button>
+                </div>
+            </div>
+        </div>
+    );
 }
 
-export default function PasswordChangerWithToast(props) {
-    const { showSuccess, showError } = useToast();
-    return <PasswordChanger {...props} showSuccess={showSuccess} showError={showError} />;
-}
+export default PasswordChanger;

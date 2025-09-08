@@ -1,119 +1,96 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
 
-class SystemPropertyRow extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleChange = this.handleChange.bind(this);
-        this.update = this.update.bind(this);
-        this.state = { systemProperty: this.props.systemProperty };
-    }
+function SystemPropertyRow({ systemProperty: initialSystemProperty, showError }) {
+    const [systemProperty, setSystemProperty] = useState(initialSystemProperty);
 
-    handleChange(event) {
-        let systemProperty = JSON.parse(JSON.stringify(this.state.systemProperty));
+    const handleChange = useCallback((event) => {
+        let updatedSystemProperty = JSON.parse(JSON.stringify(systemProperty));
         let field = event.target.name;
         let value = event.target.value;
-        systemProperty[field] = value;
-        this.setState(() => ({ systemProperty: systemProperty }));
-    }
+        updatedSystemProperty[field] = value;
+        setSystemProperty(updatedSystemProperty);
+    }, [systemProperty]);
 
-    update(event) {
-        var self = this;
+    const update = useCallback((event) => {
         var service = new SystemService();
-        service.updateProperty(this.state.systemProperty)
+        service.updateProperty(systemProperty)
             .then(response => {
-                self.setState({ systemConfig: response.data });
+                // Property updated successfully
             })
             .catch(error => {
-                this.props.showError('Failed to update configuration: ' + (error.response?.data?.error || error.message));
+                showError('Failed to update configuration: ' + (error.response?.data?.error || error.message));
             });
-    }
+    }, [systemProperty, showError]);
 
-    render() {
-        if (this.state == null || this.state.systemProperty == null) return null;
+    if (systemProperty == null) return null;
 
-        return (
-            <tr>
-                <td>{this.state.systemProperty.name}</td>
-                <td><input className="form-control" type="text" value={this.state.systemProperty.value} name="value" maxLength="100" onChange={this.handleChange} onBlur={this.update} /></td>
-                <td>{this.state.systemProperty.systemPropertyType}</td>
-                <td>{this.state.systemProperty.description}</td>
-            </tr>
-        );
-    }
+    return (
+        <tr>
+            <td>{systemProperty.name}</td>
+            <td><input className="form-control" type="text" value={systemProperty.value} name="value" maxLength="100" onChange={handleChange} onBlur={update} /></td>
+            <td>{systemProperty.systemPropertyType}</td>
+            <td>{systemProperty.description}</td>
+        </tr>
+    );
 }
 
-class SystemPropertyTable extends React.Component {
-    constructor(props) {
-        super(props);
-        this.state = { systemProperties: this.props.systemProperties };
-    }
+function SystemPropertyTable({ systemProperties, showError }) {
+    if (systemProperties == null) return null;
 
-    render() {
-        if (this.state == null || this.state.systemProperties == null) return null;
-
-        var systemPropRows = [];
-        var showError = this.props.showError;
-        this.state.systemProperties.forEach(function (systemProperty) {
-            systemPropRows.push(
-                <SystemPropertyRow key={systemProperty.id} systemProperty={systemProperty} showError={showError} />
-            );
-        });
-
-        return (
-            <div className="row">
-                <table className="table table-striped">
-                    <thead className="thead-inverse bg-success text-white">
-                        <tr>
-                            <th>Name</th>
-                            <th>Value</th>
-                            <th>Type</th>
-                            <th>Description</th>
-                        </tr>
-                    </thead>
-                    <tbody>{systemPropRows}</tbody>
-                </table>
-            </div>
+    var systemPropRows = [];
+    systemProperties.forEach(function (systemProperty) {
+        systemPropRows.push(
+            <SystemPropertyRow key={systemProperty.id} systemProperty={systemProperty} showError={showError} />
         );
-    }
+    });
+
+    return (
+        <div className="row">
+            <table className="table table-striped">
+                <thead className="thead-inverse bg-success text-white">
+                    <tr>
+                        <th>Name</th>
+                        <th>Value</th>
+                        <th>Type</th>
+                        <th>Description</th>
+                    </tr>
+                </thead>
+                <tbody>{systemPropRows}</tbody>
+            </table>
+        </div>
+    );
 }
 
 
-class SystemConfig extends React.Component {
-    constructor(props) {
-        super(props);
-    }
+function SystemConfig(props) {
+    const [systemConfig, setSystemConfig] = useState(null);
+    const { showError } = useToast();
 
-    componentDidMount() {
-        this.loadFromServer();
-    }
+    useEffect(() => {
+        loadFromServer();
+    }, []);
 
-    loadFromServer() {
-        const self = this;
+    const loadFromServer = useCallback(() => {
         var service = new SystemService();
         service.getSystemConfig()
             .then(response => {
-                self.setState({ systemConfig: response.data });
+                setSystemConfig(response.data);
             })
             .catch(error => {
-                this.props.showError('Failed to load configuration: ' + (error.response?.data?.message || error.message));
+                showError('Failed to load configuration: ' + (error.response?.data?.message || error.message));
             });
-    }
+    }, [showError]);
 
-    render() {
-        if (this.state == null) return null;
+    if (systemConfig == null) return null;
 
-        return (
-            <div className="container">
-                <h2>System Properties</h2>
-                <SystemPropertyTable systemProperties={this.state.systemConfig.systemProperties} showError={this.props.showError} />
-            </div>
-        );
-    }
+    return (
+        <div className="container">
+            <h2>System Properties</h2>
+            <SystemPropertyTable systemProperties={systemConfig.systemProperties} showError={showError} />
+        </div>
+    );
 }
 
-export default function SystemConfigWithToast(props) {
-    const { showError } = useToast();
-    return <SystemConfig {...props} showError={showError} />;
-}
+export default SystemConfig;

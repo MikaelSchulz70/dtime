@@ -1,105 +1,94 @@
-import React from "react";
+import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useHistory } from 'react-router-dom';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
-import BaseDetails from '../BaseDetails';
-import $ from 'jquery';
+import { useBaseDetails } from '../BaseDetails';
+import { useToast } from '../../components/Toast';
 
-export default class AccountDetails extends BaseDetails {
-
-    constructor(props) {
-        super(props);
-        this.handleCreateUpdate = this.handleCreateUpdate.bind(this);
-        this.handleChange = this.handleChange.bind(this);
-        this.canelAddEdit = this.canelAddEdit.bind(this);
-        this.validate = this.validate.bind(this);
-
-        const id = this.props.match.params.accountId;
-
-        if (id === '0') {
-            const account = { id: '0', name: '', activationStatus: Constants.ACTIVE_STATUS };
-            this.state = { account: account, id: id };
-        } else {
-            this.state = { id: id };
+export default function AccountDetails(props) {
+    const { accountId } = useParams();
+    const history = useHistory();
+    const { handleError, clearError, clearErrors } = useBaseDetails();
+    const { showError } = useToast();
+    
+    const [account, setAccount] = useState(() => {
+        if (accountId === '0') {
+            return { id: '0', name: '', activationStatus: Constants.ACTIVE_STATUS };
         }
-    }
+        return null;
+    });
 
-    componentDidMount() {
-        if (this.state.id !== '0') {
-            const self = this;
+    useEffect(() => {
+        if (accountId !== '0') {
             const service = new AccountService();
-            service.get(this.state.id)
+            service.get(accountId)
                 .then(response => {
-                    self.setState({ account: response.data });
+                    setAccount(response.data);
                 })
                 .catch(error => {
-                    alert('Failed to fetch account');
+                    showError?.('Failed to fetch account') || alert('Failed to fetch account');
                 });
         }
-    }
+    }, [accountId, showError]);
 
-    handleCreateUpdate(id) {
-        this.clearErrors();
-        const self = this;
+    const handleCreateUpdate = useCallback((id) => {
+        clearErrors();
         const service = new AccountService();
-        const isUpdate = this.state.account.id && this.state.account.id !== 0;
+        const isUpdate = account.id && account.id !== 0;
         const serviceCall = isUpdate
-            ? service.update(this.state.account)
-            : service.create(this.state.account);
+            ? service.update(account)
+            : service.create(account);
 
         serviceCall
             .then(response => {
-                // Force a full reload by using replace with a timestamp
-                self.props.history.replace('/account?refresh=' + Date.now());
+                history.replace('/account?refresh=' + Date.now());
             })
             .catch(error => {
-                self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
+                handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [account, history, clearErrors, handleError]);
 
-    canelAddEdit() {
-        this.props.history.push('/account');
-    }
+    const canelAddEdit = useCallback(() => {
+        history.push('/account');
+    }, [history]);
 
-    validate(event) {
+    const validate = useCallback((event) => {
         let field = event.target.name;
         let value = event.target.value;
 
-        var self = this;
         const service = new AccountService();
-        service.validate(this.state.id, field, value)
+        service.validate(accountId, field, value)
             .then(response => {
-                self.clearError(field);
+                clearError(field);
             })
             .catch(error => {
-                self.handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
+                handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
             });
-    }
+    }, [accountId, clearError, handleError]);
 
-    handleChange(event) {
-        let account = JSON.parse(JSON.stringify(this.state.account));
+    const handleChange = useCallback((event) => {
         let field = event.target.name;
         let value = event.target.value;
-        account[field] = value;
+        
+        setAccount(prevAccount => {
+            const updatedAccount = JSON.parse(JSON.stringify(prevAccount));
+            updatedAccount[field] = value;
+            return updatedAccount;
+        });
+    }, []);
 
-        this.setState(() => ({ account: account }));
-    }
+    if (account == null) return null;
 
-    render() {
-        if (this.state == null || this.state.account == null)
-            return null;
+    var isAdd = (accountId === '0');
+    var buttonText = (isAdd ? "Add" : "Update");
 
-        var handleCreateUpdate = this.handleCreateUpdate;
-        var canelAddEdit = this.canelAddEdit;
-        var id = this.state.id;
-        var isAdd = (id === '0');
-        var buttonText = (isAdd ? "Add" : "Update");
+    return (
 
-        return (
             <div className="container">
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Name</label>
                     <div className="col-sm-6">
-                        <input className="form-control" type="text" value={this.state.account.name} name="name" maxLength="40" onChange={this.handleChange} onBlur={this.validate} />
+                        <input className="form-control" type="text" value={account.name} name="name" maxLength="40" onChange={handleChange} onBlur={validate} />
                     </div>
                     <div className="col-sm-4">
                         <small className="text-danger" id="nameErrorMsg"></small>
@@ -108,7 +97,7 @@ export default class AccountDetails extends BaseDetails {
                 <div className="form-group row">
                     <label className="col-sm-2 col-form-label">Status</label>
                     <div className="col-sm-6">
-                        <select className="form-control" value={this.state.account.activationStatus} name="activationStatus" onChange={this.handleChange}>
+                        <select className="form-control" value={account.activationStatus} name="activationStatus" onChange={handleChange}>
                             <option value={Constants.ACTIVE_STATUS}>Active</option>
                             <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                         </select>
@@ -120,10 +109,9 @@ export default class AccountDetails extends BaseDetails {
                 <div className="form-group row">
                     <div className="col-sm-8">
                         <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>Cancel</button>
-                        <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(id)}>{buttonText}</button>
+                        <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(accountId)}>{buttonText}</button>
                     </div>
                 </div>
             </div>
-        );
-    }
+    );
 }

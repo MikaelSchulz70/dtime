@@ -1,46 +1,41 @@
-import React from "react";
+import React, { useRef, useCallback } from "react";
 import { useToast } from '../components/Toast';
 
-export default class BaseDetails extends React.Component {
-    constructor(props) {
-        super(props);
-        this.handleError = this.handleError.bind(this);
-        this.clearError = this.clearError.bind(this);
-        this.clearErrors = this.clearErrors.bind(this);
-        this.fieldErrors = new Map(); // Track field errors in state instead of DOM
-    }
+export function useBaseDetails() {
+    const { showError } = useToast();
+    const fieldErrors = useRef(new Map()); // Track field errors
 
-    clearError(fieldName) {
+    const clearError = useCallback((fieldName) => {
         // Remove from our field errors map
-        this.fieldErrors.delete(fieldName);
+        fieldErrors.current.delete(fieldName);
         
         // Clear error display using React refs instead of jQuery
         const errorElement = document.getElementById(fieldName + "ErrorMsg");
         if (errorElement) {
             errorElement.textContent = " ";
         }
-    }
+    }, []);
 
-    clearErrors() {
+    const clearErrors = useCallback(() => {
         // Clear all field errors
-        this.fieldErrors.clear();
+        fieldErrors.current.clear();
         
         // Clear all error displays using native DOM instead of jQuery
         const errorElements = document.querySelectorAll('small[id$="ErrorMsg"]');
         errorElements.forEach(element => {
             element.textContent = "";
         });
-    }
+    }, []);
 
-    handleError(status, error, fieldErrors) {
-        if (status === 400 && fieldErrors != null) {
-            for (var i = 0; i < fieldErrors.length; i++) {
-                var errorItem = fieldErrors[i];
+    const handleError = useCallback((status, error, fieldErrorsList) => {
+        if (status === 400 && fieldErrorsList != null) {
+            for (var i = 0; i < fieldErrorsList.length; i++) {
+                var errorItem = fieldErrorsList[i];
                 var fieldName = errorItem['fieldName'];
                 var errorMessage = errorItem['fieldError'];
                 
                 // Store in our map
-                this.fieldErrors.set(fieldName, errorMessage);
+                fieldErrors.current.set(fieldName, errorMessage);
                 
                 // Display error using native DOM instead of jQuery
                 const errorElement = document.getElementById(fieldName + "ErrorMsg");
@@ -49,9 +44,17 @@ export default class BaseDetails extends React.Component {
                 }
             }
         } else if (status === 500) {
-            this.props.showError?.("Internal server error: " + error) || alert("Internal server error:\n" + error);
+            showError?.("Internal server error: " + error) || alert("Internal server error:\n" + error);
         } else {
-            this.props.showError?.("Error: " + error) || alert("Error:\n" + error);
+            showError?.("Error: " + error) || alert("Error:\n" + error);
         }
-    }
-} 
+    }, [showError]);
+    
+    return {
+        handleError,
+        clearError,
+        clearErrors
+    };
+}
+
+// Legacy export removed - use useBaseDetails hook instead 
