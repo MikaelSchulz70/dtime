@@ -152,9 +152,9 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged }) {
     }
 
     var accountName = timeReportTask.task.account.name;
-    var accountShortName = accountName.substring(0, Math.min(8, accountName.length));
+    var accountShortName = accountName.substring(0, Math.min(15, accountName.length));
     var taskName = timeReportTask.task.name;
-    var taskShortName = taskName.substring(0, Math.min(8, taskName.length));
+    var taskShortName = taskName.substring(0, Math.min(15, taskName.length));
 
     return (
         <tr key={keyBase}>
