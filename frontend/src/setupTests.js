@@ -1,3 +1,4 @@
+import React from 'react';
 import '@testing-library/jest-dom';
 
 // Mock react-modal for tests
