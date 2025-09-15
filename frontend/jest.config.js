@@ -5,6 +5,9 @@ module.exports = {
     '\\.(css|less|scss)$': 'identity-obj-proxy',
     '\\.(png|jpg|jpeg|gif|svg)$': '<rootDir>/src/__mocks__/fileMock.js'
   },
+  moduleDirectories: ['node_modules', 'src'],
+  roots: ['<rootDir>/src'],
+  modulePaths: ['<rootDir>/src'],
   transform: {
     '^.+\\.(js|jsx)$': 'babel-jest'
   },
