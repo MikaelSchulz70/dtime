@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen, fireEvent } from '@testing-library/react';
 import '@testing-library/jest-dom';
 import { BrowserRouter } from 'react-router-dom';
-import NavigationMenu from '../menu';
+import NavigationMenu from '../Menu';
 
 // Mock the logo import
 jest.mock('../../../assets/logo_white.png', () => 'test-logo.png');

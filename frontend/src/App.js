@@ -10,24 +10,24 @@ import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 
 // Components
-import NavigationMenu from './containers/menu/menu';
+import NavigationMenu from './containers/menu/Menu';
 import Login from './components/Login';
-import Times from './containers/timereport/time';
-import Users from './containers/user/users';
-import UserDetails from './containers/user/userdetails';
+import Times from './containers/timereport/Time';
+import Users from './containers/user/Users';
+import UserDetails from './containers/user/UserDetails';
 import UsersModal from './containers/user/UsersModal';
-import Account from './containers/account/account';
-import AccountDetails from './containers/account/accountdetails';
+import Account from './containers/account/Account';
+import AccountDetails from './containers/account/AccountDetails';
 import AccountsModal from './containers/account/AccountsModal';
-import Task from './containers/task/task';
-import TaskDetails from './containers/task/taskdetails';
+import Task from './containers/task/Task';
+import TaskDetails from './containers/task/TaskDetails';
 import TasksModal from './containers/task/TasksModal';
-import TaskContributor from './containers/taskcontributor/taskcontributor';
+import TaskContributor from './containers/taskcontributor/TaskContributor';
 import AdminReports from './containers/report/AdminReports';
 import UserReports from './containers/report/UserReports';
 import Vacations from './containers/report/Vacations';
-import PasswordChanger from './containers/user/changepwd';
-import SystemConfig from './containers/system/systemConfig';
+import PasswordChanger from './containers/user/ChangePassword';
+import SystemConfig from './containers/system/SystemConfig';
 import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
 import SpecialDays from './containers/specialday/SpecialDays';
 
