@@ -164,6 +164,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
+          type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Extract metadata for frontend
@@ -175,6 +176,7 @@ jobs:
           type=ref,event=branch
           type=ref,event=pr
           type=sha,prefix={{branch}}-
+          type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
     - name: Build and push backend Docker image
