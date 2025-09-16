@@ -203,6 +203,9 @@ jobs:
   integration-test:
     needs: [docker-build]
     runs-on: ubuntu-latest
+    env:
+      BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+      FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
     
     steps:
     - name: Checkout code
@@ -249,13 +252,12 @@ jobs:
 
     - name: Start test environment
       run: |
-        # Use the built images for testing
-        export BACKEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}"
-        export FRONTEND_IMAGE="${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}"
+        # Debug: Print environment variables
+        echo "BACKEND_IMAGE: $BACKEND_IMAGE"
+        echo "FRONTEND_IMAGE: $FRONTEND_IMAGE"
         
         # Create a test docker-compose file
         cat > docker-compose.test.yml << EOF
-        version: '3.8'
         services:
           dtime-db:
             image: postgres:14
