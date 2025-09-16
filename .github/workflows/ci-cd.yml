@@ -318,19 +318,40 @@ jobs:
     - name: Wait for services to be ready
       run: |
         echo "Waiting for services to be ready..."
+        echo "Current service status:"
+        docker compose -f docker-compose.test.yml ps
+        
+        echo "Waiting for backend to be healthy..."
         timeout 300s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
-            echo "Waiting for backend to be ready..."
+            echo "Backend not healthy yet, current status:"
+            docker compose -f docker-compose.test.yml ps dtime-backend || true
+            echo "Backend logs (last 10 lines):"
+            docker compose -f docker-compose.test.yml logs --tail=10 dtime-backend || true
             sleep 10
           done
-        '
+        ' || {
+          echo "Backend failed to become healthy. Final status:"
+          docker compose -f docker-compose.test.yml ps
+          docker compose -f docker-compose.test.yml logs dtime-backend
+          exit 1
+        }
         
+        echo "Waiting for frontend to be healthy..."
         timeout 120s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-frontend"; do
-            echo "Waiting for frontend to be ready..."
+            echo "Frontend not healthy yet, current status:"
+            docker compose -f docker-compose.test.yml ps dtime-frontend || true
+            echo "Frontend logs (last 10 lines):"
+            docker compose -f docker-compose.test.yml logs --tail=10 dtime-frontend || true
             sleep 10
           done
-        '
+        ' || {
+          echo "Frontend failed to become healthy. Final status:"
+          docker compose -f docker-compose.test.yml ps
+          docker compose -f docker-compose.test.yml logs dtime-frontend
+          exit 1
+        }
 
     - name: Run integration tests
       run: |
