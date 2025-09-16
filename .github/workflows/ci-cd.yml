@@ -362,6 +362,12 @@ jobs:
         FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
         echo "Waiting for services to be ready..."
+        
+        if [ ! -f docker-compose.test.yml ]; then
+          echo "❌ docker-compose.test.yml not found! Cannot proceed with service health checks."
+          exit 1
+        fi
+        
         echo "Current service status:"
         docker compose -f docker-compose.test.yml ps
         
@@ -419,12 +425,18 @@ jobs:
         BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
         FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
-        echo "=== Backend Logs ==="
-        docker compose -f docker-compose.test.yml logs dtime-backend
-        echo "=== Frontend Logs ==="
-        docker compose -f docker-compose.test.yml logs dtime-frontend
-        echo "=== Database Logs ==="
-        docker compose -f docker-compose.test.yml logs dtime-db
+        if [ -f docker-compose.test.yml ]; then
+          echo "=== Backend Logs ==="
+          docker compose -f docker-compose.test.yml logs dtime-backend || echo "Could not get backend logs"
+          echo "=== Frontend Logs ==="
+          docker compose -f docker-compose.test.yml logs dtime-frontend || echo "Could not get frontend logs"
+          echo "=== Database Logs ==="
+          docker compose -f docker-compose.test.yml logs dtime-db || echo "Could not get database logs"
+        else
+          echo "docker-compose.test.yml not found, cannot collect service logs"
+          echo "Listing all containers for debugging:"
+          docker ps -a || true
+        fi
 
     - name: Cleanup test environment
       if: always()
@@ -432,7 +444,16 @@ jobs:
         BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
         FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
-        docker compose -f docker-compose.test.yml down -v
+        if [ -f docker-compose.test.yml ]; then
+          echo "Cleaning up test environment..."
+          docker compose -f docker-compose.test.yml down -v
+        else
+          echo "docker-compose.test.yml not found, skipping cleanup"
+          echo "Checking for any running containers to clean up..."
+          docker ps -a --filter "name=dtime-" --format "table {{.Names}}\t{{.Status}}" || true
+          docker stop $(docker ps -q --filter "name=dtime-") 2>/dev/null || true
+          docker rm $(docker ps -aq --filter "name=dtime-") 2>/dev/null || true
+        fi
 
   # Deployment Test (Dry Run)
   deployment-test:
