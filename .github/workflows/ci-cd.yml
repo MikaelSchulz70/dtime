@@ -203,9 +203,6 @@ jobs:
   integration-test:
     needs: [docker-build]
     runs-on: ubuntu-latest
-    env:
-      BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-      FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
     
     steps:
     - name: Checkout code
@@ -251,6 +248,9 @@ jobs:
         EOF
 
     - name: Start test environment
+      env:
+        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
         # Debug: Print environment variables
         echo "BACKEND_IMAGE: $BACKEND_IMAGE"
@@ -316,6 +316,9 @@ jobs:
         docker compose -f docker-compose.test.yml up -d
 
     - name: Wait for services to be ready
+      env:
+        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
         echo "Waiting for services to be ready..."
         echo "Current service status:"
@@ -371,6 +374,9 @@ jobs:
 
     - name: Collect logs on failure
       if: failure()
+      env:
+        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
         echo "=== Backend Logs ==="
         docker compose -f docker-compose.test.yml logs dtime-backend
@@ -381,6 +387,9 @@ jobs:
 
     - name: Cleanup test environment
       if: always()
+      env:
+        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
+        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
         docker compose -f docker-compose.test.yml down -v
 
