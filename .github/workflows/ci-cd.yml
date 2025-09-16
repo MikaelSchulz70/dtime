@@ -179,6 +179,13 @@ jobs:
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
+    - name: Debug backend metadata
+      run: |
+        echo "Backend tags that will be created:"
+        echo "${{ steps.meta-backend.outputs.tags }}"
+        echo "Backend labels:"
+        echo "${{ steps.meta-backend.outputs.labels }}"
+
     - name: Build and push backend Docker image
       uses: docker/build-push-action@v5
       with:
@@ -189,6 +196,13 @@ jobs:
         labels: ${{ steps.meta-backend.outputs.labels }}
         cache-from: type=gha
         cache-to: type=gha,mode=max
+
+    - name: Debug frontend metadata
+      run: |
+        echo "Frontend tags that will be created:"
+        echo "${{ steps.meta-frontend.outputs.tags }}"
+        echo "Frontend labels:"
+        echo "${{ steps.meta-frontend.outputs.labels }}"
 
     - name: Build and push frontend Docker image
       uses: docker/build-push-action@v5
@@ -228,6 +242,31 @@ jobs:
         registry: ${{ env.REGISTRY }}
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Verify images exist in registry
+      run: |
+        echo "Checking if images exist in registry..."
+        BACKEND_IMG="${{ env.REGISTRY }}/mikaelschulz70/dtime/backend:${{ github.sha }}"
+        FRONTEND_IMG="${{ env.REGISTRY }}/mikaelschulz70/dtime/frontend:${{ github.sha }}"
+        
+        echo "Backend image: $BACKEND_IMG"
+        echo "Frontend image: $FRONTEND_IMG"
+        
+        echo "Attempting to pull backend image..."
+        if docker pull "$BACKEND_IMG"; then
+          echo "✅ Backend image exists and is accessible"
+        else
+          echo "❌ Backend image not found or not accessible"
+          exit 1
+        fi
+        
+        echo "Attempting to pull frontend image..."
+        if docker pull "$FRONTEND_IMG"; then
+          echo "✅ Frontend image exists and is accessible"
+        else
+          echo "❌ Frontend image not found or not accessible"
+          exit 1
+        fi
 
     - name: Create test environment file
       run: |
