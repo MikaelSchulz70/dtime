@@ -285,20 +285,47 @@ jobs:
           FRONTEND_AVAILABLE=false
         fi
         
+        # If SHA-tagged images aren't available, try to use latest tags as fallback
         if [[ "$BACKEND_AVAILABLE" == "false" || "$FRONTEND_AVAILABLE" == "false" ]]; then
-          echo "❌ One or more required images not found. Cannot proceed with integration tests."
-          echo ""
-          echo "Possible causes:"
-          echo "1. Docker build job failed to push images"
-          echo "2. Images were pushed with different tags than expected"
-          echo "3. GitHub Container Registry packages are private (need to be made public)"
-          echo "4. Registry authentication issues"
-          echo ""
-          echo "To fix:"
-          echo "- Check the docker-build job logs for build/push failures"
-          echo "- Verify GitHub Container Registry package visibility settings"
-          echo "- Check if images exist at: https://github.com/MikaelSchulz70/dtime/pkgs"
-          exit 1
+          echo "⚠️ SHA-tagged images not found. Checking if we can use latest tags instead..."
+          
+          echo "Trying latest backend image..."
+          if docker pull ghcr.io/mikaelschulz70/dtime/backend:latest >/dev/null 2>&1; then
+            echo "✅ Latest backend image available"
+            BACKEND_FALLBACK="ghcr.io/mikaelschulz70/dtime/backend:latest"
+          else
+            echo "❌ Latest backend image not available"
+            BACKEND_FALLBACK=""
+          fi
+          
+          echo "Trying latest frontend image..."
+          if docker pull ghcr.io/mikaelschulz70/dtime/frontend:latest >/dev/null 2>&1; then
+            echo "✅ Latest frontend image available"
+            FRONTEND_FALLBACK="ghcr.io/mikaelschulz70/dtime/frontend:latest"
+          else
+            echo "❌ Latest frontend image not available"
+            FRONTEND_FALLBACK=""
+          fi
+          
+          if [[ -n "$BACKEND_FALLBACK" && -n "$FRONTEND_FALLBACK" ]]; then
+            echo "🔄 Using latest tags as fallback for integration tests"
+            echo "BACKEND_IMAGE=$BACKEND_FALLBACK" >> $GITHUB_ENV
+            echo "FRONTEND_IMAGE=$FRONTEND_FALLBACK" >> $GITHUB_ENV
+          else
+            echo "❌ Neither SHA-tagged nor latest images are available. Cannot proceed."
+            echo ""
+            echo "Possible causes:"
+            echo "1. Docker build job failed to push images"
+            echo "2. Images were pushed with different tags than expected"
+            echo "3. GitHub Container Registry packages are private (need to be made public)"
+            echo "4. Registry authentication issues"
+            echo ""
+            echo "To fix:"
+            echo "- Check the docker-build job logs for build/push failures"
+            echo "- Verify GitHub Container Registry package visibility settings"
+            echo "- Check if images exist at: https://github.com/MikaelSchulz70/dtime/pkgs"
+            exit 1
+          fi
         fi
 
     - name: Create test environment file
@@ -322,10 +349,15 @@ jobs:
         EOF
 
     - name: Start test environment
-      env:
-        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
+        # Use environment variables set by image verification step, or default to SHA tags
+        BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
+        FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
+        
+        # Export for use in this step
+        export BACKEND_IMAGE
+        export FRONTEND_IMAGE
+        
         # Debug: Print environment variables
         echo "BACKEND_IMAGE: $BACKEND_IMAGE"
         echo "FRONTEND_IMAGE: $FRONTEND_IMAGE"
@@ -390,10 +422,11 @@ jobs:
         docker compose -f docker-compose.test.yml up -d
 
     - name: Wait for services to be ready
-      env:
-        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
+        # Use environment variables set by image verification step, or default to SHA tags
+        BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
+        FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
+        export BACKEND_IMAGE FRONTEND_IMAGE
         echo "Waiting for services to be ready..."
         
         if [ ! -f docker-compose.test.yml ]; then
@@ -454,10 +487,11 @@ jobs:
 
     - name: Collect logs on failure
       if: failure()
-      env:
-        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
+        # Use environment variables set by image verification step, or default to SHA tags
+        BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
+        FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
+        export BACKEND_IMAGE FRONTEND_IMAGE
         if [ -f docker-compose.test.yml ]; then
           echo "=== Backend Logs ==="
           docker compose -f docker-compose.test.yml logs dtime-backend || echo "Could not get backend logs"
@@ -473,10 +507,11 @@ jobs:
 
     - name: Cleanup test environment
       if: always()
-      env:
-        BACKEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}
-        FRONTEND_IMAGE: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}
       run: |
+        # Use environment variables set by image verification step, or default to SHA tags
+        BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
+        FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
+        export BACKEND_IMAGE FRONTEND_IMAGE
         if [ -f docker-compose.test.yml ]; then
           echo "Cleaning up test environment..."
           docker compose -f docker-compose.test.yml down -v
