@@ -243,9 +243,24 @@ jobs:
         username: ${{ github.actor }}
         password: ${{ secrets.GITHUB_TOKEN }}
 
-    - name: Verify images exist in registry
+    - name: Check available images in registry
       run: |
-        echo "Checking if images exist in registry..."
+        echo "Checking what images exist in the registry..."
+        
+        # Try to list images to see what's actually available
+        echo "Attempting to pull latest backend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/backend:latest || echo "No latest backend image found"
+        
+        echo "Attempting to pull latest frontend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/frontend:latest || echo "No latest frontend image found"
+        
+        echo "Attempting to pull master-tagged backend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/backend:master-${{ github.sha }} || echo "No master-prefixed backend image found"
+        
+        echo "Attempting to pull master-tagged frontend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/frontend:master-${{ github.sha }} || echo "No master-prefixed frontend image found"
+        
+        echo "Now checking for the exact SHA tags we expect..."
         BACKEND_IMG="${{ env.REGISTRY }}/mikaelschulz70/dtime/backend:${{ github.sha }}"
         FRONTEND_IMG="${{ env.REGISTRY }}/mikaelschulz70/dtime/frontend:${{ github.sha }}"
         
@@ -255,16 +270,34 @@ jobs:
         echo "Attempting to pull backend image..."
         if docker pull "$BACKEND_IMG"; then
           echo "✅ Backend image exists and is accessible"
+          BACKEND_AVAILABLE=true
         else
           echo "❌ Backend image not found or not accessible"
-          exit 1
+          BACKEND_AVAILABLE=false
         fi
         
         echo "Attempting to pull frontend image..."
         if docker pull "$FRONTEND_IMG"; then
           echo "✅ Frontend image exists and is accessible"
+          FRONTEND_AVAILABLE=true
         else
-          echo "❌ Frontend image not found or not accessible"
+          echo "❌ Frontend image not found or not accessible"  
+          FRONTEND_AVAILABLE=false
+        fi
+        
+        if [[ "$BACKEND_AVAILABLE" == "false" || "$FRONTEND_AVAILABLE" == "false" ]]; then
+          echo "❌ One or more required images not found. Cannot proceed with integration tests."
+          echo ""
+          echo "Possible causes:"
+          echo "1. Docker build job failed to push images"
+          echo "2. Images were pushed with different tags than expected"
+          echo "3. GitHub Container Registry packages are private (need to be made public)"
+          echo "4. Registry authentication issues"
+          echo ""
+          echo "To fix:"
+          echo "- Check the docker-build job logs for build/push failures"
+          echo "- Verify GitHub Container Registry package visibility settings"
+          echo "- Check if images exist at: https://github.com/MikaelSchulz70/dtime/pkgs"
           exit 1
         fi
 
