@@ -383,12 +383,13 @@ jobs:
             image: \${BACKEND_IMAGE}
             environment:
               SPRING_PROFILES_ACTIVE: prod
-              POSTGRES_DB: dtime_test
-              POSTGRES_USER: dtime_test
-              POSTGRES_PASSWORD: test_password
+              DATABASE_URL: jdbc:postgresql://dtime-db:5432/dtime_test
+              DATABASE_USERNAME: dtime_test
+              DATABASE_PASSWORD: test_password
               MAIL_USERNAME: test@example.com
               MAIL_PASSWORD: dummy-password
               SECURITY_CSRF_ENABLED: false
+              SSL_KEYSTORE_PASSWORD: dt2020
             ports:
               - "8080:8080"
               - "8443:8443"
@@ -396,7 +397,7 @@ jobs:
               dtime-db:
                 condition: service_healthy
             healthcheck:
-              test: ["CMD-SHELL", "curl -f http://localhost:8080/actuator/health || exit 1"]
+              test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
               interval: 30s
               timeout: 10s
               retries: 5
@@ -405,7 +406,7 @@ jobs:
           dtime-frontend:
             image: \${FRONTEND_IMAGE}
             environment:
-              REACT_APP_BACKEND_URL: http://localhost:8080
+              REACT_APP_BACKEND_URL: https://localhost:8443
               NODE_ENV: production
             ports:
               - "3000:80"
@@ -438,18 +439,34 @@ jobs:
         docker compose -f docker-compose.test.yml ps
         
         echo "Waiting for backend to be healthy..."
+        echo "Initial backend status after startup:"
+        docker compose -f docker-compose.test.yml ps dtime-backend || true
+        echo "Initial backend logs:"
+        docker compose -f docker-compose.test.yml logs dtime-backend || true
+        
         timeout 300s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
             echo "Backend not healthy yet, current status:"
             docker compose -f docker-compose.test.yml ps dtime-backend || true
-            echo "Backend logs (last 10 lines):"
-            docker compose -f docker-compose.test.yml logs --tail=10 dtime-backend || true
+            echo "Backend logs (last 20 lines):"
+            docker compose -f docker-compose.test.yml logs --tail=20 dtime-backend || true
+            
+            # Check if container exited
+            if docker compose -f docker-compose.test.yml ps dtime-backend | grep -q "Exited"; then
+              echo "❌ Backend container has exited. Full logs:"
+              docker compose -f docker-compose.test.yml logs dtime-backend
+              exit 1
+            fi
+            
             sleep 10
           done
         ' || {
           echo "Backend failed to become healthy. Final status:"
           docker compose -f docker-compose.test.yml ps
+          echo "Complete backend logs:"
           docker compose -f docker-compose.test.yml logs dtime-backend
+          echo "Backend container inspect:"
+          docker inspect $(docker compose -f docker-compose.test.yml ps -q dtime-backend) || true
           exit 1
         }
         
