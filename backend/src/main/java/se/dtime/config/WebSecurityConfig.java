@@ -64,7 +64,7 @@ public class WebSecurityConfig {
         http
                 .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/perform_login", "/error", "/api/auth/google/status").permitAll()
+                        .requestMatchers("/perform_login", "/error", "/api/auth/google/status", "/actuator/health").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )

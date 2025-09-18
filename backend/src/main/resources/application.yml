@@ -67,6 +67,16 @@ mail:
   username: ${MAIL_USERNAME:dummy@example.com}
   password: ${MAIL_PASSWORD:dummy-password}
 
+# Actuator Configuration
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: when_authorized
+
 # Application Configuration
 dtime:
   hours_per_day: 8
