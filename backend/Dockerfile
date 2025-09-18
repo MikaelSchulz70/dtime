@@ -24,7 +24,7 @@ EXPOSE 8443
 
 # Health check (using HTTPS with insecure flag for self-signed cert)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=60s --retries=3 \
-  CMD curl -f -k https://localhost:8443/actuator/health || exit 1
+  CMD curl -f -k https://localhost:8443/api/auth/google/status || exit 1
 
 # Set JVM options for container environment
 ENV JAVA_OPTS="-Xmx512m -Xms256m -Djava.security.egd=file:/dev/./urandom"

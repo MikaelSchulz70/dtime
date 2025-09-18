@@ -397,7 +397,7 @@ jobs:
               dtime-db:
                 condition: service_healthy
             healthcheck:
-              test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
+              test: ["CMD-SHELL", "curl -f -k https://localhost:8443/api/auth/google/status || exit 1"]
               interval: 30s
               timeout: 10s
               retries: 5
@@ -443,6 +443,15 @@ jobs:
         docker compose -f docker-compose.test.yml ps dtime-backend || true
         echo "Initial backend logs:"
         docker compose -f docker-compose.test.yml logs dtime-backend || true
+        
+        # Test the health check command manually
+        echo "Testing health check command manually:"
+        docker compose -f docker-compose.test.yml exec -T dtime-backend curl -f -k https://localhost:8443/api/auth/google/status || echo "Health check command failed"
+        
+        # Check if the backend port is actually listening
+        echo "Checking if backend ports are listening:"
+        docker compose -f docker-compose.test.yml exec -T dtime-backend netstat -tlnp 2>/dev/null || echo "netstat not available"
+        docker compose -f docker-compose.test.yml exec -T dtime-backend ss -tlnp 2>/dev/null || echo "ss not available"
         
         timeout 300s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
