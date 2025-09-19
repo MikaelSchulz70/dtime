@@ -422,24 +422,18 @@ jobs:
         
         docker compose -f docker-compose.test.yml up -d
 
-    - name: Wait for services to be ready
+    - name: Debug backend container startup
       run: |
         # Use environment variables set by image verification step, or default to SHA tags
         BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
         FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
         export BACKEND_IMAGE FRONTEND_IMAGE
-        echo "Waiting for services to be ready..."
         
-        if [ ! -f docker-compose.test.yml ]; then
-          echo "❌ docker-compose.test.yml not found! Cannot proceed with service health checks."
-          exit 1
-        fi
-        
+        echo "=== IMMEDIATE DEBUGGING AFTER CONTAINER START ==="
         echo "Current service status:"
         docker compose -f docker-compose.test.yml ps
         
-        echo "Waiting for backend to be healthy..."
-        echo "Initial backend status after startup:"
+        echo "Initial backend status:"
         docker compose -f docker-compose.test.yml ps dtime-backend || true
         echo "Initial backend logs:"
         docker compose -f docker-compose.test.yml logs dtime-backend || true
@@ -482,6 +476,23 @@ jobs:
           echo "Final backend logs:"
           docker compose -f docker-compose.test.yml logs dtime-backend || true
         fi
+
+    - name: Wait for services to be ready
+      run: |
+        # Use environment variables set by image verification step, or default to SHA tags
+        BACKEND_IMAGE="${BACKEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_BACKEND }}:${{ github.sha }}}"
+        FRONTEND_IMAGE="${FRONTEND_IMAGE:-${{ env.REGISTRY }}/${{ env.IMAGE_NAME_FRONTEND }}:${{ github.sha }}}"
+        export BACKEND_IMAGE FRONTEND_IMAGE
+        echo "Waiting for services to be ready..."
+        
+        if [ ! -f docker-compose.test.yml ]; then
+          echo "❌ docker-compose.test.yml not found! Cannot proceed with service health checks."
+          exit 1
+        fi
+        
+        echo "=== WAITING FOR HEALTH CHECKS ==="
+        echo "Current service status:"
+        docker compose -f docker-compose.test.yml ps
         
         timeout 300s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
