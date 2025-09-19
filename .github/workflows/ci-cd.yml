@@ -401,7 +401,7 @@ jobs:
               interval: 30s
               timeout: 10s
               retries: 5
-              start_period: 60s
+              start_period: 120s
 
           dtime-frontend:
             image: \${FRONTEND_IMAGE}
@@ -444,14 +444,44 @@ jobs:
         echo "Initial backend logs:"
         docker compose -f docker-compose.test.yml logs dtime-backend || true
         
-        # Test the health check command manually
-        echo "Testing health check command manually:"
-        docker compose -f docker-compose.test.yml exec -T dtime-backend curl -f -k https://localhost:8443/actuator/health || echo "Health check command failed"
+        # Wait a bit for Spring Boot to potentially start
+        echo "Waiting 30 seconds for Spring Boot to start..."
+        sleep 30
         
-        # Check if the backend port is actually listening
-        echo "Checking if backend ports are listening:"
-        docker compose -f docker-compose.test.yml exec -T dtime-backend netstat -tlnp 2>/dev/null || echo "netstat not available"
-        docker compose -f docker-compose.test.yml exec -T dtime-backend ss -tlnp 2>/dev/null || echo "ss not available"
+        echo "Backend status after 30s:"
+        docker compose -f docker-compose.test.yml ps dtime-backend || true
+        echo "Backend logs after 30s:"
+        docker compose -f docker-compose.test.yml logs dtime-backend || true
+        
+        # Check environment variables
+        echo "Backend container environment variables:"
+        docker compose -f docker-compose.test.yml exec -T dtime-backend env | grep -E "(DATABASE|SPRING|SSL)" || echo "No relevant env vars found"
+        
+        # Test if container is still running
+        if docker compose -f docker-compose.test.yml ps dtime-backend | grep -q "Up"; then
+          echo "Backend container is running, testing endpoints..."
+          
+          # Test the health check command manually
+          echo "Testing actuator health endpoint manually:"
+          docker compose -f docker-compose.test.yml exec -T dtime-backend curl -f -k https://localhost:8443/actuator/health || echo "Actuator health check failed"
+          
+          echo "Testing actuator health endpoint with verbose output:"
+          docker compose -f docker-compose.test.yml exec -T dtime-backend curl -v -k https://localhost:8443/actuator/health || echo "Verbose actuator health check failed"
+          
+          # Check if the backend port is actually listening
+          echo "Checking if backend ports are listening:"
+          docker compose -f docker-compose.test.yml exec -T dtime-backend netstat -tlnp 2>/dev/null || echo "netstat not available"
+          docker compose -f docker-compose.test.yml exec -T dtime-backend ss -tlnp 2>/dev/null || echo "ss not available"
+          
+          # Test basic connectivity
+          echo "Testing basic HTTPS connectivity:"
+          docker compose -f docker-compose.test.yml exec -T dtime-backend curl -k https://localhost:8443/ || echo "Basic HTTPS connection failed"
+          
+        else
+          echo "❌ Backend container is not running!"
+          echo "Final backend logs:"
+          docker compose -f docker-compose.test.yml logs dtime-backend || true
+        fi
         
         timeout 300s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
