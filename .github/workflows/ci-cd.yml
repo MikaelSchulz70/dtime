@@ -363,6 +363,20 @@ jobs:
         echo "BACKEND_IMAGE: $BACKEND_IMAGE"
         echo "FRONTEND_IMAGE: $FRONTEND_IMAGE"
         
+        # Create database initialization script for dtime schema
+        cat > init-test-db.sql << EOF
+        -- Create the dtime schema that Liquibase and Hibernate expect
+        CREATE SCHEMA IF NOT EXISTS dtime;
+        
+        -- Grant permissions to the test user
+        GRANT ALL PRIVILEGES ON SCHEMA dtime TO dtime_test;
+        GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA dtime TO dtime_test;
+        GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA dtime TO dtime_test;
+        
+        -- Set search path to include dtime schema
+        ALTER USER dtime_test SET search_path TO dtime,public;
+        EOF
+        
         # Create a test docker-compose file
         cat > docker-compose.test.yml << EOF
         services:
@@ -374,8 +388,10 @@ jobs:
               POSTGRES_PASSWORD: test_password
             ports:
               - "5432:5432"
+            volumes:
+              - ./init-test-db.sql:/docker-entrypoint-initdb.d/init-test-db.sql
             healthcheck:
-              test: ["CMD-SHELL", "pg_isready -U dtime_test"]
+              test: ["CMD-SHELL", "pg_isready -U dtime_test -d dtime_test"]
               interval: 10s
               timeout: 5s
               retries: 5
