@@ -187,7 +187,7 @@ jobs:
         echo "${{ steps.meta-backend.outputs.labels }}"
 
     - name: Build and push backend Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./backend
         platforms: linux/amd64,linux/arm64
@@ -205,7 +205,7 @@ jobs:
         echo "${{ steps.meta-frontend.outputs.labels }}"
 
     - name: Build and push frontend Docker image
-      uses: docker/build-push-action@v5
+      uses: docker/build-push-action@v6
       with:
         context: ./frontend
         platforms: linux/amd64,linux/arm64
