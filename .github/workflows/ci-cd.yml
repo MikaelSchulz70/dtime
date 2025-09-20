@@ -391,8 +391,6 @@ jobs:
               MAIL_PASSWORD: dummy-password
               SECURITY_CSRF_ENABLED: false
               SSL_KEYSTORE_PASSWORD: dt2020
-              SPRING_LIQUIBASE_ENABLED: false
-              SPRING_JPA_HIBERNATE_DDL_AUTO: create-drop
             ports:
               - "8080:8080"
               - "8443:8443"
