@@ -372,6 +372,8 @@ jobs:
         GRANT ALL PRIVILEGES ON SCHEMA dtime TO dtime_test;
         GRANT ALL PRIVILEGES ON ALL TABLES IN SCHEMA dtime TO dtime_test;
         GRANT ALL PRIVILEGES ON ALL SEQUENCES IN SCHEMA dtime TO dtime_test;
+        GRANT USAGE ON SCHEMA dtime TO dtime_test;
+        GRANT CREATE ON SCHEMA dtime TO dtime_test;
         
         -- Set search path to include dtime schema
         ALTER USER dtime_test SET search_path TO dtime,public;
@@ -399,7 +401,7 @@ jobs:
           dtime-backend:
             image: \${BACKEND_IMAGE}
             environment:
-              SPRING_PROFILES_ACTIVE: prod
+              SPRING_PROFILES_ACTIVE: docker
               DATABASE_URL: jdbc:postgresql://dtime-db:5432/dtime_test
               DATABASE_USERNAME: dtime_test
               DATABASE_PASSWORD: test_password
@@ -407,17 +409,22 @@ jobs:
               MAIL_PASSWORD: dummy-password
               SECURITY_CSRF_ENABLED: false
               SSL_KEYSTORE_PASSWORD: dt2020
+              SPRING_LIQUIBASE_DEFAULT_SCHEMA: dtime
+              SPRING_JPA_PROPERTIES_HIBERNATE_DEFAULT_SCHEMA: dtime
+              MANAGEMENT_HEALTH_MAIL_ENABLED: false
+              MANAGEMENT_HEALTH_DISKSPACE_ENABLED: false
             ports:
               - "8080:8080"
               - "8443:8443"
             depends_on:
-              - dtime-db
+              dtime-db:
+                condition: service_healthy
             healthcheck:
               test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
               interval: 30s
-              timeout: 10s
-              retries: 5
-              start_period: 120s
+              timeout: 15s
+              retries: 8
+              start_period: 180s
 
           dtime-frontend:
             image: \${FRONTEND_IMAGE}
@@ -460,7 +467,7 @@ jobs:
         
         echo "=== CHECKING LIQUIBASE SPECIFIC ISSUES ==="
         echo "Searching for Liquibase-related messages:"
-        docker compose -f docker-compose.test.yml logs dtime-backend 2>&1 | grep -i "liquibase\|schema\|database\|connection" | tail -10 || echo "No Liquibase messages found"
+        docker compose -f docker-compose.test.yml logs dtime-backend 2>&1 | grep -i "liquibase\|schema\|database\|connection\|ssl\|keystore" | tail -15 || echo "No Liquibase/database/SSL messages found"
         
         echo "=== CHECKING DATABASE CONNECTIVITY ==="
         echo "Testing database connection from backend container:"
@@ -522,7 +529,7 @@ jobs:
         echo "Current service status:"
         docker compose -f docker-compose.test.yml ps
         
-        timeout 300s bash -c '
+        timeout 600s bash -c '
           while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
             echo "Backend not healthy yet, current status:"
             docker compose -f docker-compose.test.yml ps dtime-backend || true
@@ -566,12 +573,12 @@ jobs:
 
     - name: Run integration tests
       run: |
-        echo "Testing backend health endpoint..."
-        curl -f http://localhost:8080/actuator/health
+        echo "Testing backend health endpoint (HTTPS)..."
+        curl -f -k https://localhost:8443/actuator/health
         
-        echo "Testing backend API endpoints..."
+        echo "Testing backend API endpoints (HTTPS)..."
         # Test login endpoint exists
-        curl -I http://localhost:8080/api/users 2>/dev/null | head -n 1 | grep -E "(401|403|200)"
+        curl -I -k https://localhost:8443/api/users 2>/dev/null | head -n 1 | grep -E "(401|403|200)"
         
         echo "Testing frontend availability..."
         curl -f http://localhost:3000/
