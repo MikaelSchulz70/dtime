@@ -530,17 +530,24 @@ jobs:
         docker compose -f docker-compose.test.yml ps
         
         timeout 600s bash -c '
-          while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-backend"; do
-            echo "Backend not healthy yet, current status:"
-            docker compose -f docker-compose.test.yml ps dtime-backend || true
-            echo "Backend logs (last 20 lines):"
-            docker compose -f docker-compose.test.yml logs --tail=20 dtime-backend || true
+          while true; do
+            echo "Checking backend health status..."
+            BACKEND_STATUS=$(docker compose -f docker-compose.test.yml ps dtime-backend --format "table {{.Status}}" | tail -n +2)
+            echo "Backend status: $BACKEND_STATUS"
             
-            # Check if container exited
-            if docker compose -f docker-compose.test.yml ps dtime-backend | grep -q "Exited"; then
+            if echo "$BACKEND_STATUS" | grep -q "Up.*healthy"; then
+              echo "✅ Backend is healthy!"
+              break
+            elif echo "$BACKEND_STATUS" | grep -q "Exited"; then
               echo "❌ Backend container has exited. Full logs:"
               docker compose -f docker-compose.test.yml logs dtime-backend
               exit 1
+            else
+              echo "Backend not healthy yet, waiting..."
+              echo "Current full service status:"
+              docker compose -f docker-compose.test.yml ps
+              echo "Backend logs (last 10 lines):"
+              docker compose -f docker-compose.test.yml logs --tail=10 dtime-backend || true
             fi
             
             sleep 10
@@ -557,11 +564,23 @@ jobs:
         
         echo "Waiting for frontend to be healthy..."
         timeout 120s bash -c '
-          while ! docker compose -f docker-compose.test.yml ps | grep -q "Up (healthy).*dtime-frontend"; do
-            echo "Frontend not healthy yet, current status:"
-            docker compose -f docker-compose.test.yml ps dtime-frontend || true
-            echo "Frontend logs (last 10 lines):"
-            docker compose -f docker-compose.test.yml logs --tail=10 dtime-frontend || true
+          while true; do
+            echo "Checking frontend health status..."
+            FRONTEND_STATUS=$(docker compose -f docker-compose.test.yml ps dtime-frontend --format "table {{.Status}}" | tail -n +2)
+            echo "Frontend status: $FRONTEND_STATUS"
+            
+            if echo "$FRONTEND_STATUS" | grep -q "Up.*healthy"; then
+              echo "✅ Frontend is healthy!"
+              break
+            elif echo "$FRONTEND_STATUS" | grep -q "Exited"; then
+              echo "❌ Frontend container has exited."
+              exit 1
+            else
+              echo "Frontend not healthy yet, waiting..."
+              echo "Frontend logs (last 5 lines):"
+              docker compose -f docker-compose.test.yml logs --tail=5 dtime-frontend || true
+            fi
+            
             sleep 10
           done
         ' || {
