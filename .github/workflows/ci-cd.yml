@@ -451,8 +451,20 @@ jobs:
         
         echo "Initial backend status:"
         docker compose -f docker-compose.test.yml ps dtime-backend || true
-        echo "Initial backend logs:"
-        docker compose -f docker-compose.test.yml logs dtime-backend || true
+        echo "Initial backend logs (FULL OUTPUT):"
+        docker compose -f docker-compose.test.yml logs --no-log-prefix dtime-backend || true
+        
+        echo "=== CHECKING FOR STARTUP ERRORS ==="
+        echo "Searching for ERROR/WARN/EXCEPTION in logs:"
+        docker compose -f docker-compose.test.yml logs dtime-backend 2>&1 | grep -i "error\|exception\|warn\|fail" | tail -20 || echo "No errors found in basic search"
+        
+        echo "=== CHECKING LIQUIBASE SPECIFIC ISSUES ==="
+        echo "Searching for Liquibase-related messages:"
+        docker compose -f docker-compose.test.yml logs dtime-backend 2>&1 | grep -i "liquibase\|schema\|database\|connection" | tail -10 || echo "No Liquibase messages found"
+        
+        echo "=== CHECKING DATABASE CONNECTIVITY ==="
+        echo "Testing database connection from backend container:"
+        docker compose -f docker-compose.test.yml exec -T dtime-backend nc -zv dtime-db 5432 || echo "Database connectivity test failed"
         
         # Wait a bit for Spring Boot to potentially start
         echo "Waiting 30 seconds for Spring Boot to start..."
