@@ -1,6 +1,38 @@
 import React from 'react';
 import '@testing-library/jest-dom';
 
+// Polyfill Web APIs required by React Router 7
+import { TextEncoder, TextDecoder } from 'util';
+
+global.TextEncoder = TextEncoder;
+global.TextDecoder = TextDecoder;
+
+// Mock URL.createObjectURL and revokeObjectURL
+global.URL.createObjectURL = jest.fn(() => 'mock-object-url');
+global.URL.revokeObjectURL = jest.fn();
+
+// Mock additional Web APIs that React Router 7 might need
+if (typeof global.ReadableStream === 'undefined') {
+  global.ReadableStream = class MockReadableStream {};
+}
+
+if (typeof global.TransformStream === 'undefined') {
+  global.TransformStream = class MockTransformStream {};
+}
+
+if (typeof global.WritableStream === 'undefined') {
+  global.WritableStream = class MockWritableStream {};
+}
+
+// Mock Request and Response if needed
+if (typeof global.Request === 'undefined') {
+  global.Request = class MockRequest {};
+}
+
+if (typeof global.Response === 'undefined') {
+  global.Response = class MockResponse {};
+}
+
 // Mock react-modal for tests
 jest.mock('react-modal', () => {
   const Modal = ({ children, isOpen, ...props }) => {
