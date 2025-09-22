@@ -11,7 +11,7 @@ class ErrorBoundary extends Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -42,7 +42,7 @@ class ErrorBoundary extends Component {
           <Alert variant="danger">
             <Alert.Heading>Oops! Something went wrong</Alert.Heading>
             <p>
-              We're sorry, but something unexpected happened. Please try refreshing the page
+              We&apos;re sorry, but something unexpected happened. Please try refreshing the page
               or contact support if the problem persists.
             </p>
             {process.env.NODE_ENV === 'development' && (

@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Link } from 'react-router-dom';
+import { Link } from 'react-router';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';

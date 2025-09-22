@@ -4,7 +4,7 @@ import { useToast } from '../components/ToastProvider';
 const useApi = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { showError } = useToast();
+  const { showError, showSuccess } = useToast();
 
   const execute = useCallback(async (apiCall, options = {}) => {
     const {
@@ -51,8 +51,6 @@ const useApi = () => {
   }, [showError]);
 
   const executeWithToast = useCallback(async (apiCall, successMessage, options = {}) => {
-    const { showSuccess } = useToast();
-    
     return execute(apiCall, {
       ...options,
       onSuccess: (result) => {
@@ -64,7 +62,7 @@ const useApi = () => {
         }
       }
     });
-  }, [execute]);
+  }, [execute, showSuccess]);
 
   const reset = useCallback(() => {
     setLoading(false);

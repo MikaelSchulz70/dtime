@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate } from 'react-router';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useBaseDetails } from '../BaseDetails';

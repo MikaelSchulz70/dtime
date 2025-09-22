@@ -1,5 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
-import { Routes, Route, BrowserRouter, Navigate, Link } from 'react-router-dom';
+import { Routes, Route, BrowserRouter, Navigate, Link } from 'react-router';
 import axios from 'axios';
 import './App.css';
 

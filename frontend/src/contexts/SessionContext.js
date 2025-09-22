@@ -1,5 +1,4 @@
 import React, { createContext, useContext, useState } from 'react';
-import { useLocation, useHistory } from 'react-router-dom';
 import SessionService from '../service/SessionService';
 
 const SessionContext = createContext();
@@ -21,8 +20,6 @@ export const useSession = () => {
 };
 
 export const SessionProvider = ({ children }) => {
-  const location = useLocation();
-  const history = useHistory();
   const [session, setSession] = useState(sessionState.session);
   const [loading, setLoading] = useState(sessionState.loading);
   const [error, setError] = useState(sessionState.error);

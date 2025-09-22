@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
-import { useLocation } from 'react-router-dom';
+import { useLocation } from 'react-router';
 import axios from 'axios';
 // import logo from '../assets/logo.png'; // Using public logo instead
 
