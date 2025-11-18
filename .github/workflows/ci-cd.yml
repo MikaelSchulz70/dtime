@@ -774,14 +774,14 @@ jobs:
         ls -la
 
     - name: Upload backend SARIF results
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always() && hashFiles('trivy-backend-results.sarif') != ''
       with:
         sarif_file: trivy-backend-results.sarif
         category: 'backend-security'
 
     - name: Upload frontend SARIF results  
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       if: always() && hashFiles('trivy-frontend-results.sarif') != ''
       with:
         sarif_file: trivy-frontend-results.sarif
