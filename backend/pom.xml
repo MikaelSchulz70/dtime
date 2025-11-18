@@ -9,13 +9,13 @@
 
     <properties>
         <java.version>21</java.version>
-        <spring.boot.version>3.5.6</spring.boot.version>
+        <spring.boot.version>3.5.7</spring.boot.version>
     </properties>
 
     <parent>
         <groupId>org.springframework.boot</groupId>
         <artifactId>spring-boot-starter-parent</artifactId>
-        <version>3.5.6</version>
+        <version>3.5.7</version>
     </parent>
 
     <dependencies>
@@ -97,7 +97,7 @@
         <dependency>
             <groupId>org.liquibase</groupId>
             <artifactId>liquibase-core</artifactId>
-            <version>4.33.0</version>
+            <version>5.0.1</version>
         </dependency>
         <dependency>
             <groupId>jakarta.servlet</groupId>
@@ -148,7 +148,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-enforcer-plugin</artifactId>
-                <version>3.6.1</version>
+                <version>3.6.2</version>
                 <executions>
                     <execution>
                         <id>enforce-versions</id>
