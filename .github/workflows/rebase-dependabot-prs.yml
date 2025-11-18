@@ -10,4 +10,4 @@ jobs:
         uses: peter-evans/rebase@v2
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
-          pr-filter: author:dependabot[bot]
+          include-labels: dependencies
