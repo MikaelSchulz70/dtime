@@ -8,7 +8,7 @@
     "@babel/preset-react": "^7.27.1",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
-    "core-js": "^3.46.0",
+    "core-js": "^3.47.0",
     "jquery": "^3.7.1",
     "moment-range": "^4.0.2",
     "react": "^19.2.0",
