@@ -5,7 +5,7 @@
   "dependencies": {
     "@babel/core": "^7.28.5",
     "@babel/preset-env": "^7.28.5",
-    "@babel/preset-react": "^7.27.1",
+    "@babel/preset-react": "^7.28.5",
     "axios": "^1.12.2",
     "bootstrap": "^5.3.8",
     "core-js": "^3.47.0",
