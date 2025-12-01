@@ -55,7 +55,7 @@ jobs:
         CI: false  # Treat warnings as warnings, not errors
 
     - name: Upload frontend build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: frontend-build
         path: frontend/dist/
@@ -115,7 +115,7 @@ jobs:
         SPRING_PROFILES_ACTIVE: prod
 
     - name: Upload backend build artifacts
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v5
       with:
         name: backend-build
         path: backend/target/*.jar
