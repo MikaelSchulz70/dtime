@@ -7,7 +7,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Rebase all Dependabot PRs
-        uses: peter-evans/rebase@v2
+        uses: peter-evans/rebase@v3
         with:
           token: ${{ secrets.GITHUB_TOKEN }}
           include-labels: dependencies
