@@ -2,10 +2,6 @@ package se.dtime.repository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
-import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
-import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
-import org.springframework.test.context.TestPropertySource;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.model.ActivationStatus;
 
@@ -14,15 +10,7 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest(excludeAutoConfiguration = {LiquibaseAutoConfiguration.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-        "spring.jpa.properties.hibernate.default_schema=PUBLIC"
-})
-class AccountRepositoryIT {
+class AccountRepositoryIT extends BaseRepositoryIT {
 
     @Autowired
     private AccountRepository accountRepository;

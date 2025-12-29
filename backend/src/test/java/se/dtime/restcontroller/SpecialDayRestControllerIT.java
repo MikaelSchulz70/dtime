@@ -3,16 +3,11 @@ package se.dtime.restcontroller;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.webmvc.test.autoconfigure.AutoConfigureMockMvc;
-import org.springframework.context.annotation.Import;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.web.context.WebApplicationContext;
-import org.springframework.transaction.annotation.Transactional;
 import se.dtime.model.SpecialDay;
 import se.dtime.model.timereport.DayType;
 import tools.jackson.databind.ObjectMapper;
@@ -25,17 +20,7 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.content;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-@SpringBootTest
-@TestPropertySource(properties = {
-        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-        "spring.jpa.hibernate.ddl-auto=create-drop",
-        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-        "spring.jpa.properties.hibernate.default_schema=PUBLIC",
-        "security.enable-csrf=false"
-})
-@Transactional
-@Import(TestSecurityConfig.class)
-public class SpecialDayRestControllerIT {
+public class SpecialDayRestControllerIT extends BaseRestControllerIT {
 
     @Autowired
     private WebApplicationContext context;
