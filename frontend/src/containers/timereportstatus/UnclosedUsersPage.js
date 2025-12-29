@@ -158,11 +158,6 @@ function UnclosedUsersPage(props) {
     const [mailEnabled, setMailEnabled] = useState(false);
     const { showError, showSuccess, showWarning } = useToast();
 
-    useEffect(() => {
-        loadCurrentReport();
-        checkMailEnabled();
-    }, []);
-
     const loadCurrentReport = useCallback(() => {
         TimeReportStatusService.getCurrentUnclosedUsers()
             .then(response => {
@@ -175,6 +170,24 @@ function UnclosedUsersPage(props) {
                 showError(errorMessage);
             });
     }, [showError]);
+
+    const checkMailEnabled = useCallback(() => {
+        const systemService = new SystemService();
+        systemService.isMailEnabled()
+            .then(response => {
+                setMailEnabled(response.data);
+            })
+            .catch(error => {
+                console.error('Error checking mail enabled status:', error);
+                // Default to false if we can't check
+                setMailEnabled(false);
+            });
+    }, []);
+
+    useEffect(() => {
+        loadCurrentReport();
+        checkMailEnabled();
+    }, [loadCurrentReport, checkMailEnabled]);
 
     const handlePreviousReport = useCallback((event) => {
         const date = event.target.name;
@@ -205,19 +218,6 @@ function UnclosedUsersPage(props) {
                 showError(errorMessage);
             });
     }, [showError]);
-
-    const checkMailEnabled = useCallback(() => {
-        const systemService = new SystemService();
-        systemService.isMailEnabled()
-            .then(response => {
-                setMailEnabled(response.data);
-            })
-            .catch(error => {
-                console.error('Error checking mail enabled status:', error);
-                // Default to false if we can't check
-                setMailEnabled(false);
-            });
-    }, []);
 
     const handleReportUpdate = useCallback((updatedReport) => {
         setReport(updatedReport);

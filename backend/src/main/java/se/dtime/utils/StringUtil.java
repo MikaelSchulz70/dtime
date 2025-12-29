@@ -1,6 +1,6 @@
 package se.dtime.utils;
 
-import org.thymeleaf.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 
 public class StringUtil {
 

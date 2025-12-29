@@ -1,8 +1,8 @@
 package se.dtime.service.user;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.User;
 import se.dtime.service.BaseConverter;

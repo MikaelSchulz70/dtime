@@ -1,16 +1,15 @@
 package se.dtime.restcontroller;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.http.MediaType;
-import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.context.annotation.Import;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.request.RequestPostProcessor;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.context.WebApplicationContext;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.SystemPropertyPO;
 import se.dtime.dbmodel.TaskPO;
@@ -22,22 +21,30 @@ import se.dtime.repository.AccountRepository;
 import se.dtime.repository.SystemPropertyRepository;
 import se.dtime.repository.TaskRepository;
 import se.dtime.repository.UserRepository;
+import tools.jackson.databind.ObjectMapper;
 
 import java.time.LocalDateTime;
 
+import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
+import static org.springframework.security.test.web.servlet.setup.SecurityMockMvcConfigurers.springSecurity;
+
 @SpringBootTest
-@AutoConfigureMockMvc
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-    "spring.jpa.properties.hibernate.default_schema=PUBLIC",
-    "security.enable-csrf=false"
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
+        "spring.jpa.properties.hibernate.default_schema=PUBLIC",
+        "security.enable-csrf=false"
 })
 @Transactional
+@Import(TestSecurityConfig.class)
 public abstract class BaseRestControllerIT {
 
+    protected static final String ADMIN_USER = "ADMIN_USER";
+
     @Autowired
+    private WebApplicationContext context;
+
     protected MockMvc mockMvc;
 
     @Autowired
@@ -63,16 +70,22 @@ public abstract class BaseRestControllerIT {
 
     @BeforeEach
     void setUpBaseData() {
+        // Set up MockMvc with Spring Security
+        mockMvc = MockMvcBuilders
+                .webAppContextSetup(context)
+                .apply(springSecurity())
+                .build();
+
         // Create test users
         testUser = createAndSaveUser("user@example.com", "Test", "User", UserRole.USER);
         testAdmin = createAndSaveUser("admin@example.com", "Test", "Admin", UserRole.ADMIN);
-        
+
         // Create test account
         testAccount = createAndSaveAccount("Test Account");
-        
+
         // Create test task
         testTask = createAndSaveTask("Test Task", testAccount);
-        
+
         // Create test system property
         testSystemProperty = createAndSaveSystemProperty("test.property", "test value");
     }
@@ -130,5 +143,9 @@ public abstract class BaseRestControllerIT {
 
     protected String asJsonString(Object obj) throws Exception {
         return objectMapper.writeValueAsString(obj);
+    }
+
+    protected static RequestPostProcessor adminUser() {
+        return user(ADMIN_USER).roles("admin");
     }
 }

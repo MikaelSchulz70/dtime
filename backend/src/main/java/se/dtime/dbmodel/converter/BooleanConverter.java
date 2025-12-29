@@ -6,11 +6,11 @@ public class BooleanConverter implements AttributeConverter<Boolean, Integer> {
 
     @Override
     public Integer convertToDatabaseColumn(Boolean attribute) {
-        return attribute == null ? null : (attribute ? 1 : 0);
+        return attribute == null ? 0 : (attribute ? 1 : 0);
     }
 
     @Override
     public Boolean convertToEntityAttribute(Integer dbData) {
-        return dbData == null ? null : (dbData != 0);
+        return dbData == null ? false : (dbData != 0);
     }
 }
