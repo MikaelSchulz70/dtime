@@ -2,6 +2,11 @@ spring:
   profiles:
     active: "@activatedProperties@"
 
+  # Jackson Configuration
+  jackson:
+    deserialization:
+      fail-on-null-for-primitives: false
+
   # Database Configuration
   datasource:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/dtime}
