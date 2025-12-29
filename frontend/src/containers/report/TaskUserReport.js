@@ -21,32 +21,6 @@ function TimeReportTableEntry({ timeReportDay }) {
     );
 }
 
-function TaskUserTableRow({ timeReporttask, totaltaskTime }) {
-    if (timeReporttask == null) return null;
-    var entries = [];
-    if (timeReporttask != null) {
-        timeReporttask.timeReportDays.forEach(function (timeReportDay) {
-            entries.push(
-                <TimeReportTableEntry timeReportDay={timeReportDay} />);
-        });
-    }
-
-    var accountName = timeReporttask.task.account.name;
-    var accountShortName = accountName.substring(0, Math.min(20, accountName.length));
-    var taskName = timeReporttask.task.name;
-    var taskShortName = taskName.substring(0, Math.min(20, taskName.length));
-
-    return (
-        <tr>
-            <th className="text-nowrap" title={accountName}>{accountShortName}</th>
-            <th className="text-nowrap" title={taskName}>{taskShortName}</th>
-            <th><input className="time" readOnly={true} name={timeReporttask.task.name} type="text" value={totaltaskTime} /></th>
-            {entries}
-        </tr>
-    );
-}
-
-
 function TaskUserReportRow({ taskUserReport }) {
     if (taskUserReport == null)
         return null;
