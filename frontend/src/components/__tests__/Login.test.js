@@ -1,5 +1,5 @@
 import React from 'react';
-import { render, screen, waitFor, fireEvent } from '@testing-library/react';
+import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { BrowserRouter } from 'react-router';
 import axios from 'axios';
@@ -23,7 +23,7 @@ Object.defineProperty(window, 'location', {
 // Wrapper component with router
 const LoginWithRouter = ({ search = '' }) => {
   // Mock useLocation hook
-  const mockLocation = { search, pathname: '/login' };
+  const _mockLocation = { search, pathname: '/login' };
   
   return (
     <BrowserRouter>

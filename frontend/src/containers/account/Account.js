@@ -122,7 +122,7 @@ function Account(props) {
 
         var accountService = new AccountService();
         accountService.delete(id)
-            .then(response => {
+            .then(_response => {
                 showSuccess('Account deleted successfully');
                 loadFromServer();
             })

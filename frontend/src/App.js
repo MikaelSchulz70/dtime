@@ -48,7 +48,7 @@ import SpecialDays from './containers/specialday/SpecialDays';
 function Logout() {
   useEffect(() => {
     axios.get('/logout')
-      .then(response => {
+      .then(_response => {
         window.location.href = '/';
       })
       .catch(error => {
