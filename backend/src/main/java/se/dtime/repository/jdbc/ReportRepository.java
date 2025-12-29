@@ -1,13 +1,12 @@
+// java
 package se.dtime.repository.jdbc;
 
-import jakarta.annotation.PostConstruct;
-import org.springframework.jdbc.core.support.JdbcDaoSupport;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import se.dtime.model.report.AccountReport;
 import se.dtime.model.report.TaskReport;
 import se.dtime.model.report.UserReport;
 
-import javax.sql.DataSource;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -15,7 +14,7 @@ import java.util.List;
 import java.util.Map;
 
 @Repository
-public class ReportRepository extends JdbcDaoSupport {
+public class ReportRepository {
 
     private final String USERS_TASK_REPORTS =
             "select u.id userId, u.firstname, u.lastname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(tr.reportedtime) totalTime " +
@@ -74,22 +73,16 @@ public class ReportRepository extends JdbcDaoSupport {
                     "having sum(tr.reportedtime) > 0 " +
                     "order by sum(tr.reportedtime) desc";
 
-    private final DataSource dataSource;
+    private final JdbcTemplate jdbcTemplate;
 
-    public ReportRepository(DataSource dataSource) {
-        this.dataSource = dataSource;
-    }
-
-    @PostConstruct
-    private void initialize() {
-        setDataSource(dataSource);
+    public ReportRepository(JdbcTemplate jdbcTemplate) {
+        this.jdbcTemplate = jdbcTemplate;
     }
 
     public List<UserReport> getUserTaskReports(LocalDate fromDate, LocalDate toDate) {
         String sql = USERS_TASK_REPORTS.replace("{USER_CONDITION}", "");
         List<UserReport> userReports = getUserTaskReports(sql, fromDate, toDate, new Object[]{fromDate, toDate});
 
-        // Fetch user reports for users that have no reported time
         List<UserReport> userReportsNoTime = getUsersReportsNoReportedTime(USERS_REPORTS_NO_TIME, fromDate, toDate, new Object[]{fromDate, toDate});
         userReports.addAll(userReportsNoTime);
 
@@ -102,7 +95,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<UserReport> getUserReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(USER_REPORTS, fromDate, toDate);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(USER_REPORTS, fromDate, toDate);
 
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
@@ -124,7 +117,6 @@ public class ReportRepository extends JdbcDaoSupport {
             userReport.setTotalTime(totalTime);
         }
 
-        // Fetch user reports for users that have no reported time
         List<UserReport> userReportsNoTime = getUsersReportsNoReportedTime(USERS_REPORTS_NO_TIME, fromDate, toDate, new Object[]{fromDate, toDate});
         userReports.addAll(userReportsNoTime);
 
@@ -132,7 +124,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<TaskReport> getTaskReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(TASK_REPORT, fromDate, toDate);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(TASK_REPORT, fromDate, toDate);
 
         List<TaskReport> taskReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -149,7 +141,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     private List<UserReport> getUserTaskReports(String sql, LocalDate fromDate, LocalDate toDate, Object[] parameters) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, parameters);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, parameters);
 
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
@@ -182,7 +174,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     private List<UserReport> getUsersReportsNoReportedTime(String sql, LocalDate fromDate, LocalDate toDate, Object[] parameters) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(sql, parameters);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(sql, parameters);
 
         List<UserReport> userReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
@@ -200,7 +192,7 @@ public class ReportRepository extends JdbcDaoSupport {
     }
 
     public List<AccountReport> getAccountReports(LocalDate fromDate, LocalDate toDate) {
-        List<Map<String, Object>> rows = getJdbcTemplate().queryForList(ACCOUNT_REPORT, fromDate, toDate);
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(ACCOUNT_REPORT, fromDate, toDate);
 
         List<AccountReport> accountReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
