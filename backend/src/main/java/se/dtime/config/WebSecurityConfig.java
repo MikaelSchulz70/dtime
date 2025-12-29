@@ -1,24 +1,22 @@
 package se.dtime.config;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
-import org.springframework.security.config.annotation.authentication.builders.AuthenticationManagerBuilder;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
-import org.springframework.http.HttpStatus;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import se.dtime.service.user.UserLoginService;
 import se.dtime.service.user.CustomOAuth2UserService;
+import se.dtime.service.user.UserLoginService;
 
 @Configuration
 @EnableWebSecurity
@@ -28,7 +26,7 @@ public class WebSecurityConfig {
     private final UserLoginService userLoginService;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
-    
+
     @Autowired(required = false)
     private ClientRegistrationRepository clientRegistrationRepository;
 
@@ -38,7 +36,7 @@ public class WebSecurityConfig {
     @Value("${oauth.google.enabled:false}")
     private boolean googleOAuthEnabled;
 
-    public WebSecurityConfig(UserLoginService userLoginService, 
+    public WebSecurityConfig(UserLoginService userLoginService,
                              CustomAuthenticationSuccessHandler successHandler,
                              CustomOAuth2UserService customOAuth2UserService) {
         this.userLoginService = userLoginService;
@@ -53,8 +51,7 @@ public class WebSecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider();
-        auth.setUserDetailsService(userLoginService);
+        DaoAuthenticationProvider auth = new DaoAuthenticationProvider(userLoginService);
         auth.setPasswordEncoder(passwordEncoder());
         return auth;
     }
@@ -114,7 +111,8 @@ public class WebSecurityConfig {
                 )
                 .headers(headers -> headers
                         .frameOptions(frame -> frame.deny())
-                        .contentTypeOptions(content -> {})
+                        .contentTypeOptions(content -> {
+                        })
                         .httpStrictTransportSecurity(hsts -> hsts
                                 .maxAgeInSeconds(31536000)
                         )

@@ -1,6 +1,6 @@
 package se.dtime.common;
 
-import org.thymeleaf.util.StringUtils;
+import org.apache.commons.lang3.StringUtils;
 import se.dtime.model.Attribute;
 import se.dtime.model.error.ValidationException;
 

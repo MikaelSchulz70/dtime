@@ -1,19 +1,18 @@
 package se.dtime.repository.jdbc;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.annotation.Commit;
-import org.springframework.test.context.TestPropertySource;
+import se.dtime.repository.BaseRepositoryIT;
 import org.springframework.transaction.annotation.Transactional;
-import se.dtime.dbmodel.*;
+import se.dtime.dbmodel.AccountPO;
+import se.dtime.dbmodel.TaskContributorPO;
+import se.dtime.dbmodel.TaskPO;
+import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.TimeEntryPO;
-import jakarta.persistence.EntityManager;
-import jakarta.persistence.PersistenceContext;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.UserRole;
 import se.dtime.model.report.AccountReport;
@@ -27,17 +26,9 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@DataJpaTest(excludeAutoConfiguration = {LiquibaseAutoConfiguration.class})
-@AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
-@TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-    "spring.jpa.properties.hibernate.default_schema=PUBLIC"
-})
 @Import(TestReportRepository.class)
 @Transactional
-class ReportRepositoryIT {
+class ReportRepositoryIT extends BaseRepositoryIT {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -101,7 +92,7 @@ class ReportRepositoryIT {
 
         // Time entry outside date range
         createTimeEntry(contributor1, LocalDate.of(2024, 11, 30), 4.0f);
-        
+
         // Flush and clear to ensure data is committed to database for JDBC queries
         entityManager.flush();
         entityManager.clear();
@@ -112,13 +103,13 @@ class ReportRepositoryIT {
         List<UserReport> reports = reportRepository.getUserTaskReports(fromDate, toDate);
 
         assertThat(reports).hasSize(3); // 2 users with time + 1 user without time
-        
+
         // Check user with task reports (Alice)
         UserReport aliceReport = reports.stream()
                 .filter(r -> "Alice Smith".equals(r.getFullName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(aliceReport).isNotNull();
         assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
         assertThat(aliceReport.getTotalTime()).isEqualTo(21.5); // 8.0 + 7.5 + 6.0
@@ -131,7 +122,7 @@ class ReportRepositoryIT {
                 .filter(r -> "Bob Johnson".equals(r.getFullName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(bobReport).isNotNull();
         assertThat(bobReport.getUserId()).isEqualTo(user2.getId());
         assertThat(bobReport.getTotalTime()).isEqualTo(13.5); // 8.5 + 5.0
@@ -141,7 +132,7 @@ class ReportRepositoryIT {
                 .filter(r -> "Charlie Brown".equals(r.getFullName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(charlieReport).isNotNull();
         assertThat(charlieReport.getUserId()).isEqualTo(user3.getId());
         assertThat(charlieReport.getTotalTime()).isEqualTo(0.0);
@@ -153,7 +144,7 @@ class ReportRepositoryIT {
         List<UserReport> reports = reportRepository.getUserTaskReports(user1.getId(), fromDate, toDate);
 
         assertThat(reports).hasSize(1);
-        
+
         UserReport aliceReport = reports.get(0);
         assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
         assertThat(aliceReport.getFullName()).isEqualTo("Alice Smith");
@@ -165,7 +156,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task A".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskAReport).isNotNull();
         assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
         assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
@@ -176,7 +167,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task B".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskBReport).isNotNull();
         assertThat(taskBReport.getTotalHours()).isEqualTo(6.0);
     }
@@ -192,7 +183,7 @@ class ReportRepositoryIT {
                 .filter(r -> r.getTotalTime() > 0)
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(firstReport).isNotNull();
         assertThat(firstReport.getFullName()).isEqualTo("Alice Smith");
         assertThat(firstReport.getTotalTime()).isEqualTo(21.5);
@@ -214,7 +205,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task A".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskAReport).isNotNull();
         assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
         assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
@@ -226,7 +217,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task B".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskBReport).isNotNull();
         assertThat(taskBReport.getTotalHours()).isEqualTo(6.0f);
 
@@ -235,7 +226,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task C".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskCReport).isNotNull();
         assertThat(taskCReport.getAccountId()).isEqualTo(account2.getId());
         assertThat(taskCReport.getAccountName()).isEqualTo("Account Beta");
@@ -253,7 +244,7 @@ class ReportRepositoryIT {
                 .filter(ar -> "Account Alpha".equals(ar.getAccountName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(account1Report).isNotNull();
         assertThat(account1Report.getAccountId()).isEqualTo(account1.getId());
         assertThat(account1Report.getTotalHours()).isEqualTo(30.0f); // Task A: 24.0 + Task B: 6.0
@@ -263,7 +254,7 @@ class ReportRepositoryIT {
                 .filter(ar -> "Account Beta".equals(ar.getAccountName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(account2Report).isNotNull();
         assertThat(account2Report.getAccountId()).isEqualTo(account2.getId());
         assertThat(account2Report.getTotalHours()).isEqualTo(5.0f);
@@ -282,10 +273,10 @@ class ReportRepositoryIT {
         // Should only include users with no reported time
         assertThat(userTaskReports).hasSize(3); // All users have no time in this range
         assertThat(userTaskReports).allMatch(ur -> ur.getTotalTime() == 0.0);
-        
+
         assertThat(userReports).hasSize(3); // All users have no time in this range
         assertThat(userReports).allMatch(ur -> ur.getTotalTime() == 0.0);
-        
+
         assertThat(taskReports).isEmpty();
         assertThat(accountReports).isEmpty();
     }
@@ -305,7 +296,7 @@ class ReportRepositoryIT {
                 .filter(tr -> "Task A".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
-        
+
         assertThat(taskAReport).isNotNull();
         assertThat(taskAReport.getTotalHours()).isEqualTo(24.0f); // Alice: 8.0 + 7.5 + Bob: 8.5
     }

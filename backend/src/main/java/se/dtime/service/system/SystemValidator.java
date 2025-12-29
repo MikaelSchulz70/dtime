@@ -1,7 +1,7 @@
 package se.dtime.service.system;
 
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
 import se.dtime.common.ValidatorBase;
 import se.dtime.dbmodel.SystemPropertyPO;
 import se.dtime.model.SystemPropertyDB;

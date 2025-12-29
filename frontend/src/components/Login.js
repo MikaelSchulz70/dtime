@@ -45,7 +45,7 @@ const Login = () => {
       formDataToSend.append('username', formData.username);
       formDataToSend.append('password', formData.password);
 
-      const response = await axios.post('/perform_login', formDataToSend, {
+      const _response = await axios.post('/perform_login', formDataToSend, {
         headers: {
           'Content-Type': 'application/x-www-form-urlencoded'
         },

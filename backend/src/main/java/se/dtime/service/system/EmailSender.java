@@ -1,11 +1,11 @@
 package se.dtime.service.system;
 
 import lombok.extern.slf4j.Slf4j;
+import org.apache.commons.lang3.StringUtils;
 import org.springframework.mail.MailException;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSenderImpl;
 import org.springframework.stereotype.Service;
-import org.thymeleaf.util.StringUtils;
 import se.dtime.config.EmailSendConfig;
 import se.dtime.model.error.BaseException;
 

@@ -5,7 +5,7 @@ import *  as Constants from '../../common/Constants';
 import { useBaseDetails } from '../BaseDetails';
 import { useToast } from '../../components/Toast';
 
-export default function AccountDetails(props) {
+export default function AccountDetails(_props) {
     const { accountId } = useParams();
     const navigate = useNavigate();
     const { handleError, clearError, clearErrors } = useBaseDetails();
@@ -25,13 +25,13 @@ export default function AccountDetails(props) {
                 .then(response => {
                     setAccount(response.data);
                 })
-                .catch(error => {
+                .catch(_error => {
                     showError?.('Failed to fetch account') || alert('Failed to fetch account');
                 });
         }
     }, [accountId, showError]);
 
-    const handleCreateUpdate = useCallback((id) => {
+    const handleCreateUpdate = useCallback((_id) => {
         clearErrors();
         const service = new AccountService();
         const isUpdate = account.id && account.id !== 0;
@@ -40,7 +40,7 @@ export default function AccountDetails(props) {
             : service.create(account);
 
         serviceCall
-            .then(response => {
+            .then(_response => {
                 navigate('/account?refresh=' + Date.now(), { replace: true });
             })
             .catch(error => {
@@ -58,7 +58,7 @@ export default function AccountDetails(props) {
 
         const service = new AccountService();
         service.validate(accountId, field, value)
-            .then(response => {
+            .then(_response => {
                 clearError(field);
             })
             .catch(error => {
