@@ -163,7 +163,7 @@ jobs:
         tags: |
           type=ref,event=branch
           type=ref,event=pr
-          type=sha,prefix={{branch}}-
+          type=sha,prefix=sha-
           type=sha
           type=raw,value=latest,enable={{is_default_branch}}
 
@@ -254,11 +254,11 @@ jobs:
         echo "Attempting to pull latest frontend image..."
         docker pull ghcr.io/mikaelschulz70/dtime/frontend:latest || echo "No latest frontend image found"
         
-        echo "Attempting to pull master-tagged backend image..."
-        docker pull ghcr.io/mikaelschulz70/dtime/backend:master-${{ github.sha }} || echo "No master-prefixed backend image found"
+        echo "Attempting to pull sha-tagged backend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/backend:sha-${{ github.sha }} || echo "No sha-prefixed backend image found"
         
-        echo "Attempting to pull master-tagged frontend image..."
-        docker pull ghcr.io/mikaelschulz70/dtime/frontend:master-${{ github.sha }} || echo "No master-prefixed frontend image found"
+        echo "Attempting to pull sha-tagged frontend image..."
+        docker pull ghcr.io/mikaelschulz70/dtime/frontend:sha-${{ github.sha }} || echo "No sha-prefixed frontend image found"
         
         echo "Now checking for the exact SHA tags we expect..."
         BACKEND_IMG="${{ env.REGISTRY }}/mikaelschulz70/dtime/backend:${{ github.sha }}"
