@@ -2,9 +2,9 @@ package se.dtime.repository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskContributorPO;
@@ -21,10 +21,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(excludeAutoConfiguration = {LiquibaseAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-    "spring.jpa.properties.hibernate.default_schema=PUBLIC"
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
+        "spring.jpa.properties.hibernate.default_schema=PUBLIC"
 })
 class TaskContributorRepositoryIT {
 
@@ -44,11 +44,11 @@ class TaskContributorRepositoryIT {
     void shouldSaveAndFindTaskContributor() {
         UserPO user = createAndSaveUser("john@example.com", "John", "Doe");
         TaskPO task = createAndSaveTask("Test Task", user);
-        
+
         TaskContributorPO contributor = createTaskContributor(user, task, ActivationStatus.ACTIVE);
-        
+
         TaskContributorPO saved = taskContributorRepository.save(contributor);
-        
+
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getUser().getId()).isEqualTo(user.getId());
         assertThat(saved.getTask().getId()).isEqualTo(task.getId());
@@ -64,22 +64,22 @@ class TaskContributorRepositoryIT {
         TaskPO task1 = createAndSaveTask("Task 1", user1);
         TaskPO task2 = createAndSaveTask("Task 2", user1);
         TaskPO task3 = createAndSaveTask("Task 3", user2);
-        
+
         TaskContributorPO contributor1 = createTaskContributor(user1, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor2 = createTaskContributor(user1, task2, ActivationStatus.ACTIVE);
         TaskContributorPO contributor3 = createTaskContributor(user2, task3, ActivationStatus.ACTIVE);
-        
+
         taskContributorRepository.save(contributor1);
         taskContributorRepository.save(contributor2);
         taskContributorRepository.save(contributor3);
-        
+
         List<TaskContributorPO> user1Contributors = taskContributorRepository.findByUser(user1);
-        
+
         assertThat(user1Contributors).hasSize(2);
         assertThat(user1Contributors).allMatch(tc -> tc.getUser().getId().equals(user1.getId()));
-        
+
         List<TaskContributorPO> user2Contributors = taskContributorRepository.findByUser(user2);
-        
+
         assertThat(user2Contributors).hasSize(1);
         assertThat(user2Contributors.get(0).getUser().getId()).isEqualTo(user2.getId());
     }
@@ -90,22 +90,22 @@ class TaskContributorRepositoryIT {
         UserPO user2 = createAndSaveUser("user2@example.com", "User", "Two");
         TaskPO task1 = createAndSaveTask("Task 1", user1);
         TaskPO task2 = createAndSaveTask("Task 2", user1);
-        
+
         TaskContributorPO contributor1 = createTaskContributor(user1, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor2 = createTaskContributor(user2, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor3 = createTaskContributor(user1, task2, ActivationStatus.ACTIVE);
-        
+
         taskContributorRepository.save(contributor1);
         taskContributorRepository.save(contributor2);
         taskContributorRepository.save(contributor3);
-        
+
         List<TaskContributorPO> task1Contributors = taskContributorRepository.findByTask(task1);
-        
+
         assertThat(task1Contributors).hasSize(2);
         assertThat(task1Contributors).allMatch(tc -> tc.getTask().getId().equals(task1.getId()));
-        
+
         List<TaskContributorPO> task2Contributors = taskContributorRepository.findByTask(task2);
-        
+
         assertThat(task2Contributors).hasSize(1);
         assertThat(task2Contributors.get(0).getTask().getId()).isEqualTo(task2.getId());
     }
@@ -116,23 +116,23 @@ class TaskContributorRepositoryIT {
         TaskPO task1 = createAndSaveTask("Task 1", user);
         TaskPO task2 = createAndSaveTask("Task 2", user);
         TaskPO task3 = createAndSaveTask("Task 3", user);
-        
+
         TaskContributorPO activeContributor1 = createTaskContributor(user, task1, ActivationStatus.ACTIVE);
         TaskContributorPO activeContributor2 = createTaskContributor(user, task2, ActivationStatus.ACTIVE);
         TaskContributorPO inactiveContributor = createTaskContributor(user, task3, ActivationStatus.INACTIVE);
-        
+
         taskContributorRepository.save(activeContributor1);
         taskContributorRepository.save(activeContributor2);
         taskContributorRepository.save(inactiveContributor);
-        
+
         List<TaskContributorPO> activeContributors = taskContributorRepository.findByUserAndActivationStatus(user, ActivationStatus.ACTIVE);
-        
+
         assertThat(activeContributors).hasSize(2);
         assertThat(activeContributors).allMatch(tc -> tc.getActivationStatus() == ActivationStatus.ACTIVE);
         assertThat(activeContributors).allMatch(tc -> tc.getUser().getId().equals(user.getId()));
-        
+
         List<TaskContributorPO> inactiveContributors = taskContributorRepository.findByUserAndActivationStatus(user, ActivationStatus.INACTIVE);
-        
+
         assertThat(inactiveContributors).hasSize(1);
         assertThat(inactiveContributors.get(0).getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
     }
@@ -143,23 +143,23 @@ class TaskContributorRepositoryIT {
         UserPO user2 = createAndSaveUser("user2@example.com", "User", "Two");
         TaskPO task1 = createAndSaveTask("Task 1", user1);
         TaskPO task2 = createAndSaveTask("Task 2", user1);
-        
+
         TaskContributorPO contributor1 = createTaskContributor(user1, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor2 = createTaskContributor(user2, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor3 = createTaskContributor(user1, task2, ActivationStatus.ACTIVE);
-        
+
         taskContributorRepository.save(contributor1);
         taskContributorRepository.save(contributor2);
         taskContributorRepository.save(contributor3);
-        
+
         TaskContributorPO found = taskContributorRepository.findByUserAndTask(user1, task1);
-        
+
         assertThat(found).isNotNull();
         assertThat(found.getUser().getId()).isEqualTo(user1.getId());
         assertThat(found.getTask().getId()).isEqualTo(task1.getId());
-        
+
         TaskContributorPO notFound = taskContributorRepository.findByUserAndTask(user2, task2);
-        
+
         assertThat(notFound).isNull();
     }
 
@@ -170,18 +170,18 @@ class TaskContributorRepositoryIT {
         TaskPO task1 = createAndSaveTask("Task 1", user1);
         TaskPO task2 = createAndSaveTask("Task 2", user1);
         TaskPO task3 = createAndSaveTask("Task 3", user2);
-        
+
         TaskContributorPO contributor1 = createTaskContributor(user1, task1, ActivationStatus.ACTIVE);
         TaskContributorPO contributor2 = createTaskContributor(user1, task2, ActivationStatus.ACTIVE);
         TaskContributorPO contributor3 = createTaskContributor(user2, task3, ActivationStatus.ACTIVE);
-        
+
         taskContributorRepository.save(contributor1);
         taskContributorRepository.save(contributor2);
         taskContributorRepository.save(contributor3);
-        
+
         long user1Count = taskContributorRepository.countByUser(user1);
         long user2Count = taskContributorRepository.countByUser(user2);
-        
+
         assertThat(user1Count).isEqualTo(2);
         assertThat(user2Count).isEqualTo(1);
     }
@@ -189,9 +189,9 @@ class TaskContributorRepositoryIT {
     @Test
     void shouldReturnZeroWhenCountingUserWithNoContributions() {
         UserPO user = createAndSaveUser("empty@example.com", "Empty", "User");
-        
+
         long count = taskContributorRepository.countByUser(user);
-        
+
         assertThat(count).isEqualTo(0);
     }
 
@@ -199,16 +199,16 @@ class TaskContributorRepositoryIT {
     void shouldUpdateTaskContributor() {
         UserPO user = createAndSaveUser("user@example.com", "Test", "User");
         TaskPO task = createAndSaveTask("Test Task", user);
-        
+
         TaskContributorPO contributor = createTaskContributor(user, task, ActivationStatus.ACTIVE);
         TaskContributorPO saved = taskContributorRepository.save(contributor);
-        
+
         saved.setActivationStatus(ActivationStatus.INACTIVE);
         saved.setUpdatedBy(2L);
         saved.setUpdatedDateTime(LocalDateTime.now());
-        
+
         TaskContributorPO updated = taskContributorRepository.save(saved);
-        
+
         assertThat(updated.getId()).isEqualTo(saved.getId());
         assertThat(updated.getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
         assertThat(updated.getUpdatedBy()).isEqualTo(2L);
@@ -218,12 +218,12 @@ class TaskContributorRepositoryIT {
     void shouldDeleteTaskContributor() {
         UserPO user = createAndSaveUser("user@example.com", "Test", "User");
         TaskPO task = createAndSaveTask("Test Task", user);
-        
+
         TaskContributorPO contributor = createTaskContributor(user, task, ActivationStatus.ACTIVE);
         TaskContributorPO saved = taskContributorRepository.save(contributor);
-        
+
         taskContributorRepository.delete(saved);
-        
+
         TaskContributorPO found = taskContributorRepository.findByUserAndTask(user, task);
         assertThat(found).isNull();
     }

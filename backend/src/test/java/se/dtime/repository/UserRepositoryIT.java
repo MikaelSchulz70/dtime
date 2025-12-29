@@ -2,9 +2,9 @@ package se.dtime.repository;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.autoconfigure.liquibase.LiquibaseAutoConfiguration;
-import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
-import org.springframework.boot.test.autoconfigure.orm.jpa.DataJpaTest;
+import org.springframework.boot.data.jpa.test.autoconfigure.DataJpaTest;
+import org.springframework.boot.jdbc.test.autoconfigure.AutoConfigureTestDatabase;
+import org.springframework.boot.liquibase.autoconfigure.LiquibaseAutoConfiguration;
 import org.springframework.test.context.TestPropertySource;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
@@ -18,10 +18,10 @@ import static org.assertj.core.api.Assertions.assertThat;
 @DataJpaTest(excludeAutoConfiguration = {LiquibaseAutoConfiguration.class})
 @AutoConfigureTestDatabase(replace = AutoConfigureTestDatabase.Replace.ANY)
 @TestPropertySource(properties = {
-    "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
-    "spring.jpa.hibernate.ddl-auto=create-drop",
-    "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
-    "spring.jpa.properties.hibernate.default_schema=PUBLIC"
+        "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "spring.jpa.hibernate.ddl-auto=create-drop",
+        "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
+        "spring.jpa.properties.hibernate.default_schema=PUBLIC"
 })
 class UserRepositoryIT {
 
@@ -31,9 +31,9 @@ class UserRepositoryIT {
     @Test
     void shouldSaveAndFindUser() {
         UserPO user = createUser("john@example.com", "John", "Doe", UserRole.USER, ActivationStatus.ACTIVE);
-        
+
         UserPO saved = userRepository.save(user);
-        
+
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getEmail()).isEqualTo("john@example.com");
         assertThat(saved.getFirstName()).isEqualTo("John");
@@ -48,9 +48,9 @@ class UserRepositoryIT {
     void shouldFindByEmail() {
         UserPO user = createUser("findme@example.com", "Find", "Me", UserRole.USER, ActivationStatus.ACTIVE);
         userRepository.save(user);
-        
+
         UserPO found = userRepository.findByEmail("findme@example.com");
-        
+
         assertThat(found).isNotNull();
         assertThat(found.getEmail()).isEqualTo("findme@example.com");
         assertThat(found.getFirstName()).isEqualTo("Find");
@@ -60,7 +60,7 @@ class UserRepositoryIT {
     @Test
     void shouldReturnNullWhenUserNotFoundByEmail() {
         UserPO found = userRepository.findByEmail("nonexistent@example.com");
-        
+
         assertThat(found).isNull();
     }
 
@@ -69,13 +69,13 @@ class UserRepositoryIT {
         UserPO activeUser1 = createUser("charlie@example.com", "Charlie", "Brown", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO activeUser2 = createUser("alice@example.com", "Alice", "Smith", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO inactiveUser = createUser("bob@example.com", "Bob", "Jones", UserRole.USER, ActivationStatus.INACTIVE);
-        
+
         userRepository.save(activeUser1);
         userRepository.save(activeUser2);
         userRepository.save(inactiveUser);
-        
+
         List<UserPO> activeUsers = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
-        
+
         assertThat(activeUsers).hasSize(2);
         assertThat(activeUsers.get(0).getFirstName()).isEqualTo("Alice");
         assertThat(activeUsers.get(1).getFirstName()).isEqualTo("Charlie");
@@ -86,12 +86,12 @@ class UserRepositoryIT {
     void shouldFindInactiveUsersByStatus() {
         UserPO activeUser = createUser("active@example.com", "Active", "User", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO inactiveUser = createUser("inactive@example.com", "Inactive", "User", UserRole.USER, ActivationStatus.INACTIVE);
-        
+
         userRepository.save(activeUser);
         userRepository.save(inactiveUser);
-        
+
         List<UserPO> inactiveUsers = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE);
-        
+
         assertThat(inactiveUsers).hasSize(1);
         assertThat(inactiveUsers.get(0).getFirstName()).isEqualTo("Inactive");
         assertThat(inactiveUsers.get(0).getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
@@ -102,20 +102,20 @@ class UserRepositoryIT {
         UserPO adminUser = createUser("admin@example.com", "Admin", "User", UserRole.ADMIN, ActivationStatus.ACTIVE);
         UserPO regularUser = createUser("user@example.com", "Regular", "User", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO inactiveAdmin = createUser("inactive.admin@example.com", "Inactive", "Admin", UserRole.ADMIN, ActivationStatus.INACTIVE);
-        
+
         userRepository.save(adminUser);
         userRepository.save(regularUser);
         userRepository.save(inactiveAdmin);
-        
+
         List<UserPO> activeAdmins = userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE);
-        
+
         assertThat(activeAdmins).hasSize(1);
         assertThat(activeAdmins.get(0).getEmail()).isEqualTo("admin@example.com");
         assertThat(activeAdmins.get(0).getUserRole()).isEqualTo(UserRole.ADMIN);
         assertThat(activeAdmins.get(0).getActivationStatus()).isEqualTo(ActivationStatus.ACTIVE);
-        
+
         List<UserPO> activeUsers = userRepository.findByUserRoleAndActivationStatus(UserRole.USER, ActivationStatus.ACTIVE);
-        
+
         assertThat(activeUsers).hasSize(1);
         assertThat(activeUsers.get(0).getEmail()).isEqualTo("user@example.com");
         assertThat(activeUsers.get(0).getUserRole()).isEqualTo(UserRole.USER);
@@ -124,7 +124,7 @@ class UserRepositoryIT {
     @Test
     void shouldReturnEmptyListWhenNoUsersFoundByRoleAndStatus() {
         List<UserPO> users = userRepository.findByUserRoleAndActivationStatus(UserRole.ADMIN, ActivationStatus.ACTIVE);
-        
+
         assertThat(users).isEmpty();
     }
 
@@ -132,14 +132,14 @@ class UserRepositoryIT {
     void shouldUpdateUser() {
         UserPO user = createUser("update@example.com", "Update", "Test", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO saved = userRepository.save(user);
-        
+
         saved.setActivationStatus(ActivationStatus.INACTIVE);
         saved.setUserRole(UserRole.ADMIN);
         saved.setUpdatedBy(2L);
         saved.setUpdatedDateTime(LocalDateTime.now());
-        
+
         UserPO updated = userRepository.save(saved);
-        
+
         assertThat(updated.getId()).isEqualTo(saved.getId());
         assertThat(updated.getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
         assertThat(updated.getUserRole()).isEqualTo(UserRole.ADMIN);
@@ -150,9 +150,9 @@ class UserRepositoryIT {
     void shouldDeleteUser() {
         UserPO user = createUser("delete@example.com", "Delete", "Test", UserRole.USER, ActivationStatus.ACTIVE);
         UserPO saved = userRepository.save(user);
-        
+
         userRepository.delete(saved);
-        
+
         UserPO found = userRepository.findByEmail("delete@example.com");
         assertThat(found).isNull();
     }
@@ -160,7 +160,7 @@ class UserRepositoryIT {
     @Test
     void shouldGetFullName() {
         UserPO user = createUser("fullname@example.com", "John", "Smith", UserRole.USER, ActivationStatus.ACTIVE);
-        
+
         assertThat(user.getFullName()).isEqualTo("John Smith");
     }
 
