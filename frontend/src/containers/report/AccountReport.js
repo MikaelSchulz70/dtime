@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
+import { 
+    AccountHoursChart,
+    ChartViewToggle 
+} from '../../components/Charts';
 
 function AccountReportTable({ report }) {
+    const [viewMode, setViewMode] = useState('table');
+    
     if (report == null)
         return null;
 
@@ -26,24 +32,49 @@ function AccountReportTable({ report }) {
         </tr>
     );
 
+    // Transform data for chart components
+    const userReports = [{
+        fullName: "All Users",
+        totalTime: totalSum,
+        taskReports: report.accountReports.map(accountReport => ({
+            accountName: accountReport.accountName,
+            taskName: "All Tasks",
+            totalHours: parseFloat(accountReport.totalHours) || 0
+        }))
+    }];
+
     return (
         <div className="col-12">
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
-                    <h5 className="mb-0 fw-bold text-white">🏢 Account Time Summary</h5>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0 fw-bold text-white">🏢 Account Time Summary</h5>
+                        <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+                    </div>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-hover table-striped mb-0">
-                            <tbody>
-                                <tr>
-                                    <th className="fw-bold">Account Name</th>
-                                    <th className="fw-bold text-end">Total Hours</th>
-                                </tr>
-                                {rows}
-                            </tbody>
-                        </table>
-                    </div>
+                    {viewMode === 'table' ? (
+                        <div className="table-responsive">
+                            <table className="table table-hover table-striped mb-0">
+                                <tbody>
+                                    <tr>
+                                        <th className="fw-bold">Account Name</th>
+                                        <th className="fw-bold text-end">Total Hours</th>
+                                    </tr>
+                                    {rows}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="p-3">
+                            <div className="row">
+                                <div className="col-12">
+                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <AccountHoursChart userReports={userReports} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

@@ -391,8 +391,8 @@ function Times(props) {
                     ) : ''}
                 </div>
                 <div className="col-auto">
-                    <span className="text-nowrap">
-                        <b>{timeReport.firstDate} - {timeReport.lastDate}</b>
+                    <span className="badge bg-secondary fs-6 py-2 px-3 text-nowrap">
+                        📅 {timeReport.firstDate} - {timeReport.lastDate}
                     </span>
                 </div>
             </div>

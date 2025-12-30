@@ -1,6 +1,12 @@
-import React from "react";
+import React, { useState } from "react";
+import { 
+    UserTaskBarChart,
+    ChartViewToggle 
+} from '../../components/Charts';
 
 function UserReportTable({ report }) {
+    const [viewMode, setViewMode] = useState('table');
+    
     if (report == null)
         return null;
 
@@ -30,20 +36,34 @@ function UserReportTable({ report }) {
         <div className="col-12">
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
-                    <h5 className="mb-0 fw-bold text-white">👤 User Time Summary</h5>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0 fw-bold text-white">👤 User Time Summary</h5>
+                        <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+                    </div>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-hover table-striped mb-0">
-                            <tbody>
-                                <tr>
-                                    <th className="fw-bold">User Name</th>
-                                    <th className="fw-bold text-end">Total Hours</th>
-                                </tr>
-                                {rows}
-                            </tbody>
-                        </table>
-                    </div>
+                    {viewMode === 'table' ? (
+                        <div className="table-responsive">
+                            <table className="table table-hover table-striped mb-0">
+                                <tbody>
+                                    <tr>
+                                        <th className="fw-bold">User Name</th>
+                                        <th className="fw-bold text-end">Total Hours</th>
+                                    </tr>
+                                    {rows}
+                                </tbody>
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="p-3">
+                            <div className="row">
+                                <div className="col-12">
+                                    <h6 className="mb-3 fw-bold text-primary">👤 User Hours Overview</h6>
+                                    <UserTaskBarChart userReports={report.userReports} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

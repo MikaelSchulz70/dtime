@@ -262,12 +262,13 @@ function UnclosedUsersPage(props) {
     const toDate = report.toDate || '';
 
     return (
-        <div className="container-fluid p-4">
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Unclosed Time Reports</h2>
             <div className="card shadow-sm mb-4">
-                <div className="card-header bg-warning text-dark">
-                    <div className="row align-items-center">
+                <div className="card-body">
+                    <div className="row align-items-center mb-3">
                         <div className="col-sm-6">
-                            <h2 className="mb-0 fw-bold">⚠️ Unclosed Time Reports</h2>
+                            
                         </div>
                         <div className="col-sm-6 text-end">
                             {mailEnabled && (

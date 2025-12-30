@@ -6,47 +6,38 @@ import { useToast } from '../../components/Toast';
 function VacationTableEntry({ vacationsDay }) {
     if (vacationsDay == null) return null;
 
-    let cellClasses = "text-center vacation-day-cell";
-    let cellStyle = { 
-        minWidth: '30px', 
-        width: '30px',
-        height: '35px', 
-        padding: '4px',
-        position: 'relative'
-    };
-    let tooltipText = '';
-    let displayContent = '';
+    var backgroundColor = '';
+    var displayValue = '';
 
     if (vacationsDay.vacation) {
-        cellClasses += " bg-success text-white fw-bold";
-        displayContent = 'V';
-        tooltipText = `Vacation: ${vacationsDay.day.date}`;
+        backgroundColor = Constants.BRAND_SUCCESS;
+        displayValue = 'V';
     } else if (vacationsDay.day.weekend) {
-        cellClasses += " bg-secondary text-white";
-        displayContent = 'W';
-        tooltipText = `Weekend: ${vacationsDay.day.date}`;
+        backgroundColor = Constants.WEEKEND_COLOR;
+        displayValue = '';
     } else if (vacationsDay.day.majorHoliday) {
-        cellClasses += " bg-warning text-dark fw-bold";
-        displayContent = 'H';
-        tooltipText = `Holiday: ${vacationsDay.day.date}`;
+        backgroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+        displayValue = '';
     } else {
-        cellClasses += " bg-light border";
-        displayContent = '';
-        tooltipText = `Work day: ${vacationsDay.day.date}`;
+        backgroundColor = Constants.DAY_COLOR;
+        displayValue = '';
+    }
+
+    const inputStyle = {
+        backgroundColor: backgroundColor,
+        width: '40px'
     }
 
     return (
-        <td 
-            className={cellClasses}
-            style={cellStyle}
-            name={vacationsDay.day.date}
-            title={tooltipText}
-        >
-            <div className="d-flex align-items-center justify-content-center h-100">
-                <small className="fw-bold" style={{ fontSize: '11px' }}>
-                    {displayContent}
-                </small>
-            </div>
+        <td style={{ padding: "0px" }}>
+            <input
+                style={inputStyle}
+                className="time"
+                readOnly={true}
+                type="text"
+                value={displayValue}
+                title={`${vacationsDay.day.date}`}
+            />
         </td>
     );
 }
@@ -57,7 +48,7 @@ function VacationTableRow({ userVacation }) {
     var keyBase = userVacation.userId;
     var entries = [];
     var i = 3;
-    
+
     userVacation.vacationsDays.forEach(function (vacationsDay) {
         var key = keyBase + '-' + i;
         entries.push(
@@ -66,36 +57,17 @@ function VacationTableRow({ userVacation }) {
     });
 
     var userName = userVacation.name;
-    var userNameShort = userName.length > 25 
-        ? userName.substring(0, 22) + '...' 
+    var userNameShort = userName.length > 25
+        ? userName.substring(0, 22) + '...'
         : userName;
 
     const vacationCount = userVacation.noVacationDays;
 
     return (
-        <tr key={keyBase} className="vacation-row">
-            <td 
-                key={keyBase + '-0'} 
-                className="text-start fw-medium align-middle ps-3"
-                title={userName}
-                style={{ 
-                    minWidth: '200px',
-                    width: '200px',
-                    maxWidth: '200px'
-                }}
-            >
-                {userNameShort}
-            </td>
-            <td 
-                key={keyBase + '-1'} 
-                className="text-center align-middle fw-bold text-primary"
-                style={{
-                    minWidth: '80px',
-                    width: '80px'
-                }}
-            >
-                {vacationCount}
-            </td>
+        <tr key={keyBase}>
+            <th key={keyBase + '-0'} className="text-nowrap" title={userName}>{userNameShort}</th>
+            <th key={keyBase + '-1'}>Vacation</th>
+            <th key={keyBase + '-2'}><input className="time" style={{ width: "50px" }} readOnly={true} type="text" value={vacationCount} /></th>
             {entries}
         </tr>
     );
@@ -106,48 +78,31 @@ function VacationTableHeaderRow({ days }) {
 
     var columns = [];
     if (days != null) {
-        var i = 2;
+        var i = 3;
         days.forEach(function (day) {
-            let headerClass = "text-center fw-bold text-white";
-            let dayNumber = day.day;
-            
+            var backGroundColor = '';
+            if (day.weekend) {
+                backGroundColor = Constants.WEEKEND_COLOR;
+            } else if (day.majorHoliday) {
+                backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+            } else if (day.halfDay) {
+                backGroundColor = Constants.HALF_DAY_COLOR;
+            } else {
+                backGroundColor = Constants.DAY_COLOR;
+            }
+
             var key = 'header-' + i;
             columns.push(
-                <th key={key} className={headerClass} style={{ 
-                    minWidth: '30px', 
-                    width: '30px',
-                    padding: '8px 4px',
-                    fontSize: '12px'
-                }}>
-                    {dayNumber}
-                </th>);
+                <th key={key}><font color={backGroundColor}>{day.day}</font></th>);
             i++;
         });
     }
 
     return (
-        <tr key="0" className="vacation-header">
-            <th 
-                key="header-0" 
-                className="fw-bold text-white text-start ps-3" 
-                style={{ 
-                    minWidth: '200px',
-                    width: '200px',
-                    maxWidth: '200px'
-                }}
-            >
-                Employee
-            </th>
-            <th 
-                key="header-1" 
-                className="fw-bold text-white text-center" 
-                style={{
-                    minWidth: '80px',
-                    width: '80px'
-                }}
-            >
-                Days
-            </th>
+        <tr key="0">
+            <th key="header-0"><font color={Constants.DAY_COLOR}>Employee</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>Type</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>Days</font></th>
             {columns}
         </tr>
     );
@@ -165,16 +120,14 @@ function VacationTable({ vacations }) {
     }
 
     return (
-        <div className="vacation-table-container" style={{ width: '100%' }}>
-            <table className="table table-sm table-bordered table-hover mb-0 w-100" style={{ tableLayout: 'fixed' }}>
-                <thead className="bg-primary text-white sticky-top">
-                    <VacationTableHeaderRow days={vacations.days} />
-                </thead>
-                <tbody>
-                    {rows}
-                </tbody>
-            </table>
-        </div>
+        <table className="table-sm vacation-table">
+            <thead className="bg-success">
+                <VacationTableHeaderRow days={vacations.days} />
+            </thead>
+            <tbody>
+                {rows}
+            </tbody>
+        </table>
     );
 }
 
@@ -255,54 +208,56 @@ export default function Vacations(props) {
     if (vacations == null) return null;
 
     return (
-        <div className="container-fluid p-4">
-            {/* Header Section */}
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Vacation Calendar</h2>
             <div className="row mb-4">
                 <div className="col-12">
                     <div className="card shadow-sm">
-                        <div className="card-header bg-primary text-white">
-                            <div className="row align-items-center">
-                                <div className="col-md-6">
-                                    <h2 className="mb-0 fw-bold">
-                                        🏖️ Vacation Calendar
-                                    </h2>
-                                </div>
-                                <div className="col-md-6">
-                                    <div className="d-flex justify-content-end">
-                                        <div className="btn-group" role="group" aria-label="Navigation">
-                                            <button 
-                                                className="btn btn-outline-light" 
-                                                name={vacations.firstDate} 
-                                                onClick={loadPreviousVacations} 
-                                                title="Previous Month"
-                                            >
-                                                ← Previous
-                                            </button>
-                                            <button 
-                                                className="btn btn-outline-light" 
-                                                name={vacations.lastDate} 
-                                                onClick={loadNextVacations} 
-                                                title="Next Month"
-                                            >
-                                                Next →
-                                            </button>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
                         <div className="card-body">
-                            <div className="row align-items-center">
+                            <div className="row align-items-center mb-3">
                                 <div className="col-md-6">
-                                    <span className="badge bg-secondary fs-6 py-2 px-3">
-                                        📅 {vacations.firstDate} - {vacations.lastDate}
-                                    </span>
+                                    <div className="d-flex gap-2">
+                                        <button
+                                            className="btn btn-success btn-sm"
+                                            name={vacations.firstDate}
+                                            onClick={loadPreviousVacations}
+                                            title="Previous Month"
+                                        >
+                                            &lt;&lt;
+                                        </button>
+                                        <button
+                                            className="btn btn-success btn-sm"
+                                            name={vacations.lastDate}
+                                            onClick={loadNextVacations}
+                                            title="Next Month"
+                                        >
+                                            &gt;&gt;
+                                        </button>
+                                    </div>
                                 </div>
                                 <div className="col-md-6">
                                     <div className="d-flex justify-content-end gap-3 small">
-                                        <span><span className="badge bg-success me-1">V</span> Vacation</span>
-                                        <span><span className="badge bg-warning text-dark me-1">H</span> Holiday</span>
-                                        <span><span className="badge bg-secondary me-1">W</span> Weekend</span>
+                                        <span className="badge bg-secondary fs-6 py-2 px-3">
+                                            📅 {vacations.firstDate} - {vacations.lastDate}
+                                        </span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="row align-items-center">
+                                <div className="col-md-12">
+                                    <div className="d-flex justify-content-end gap-3 small">
+                                        <span>
+                                            <span className="badge me-1" style={{ backgroundColor: Constants.BRAND_SUCCESS, color: 'white' }}>V</span>
+                                            Vacation
+                                        </span>
+                                        <span>
+                                            <span className="badge me-1" style={{ backgroundColor: Constants.MAJOR_HOLIDAY_COLOR, color: '#0c5460' }}>H</span>
+                                            Holiday
+                                        </span>
+                                        <span>
+                                            <span className="badge me-1" style={{ backgroundColor: Constants.WEEKEND_COLOR, color: '#856404' }}>W</span>
+                                            Weekend
+                                        </span>
                                     </div>
                                 </div>
                             </div>

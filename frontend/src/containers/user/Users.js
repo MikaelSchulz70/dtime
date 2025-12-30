@@ -185,8 +185,8 @@ function Users(props) {
     if (users == null) return null;
 
     return (
-        <div className="container">
-            <h2>User</h2>
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Users</h2>
             <div className="row mb-3">
                 <div className="col-sm-2">
                     <input className="form-control input-sm" type="text" placeholder="First Name" name="firstNameFilter" value={firstNameFilter} onChange={filterChanged} />

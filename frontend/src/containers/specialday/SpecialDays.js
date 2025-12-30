@@ -213,18 +213,16 @@ const SpecialDays = () => {
     };
 
     return (
-        <Container fluid>
+        <div className="container-fluid ml-2 mr-2">
             {alert.show && (
                 <Alert variant={alert.type} dismissible onClose={() => setAlert({ show: false, message: '', type: 'success' })}>
                     {alert.message}
                 </Alert>
             )}
 
-            <Row className="mb-3">
-                <Col>
-                    <h2>Special Days Management</h2>
-                </Col>
-                <Col xs="auto">
+            <h2>Special Days</h2>
+            <div className="row mb-3">
+                <div className="col-auto">
                     <Button variant="outline-secondary" size="sm" onClick={downloadSampleJson} className="me-2">
                         Download Sample JSON
                     </Button>
@@ -243,14 +241,14 @@ const SpecialDays = () => {
                     <Button variant="primary" size="sm" onClick={handleCreate}>
                         + Add Special Day
                     </Button>
-                </Col>
-            </Row>
+                </div>
+            </div>
 
-            <Row className="mb-3">
-                <Col xs="auto">
+            <div className="row mb-3">
+                <div className="col-auto">
                     <label htmlFor="year-select" className="form-label">Select Year:</label>
-                </Col>
-                <Col xs="auto">
+                </div>
+                <div className="col-auto">
                     <select
                         id="year-select"
                         className="form-select"
@@ -262,9 +260,9 @@ const SpecialDays = () => {
                             <option key={year} value={year}>{year}</option>
                         ))}
                     </select>
-                </Col>
+                </div>
                 {selectedYear && (
-                    <Col xs="auto">
+                    <div className="col-auto">
                         <Button
                             variant="danger"
                             size="sm"
@@ -272,9 +270,9 @@ const SpecialDays = () => {
                         >
                             Delete All for {selectedYear}
                         </Button>
-                    </Col>
+                    </div>
                 )}
-            </Row>
+            </div>
 
             <Card>
                 <Card.Body>
@@ -398,7 +396,7 @@ const SpecialDays = () => {
                     </Modal.Footer>
                 </Form>
             </Modal>
-        </Container>
+        </div>
     );
 };
 

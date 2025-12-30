@@ -5,11 +5,11 @@ import *  as Constants from '../../common/Constants';
 function TimeReportTableEntry({ timeReportDay }) {
     if (timeReportDay == null) return null;
 
-    var backGroundColor = Constants.CLOSED_COLOR;
+    var backGroundColor = Constants.DAY_COLOR;
     if (timeReportDay.day.weekend) {
         backGroundColor = Constants.WEEKEND_COLOR;
     } else if (timeReportDay.day.majorHoliday) {
-        backGroundColor = Constants.WEEKEND_COLOR;
+        backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
     } else {
         backGroundColor = Constants.DAY_COLOR;
     }
@@ -17,7 +17,15 @@ function TimeReportTableEntry({ timeReportDay }) {
     var time = (timeReportDay.time == null || timeReportDay.time == 0 ? '' : timeReportDay.time);
 
     return (
-        <td><input style={{ backgroundColor: backGroundColor }} className="time" readOnly={true} type="text" value={time} /></td>
+        <td style={{ padding: "0px" }}>
+            <input 
+                style={{ backgroundColor: backGroundColor, width: '40px', fontSize: '0.75rem' }} 
+                className="time text-center" 
+                readOnly={true} 
+                type="text" 
+                value={time} 
+            />
+        </td>
     );
 }
 

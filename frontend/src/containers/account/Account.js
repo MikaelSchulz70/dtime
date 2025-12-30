@@ -134,9 +134,10 @@ function Account(props) {
     if (accounts == null) return null;
 
     return (
-        <div className="container">
-            <h2>Account</h2>
-            <div className="row mb-3">
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Accounts</h2>
+            <div className="mt-0">
+                <div className="row mb-3">
                 <div className="col-sm-2">
                     <input className="form-control input-sm" type="text" placeholder="Name" name="nameFilter" onChange={filterChanged} />
                 </div>
@@ -155,6 +156,7 @@ function Account(props) {
                     handleDelete={handleDelete}
                     nameFilter={nameFilter}
                     statusFilter={statusFilter} />
+            </div>
             </div>
         </div>
     );

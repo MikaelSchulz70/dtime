@@ -2,6 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { 
+    TaskDistributionPieChart, 
+    AccountHoursChart,
+    ChartViewToggle 
+} from '../../components/Charts';
 
 function UserReportRows({ userReport }) {
     if (userReport == null)
@@ -33,7 +38,7 @@ function UserReportRows({ userReport }) {
     );
 }
 
-function UserReportTable({ report }) {
+function UserReportTable({ report, viewMode, setViewMode }) {
     if (report == null)
         return null;
 
@@ -50,19 +55,37 @@ function UserReportTable({ report }) {
         <div className="col-12">
             <div className="card shadow-sm">
                 <div className="card-header bg-success">
-                    <h5 className="mb-0 fw-bold text-white">📋 Task Time Breakdown</h5>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0 fw-bold text-white">📋 Task Time Breakdown</h5>
+                        <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+                    </div>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-hover table-striped mb-0">
-                            <tr>
-                                <th className="fw-bold">🏢 Account</th>
-                                <th className="fw-bold">📋 Task</th>
-                                <th className="fw-bold text-end">⏱️ Total Hours</th>
-                            </tr>
-                            {rows}
-                        </table>
-                    </div>
+                    {viewMode === 'table' ? (
+                        <div className="table-responsive">
+                            <table className="table table-hover table-striped mb-0">
+                                <tr>
+                                    <th className="fw-bold">🏢 Account</th>
+                                    <th className="fw-bold">📋 Task</th>
+                                    <th className="fw-bold text-end">⏱️ Total Hours</th>
+                                </tr>
+                                {rows}
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="p-3">
+                            <div className="row">
+                                <div className="col-lg-6 mb-4">
+                                    <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                    <TaskDistributionPieChart userReports={report.userReports} />
+                                </div>
+                                <div className="col-lg-6 mb-4">
+                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <AccountHoursChart userReports={report.userReports} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>
@@ -72,6 +95,7 @@ function UserReportTable({ report }) {
 function UserReports(props) {
     const [report, setReport] = useState(null);
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
+    const [viewMode, setViewMode] = useState('table');
     const { showError } = useToast();
 
     useEffect(() => {
@@ -123,11 +147,9 @@ function UserReports(props) {
         return null;
 
     return (
-        <div className="container-fluid p-4">
+        <div className="container-fluid ml-2 mr-2">
+            <h2>My Time Report</h2>
             <div className="card shadow-sm mb-4">
-                <div className="card-header">
-                    <h2 className="mb-0 fw-bold">👤 My Time Report</h2>
-                </div>
                 <div className="card-body">
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">
@@ -164,7 +186,7 @@ function UserReports(props) {
                 </div>
             </div>
             <div className="row">
-                <UserReportTable report={report} />
+                <UserReportTable report={report} viewMode={viewMode} setViewMode={setViewMode} />
             </div>
         </div>
     );

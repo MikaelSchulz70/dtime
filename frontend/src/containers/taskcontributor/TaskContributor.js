@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
-import { Container, Card, Table, Row, Col, Alert } from 'react-bootstrap';
+import { Table } from 'react-bootstrap';
 import TaskContributorService from '../../service/TaskContributorService';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
@@ -85,18 +85,12 @@ function TaskContributor(props) {
     const [selectedUserId, setSelectedUserId] = useState(0);
     const [showUserDropdown, setShowUserDropdown] = useState(false);
     const [highlightedIndex, setHighlightedIndex] = useState(-1);
-    const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
     const [users, setUsers] = useState(null);
     const [taskcontributors, setTaskcontributors] = useState(null);
-    const { showError } = useToast();
+    const { showError, showSuccess } = useToast();
 
     useEffect(() => {
         loadFromServer();
-    }, []);
-
-    const showAlert = useCallback((message, type = 'success') => {
-        setAlert({ show: true, message, type });
-        setTimeout(() => setAlert({ show: false, message: '', type: 'success' }), 5000);
     }, []);
 
     const loadFromServer = useCallback(() => {
@@ -108,14 +102,14 @@ function TaskContributor(props) {
             })
             .catch(error => {
                 console.error('Failed to load users:', error);
-                showAlert('Failed to load users', 'danger');
+                showError('Failed to load users');
             });
-    }, [showAlert]);
+    }, [showError]);
 
     const activationStatusChanged = useCallback((updatedtaskcontributor) => {
         setTaskcontributors(prevTaskcontributors => {
             if (!prevTaskcontributors) return prevTaskcontributors;
-            
+
             let updatedTaskcontributors = JSON.parse(JSON.stringify(prevTaskcontributors));
             for (var i in updatedTaskcontributors) {
                 if (updatedTaskcontributors[i].task.id === updatedtaskcontributor.task.id &&
@@ -131,7 +125,7 @@ function TaskContributor(props) {
     const filterChanged = useCallback((event) => {
         var value = event.target.value;
         const name = event.target.name;
-        
+
         if (name === 'accountNameFilter') {
             setAccountNameFilter(value);
         } else if (name === 'taskNameFilter') {
@@ -214,7 +208,6 @@ function TaskContributor(props) {
         }
 
         const taskContributorService = new TaskContributorService();
-        console.log('Loading task contributors for user:', userId);
         taskContributorService.getTaskContributor(userId)
             .then(response => {
                 setTaskcontributors(response.data);
@@ -222,12 +215,12 @@ function TaskContributor(props) {
             .catch(error => {
                 console.error('Failed to load taskcontributors:', error.response?.status, error.response?.data);
                 if (error.response?.status === 403) {
-                    showAlert('Access denied: You need admin privileges to view task contributors', 'danger');
+                    showError('Access denied: You need admin privileges to view task contributors');
                 } else {
-                    showAlert('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message), 'danger');
+                    showError('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message));
                 }
             });
-    }, [showAlert]);
+    }, [showError]);
 
     const handleUserChange = useCallback((event) => {
         const userId = parseInt(event.target.value, 10);
@@ -249,13 +242,13 @@ function TaskContributor(props) {
 
     if (users == null) {
         return (
-            <Container fluid className="mt-4">
+            <div className="container-fluid mt-4">
                 <div className="text-center">
                     <div className="spinner-border" role="status">
                         <span className="visually-hidden">Loading...</span>
                     </div>
                 </div>
-            </Container>
+            </div>
         );
     }
 
@@ -267,28 +260,17 @@ function TaskContributor(props) {
     });
 
     return (
-        <Container fluid className="mt-4">
-            <Card>
-                <Card.Header>
-                    <Row>
-                        <Col sm={6}>
-                            <h4>Task Contributors</h4>
-                        </Col>
-                    </Row>
-                </Card.Header>
-                <Card.Body>
-                    {alert.show && (
-                        <Alert variant={alert.type} dismissible onClose={() => setAlert({ show: false, message: '', type: 'success' })}>
-                            {alert.message}
-                        </Alert>
-                    )}
-
-                    {/* Filters */}
-                    <Row className="mb-3">
-                        <Col md={3} style={{ position: 'relative' }}>
+        <div className="container-fluid ml-2 mr-2">
+            <div className="card">
+                <div className="card-header">
+                    <h4>Task Contributors</h4>
+                </div>
+                <div className="card-body">
+                    <div className="row mb-3">
+                        <div className="col-sm-2" style={{ position: 'relative' }}>
                             <input
                                 type="text"
-                                className="form-control input-sm dataLiveSearch"
+                                className="form-control input-sm"
                                 placeholder="Search for a user..."
                                 value={userSearchTerm}
                                 onChange={handleUserSearchUpdated}
@@ -321,51 +303,55 @@ function TaskContributor(props) {
                                     ))}
                                 </div>
                             )}
-                        </Col>
-                        <Col md={2}>
-                            <input 
-                                className="form-control input-sm" 
-                                type="text" 
-                                placeholder="Filter by account" 
-                                name="accountNameFilter" 
+                        </div>
+                        <div className="col-sm-2">
+                            <input
+                                className="form-control input-sm"
+                                type="text"
+                                placeholder="Filter by account"
+                                name="accountNameFilter"
                                 value={accountNameFilter}
-                                onChange={filterChanged} 
+                                onChange={filterChanged}
                             />
-                        </Col>
-                        <Col md={2}>
-                            <input 
-                                className="form-control input-sm" 
-                                type="text" 
-                                placeholder="Filter by task" 
-                                name="taskNameFilter" 
+                        </div>
+                        <div className="col-sm-2">
+                            <input
+                                className="form-control input-sm"
+                                type="text"
+                                placeholder="Filter by task"
+                                name="taskNameFilter"
                                 value={taskNameFilter}
-                                onChange={filterChanged} 
+                                onChange={filterChanged}
                             />
-                        </Col>
-                        <Col md={2}>
-                            <select 
-                                className="form-control input-sm" 
-                                name="statusFilter" 
+                        </div>
+                        <div className="col-sm-2">
+                            <select
+                                className="form-control input-sm"
+                                name="statusFilter"
                                 value={statusFilter}
                                 onChange={filterChanged}
                             >
                                 <option value={Constants.ACTIVE_STATUS}>Active</option>
                                 <option value={Constants.INACTIVE_STATUS}>Inactive</option>
                             </select>
-                        </Col>
-                    </Row>
+                        </div>
+                        <div className="col-sm-4 text-end">
+                            {/* Add button can go here if needed */}
+                        </div>
+                    </div>
 
-                    {/* Task Contributors Table */}
-                    <TaskContributorTable
-                        taskcontributors={taskcontributors}
-                        accountNameFilter={accountNameFilter}
-                        taskNameFilter={taskNameFilter}
-                        statusFilter={statusFilter}
-                        activationStatusChanged={activationStatusChanged} 
-                    />
-                </Card.Body>
-            </Card>
-        </Container>
+                    <div className="row">
+                        <TaskContributorTable
+                            taskcontributors={taskcontributors}
+                            accountNameFilter={accountNameFilter}
+                            taskNameFilter={taskNameFilter}
+                            statusFilter={statusFilter}
+                            activationStatusChanged={activationStatusChanged}
+                        />
+                    </div>
+                </div>
+            </div>
+        </div>
     );
 }
 

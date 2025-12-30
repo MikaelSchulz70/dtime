@@ -1,38 +1,46 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useCallback } from "react";
 import Modal from 'react-modal';
 import * as Constants from '../../common/Constants';
 import TimeService from '../../service/TimeService';
 import { useToast } from '../../components/Toast';
+import { 
+    UserTaskBarChart, 
+    TaskDistributionPieChart, 
+    AccountHoursChart,
+    TimeTrendChart,
+    ChartViewToggle 
+} from '../../components/Charts';
 
 Modal.setAppElement('#root');
 
 function TimeReportTableEntry({ timeReportDay }) {
     if (timeReportDay == null) return null;
     
-    var cellClass = 'text-center py-1 px-1 border-end';
-    var badgeClass = 'badge rounded px-1 py-0 fw-bold';
+    var backgroundColor = '';
     var time = (timeReportDay.time == null || timeReportDay.time === 0 ? '' : timeReportDay.time);
     
     if (timeReportDay.day.weekend) {
-        cellClass += ' bg-warning bg-opacity-10';
-        badgeClass += time ? ' bg-warning text-dark' : ' bg-light text-muted';
+        backgroundColor = Constants.WEEKEND_COLOR;
     } else if (timeReportDay.day.majorHoliday) {
-        cellClass += ' bg-danger bg-opacity-10';
-        badgeClass += time ? ' bg-danger text-white' : ' bg-light text-muted';
+        backgroundColor = Constants.MAJOR_HOLIDAY_COLOR;
     } else {
-        cellClass += ' bg-light';
-        badgeClass += time ? ' bg-primary text-white' : ' bg-light text-muted';
+        backgroundColor = Constants.DAY_COLOR;
+    }
+
+    const inputStyle = {
+        backgroundColor: backgroundColor,
+        width: '40px'
     }
 
     return (
-        <td className={cellClass} style={{ width: '35px', minWidth: '35px', maxWidth: '35px', fontSize: '0.75rem' }}>
-            {time ? (
-                <span className={badgeClass} style={{ fontSize: '0.7rem' }}>
-                    {time}h
-                </span>
-            ) : (
-                <span className="text-muted" style={{ fontSize: '0.7rem' }}>—</span>
-            )}
+        <td style={{ padding: "0px" }}>
+            <input 
+                style={inputStyle} 
+                className="time" 
+                readOnly={true} 
+                type="text" 
+                value={time} 
+            />
         </td>
     );
 }
@@ -85,28 +93,10 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime }) {
     var taskShortName = taskName.substring(0, Math.min(40, taskName.length));
 
     return (
-        <tr className="border-bottom">
-            <td className="text-start py-2 px-3 border-end" title={accountName} style={{ width: '300px', minWidth: '300px' }}>
-                <div className="d-flex align-items-center">
-                    <span className="me-2 text-primary fs-6">🏢</span>
-                    <span className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>
-                        {accountShortName}{accountName.length > 40 ? '...' : ''}
-                    </span>
-                </div>
-            </td>
-            <td className="text-start py-2 px-3 border-end" title={taskName} style={{ width: '300px', minWidth: '300px' }}>
-                <div className="d-flex align-items-center">
-                    <span className="me-2 text-success fs-6">📋</span>
-                    <span className="fw-bold text-dark" style={{ fontSize: '0.95rem' }}>
-                        {taskShortName}{taskName.length > 40 ? '...' : ''}
-                    </span>
-                </div>
-            </td>
-            <td className="text-center py-2 px-2 border-end" style={{ width: '70px', minWidth: '70px' }}>
-                <span className="badge bg-success rounded px-2 py-1 fw-bold small">
-                    {totalTaskTime || 0}h
-                </span>
-            </td>
+        <tr>
+            <th className="text-nowrap" title={accountName}>{accountShortName}</th>
+            <th className="text-nowrap" title={taskName}>{taskShortName}</th>
+            <th><input className="time" style={{ width: "50px" }} readOnly={true} type="text" value={totalTaskTime} /></th>
             {entries}
         </tr>
     );
@@ -179,43 +169,31 @@ function TimeReportTableHeaderRow({ days }) {
         return null;
     var columns = [];
     if (days != null) {
-        days.forEach(function (day, index) {
-            var cellClass = 'text-center py-1 px-2 border-end';
-            var badgeClass = 'badge rounded px-1 py-0 small';
-            
+        var i = 3;
+        days.forEach(function (day) {
+            var backGroundColor = '';
             if (day.weekend) {
-                badgeClass += ' bg-warning text-dark';
+                backGroundColor = Constants.WEEKEND_COLOR;
             } else if (day.majorHoliday) {
-                badgeClass += ' bg-danger text-white';
+                backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+            } else if (day.halfDay) {
+                backGroundColor = Constants.HALF_DAY_COLOR;
             } else {
-                badgeClass += ' bg-primary text-white';
+                backGroundColor = Constants.DAY_COLOR;
             }
 
+            var key = 'header-' + i;
             columns.push(
-                <th key={index} className={cellClass} style={{ width: '35px', minWidth: '35px', maxWidth: '35px' }}>
-                    <span className={badgeClass}>{day.day}</span>
-                </th>
-            );
+                <th key={key}><font color={backGroundColor}>{day.day}</font></th>);
+            i++;
         });
     }
 
     return (
-        <tr>
-            <th className="text-start py-2 px-3 fw-bold text-dark border-end" style={{ width: '300px', minWidth: '300px' }}>
-                <span className="d-flex align-items-center">
-                    <span className="me-2">🏢</span>Account
-                </span>
-            </th>
-            <th className="text-start py-2 px-3 fw-bold text-dark border-end" style={{ width: '300px', minWidth: '300px' }}>
-                <span className="d-flex align-items-center">
-                    <span className="me-2">📋</span>Task
-                </span>
-            </th>
-            <th className="text-center py-2 px-2 fw-bold text-dark border-end" style={{ width: '70px', minWidth: '70px' }}>
-                <span className="d-flex align-items-center justify-content-center">
-                    <span className="me-1">⏱️</span>Total
-                </span>
-            </th>
+        <tr key="0">
+            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>Time</font></th>
             {columns}
         </tr>
     );
@@ -224,6 +202,7 @@ function TimeReportTableHeaderRow({ days }) {
 function UserDetailReport({ userId, fromDate, toDate, showError }) {
     const [timeReport, setTimeReport] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
+    const [viewMode, setViewMode] = useState('table');
 
     const showDetails = useCallback(() => {
         loadFromServer();
@@ -304,8 +283,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                 >
                     <div className="modal-content border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
                         {/* Modal Header */}
-                        <div className="modal-header bg-gradient" style={{
-                            background: 'linear-gradient(135deg, #28a745 0%, #20c997 100%)',
+                        <div className="modal-header bg-success" style={{
                             borderBottom: 'none',
                             padding: '1.5rem 2rem'
                         }}>
@@ -320,14 +298,17 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     </p>
                                 </div>
                             </div>
-                            <button 
-                                type="button" 
-                                className="btn btn-outline-light btn-sm px-3 py-2"
-                                onClick={closeDetails}
-                                style={{ borderRadius: '8px' }}
-                            >
-                                <span className="fw-bold">✕ Close</span>
-                            </button>
+                            <div className="d-flex align-items-center gap-3">
+                                <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+                                <button 
+                                    type="button" 
+                                    className="btn btn-outline-light btn-sm px-3 py-2"
+                                    onClick={closeDetails}
+                                    style={{ borderRadius: '8px' }}
+                                >
+                                    <span className="fw-bold">✕ Close</span>
+                                </button>
+                            </div>
                         </div>
 
                         {/* Modal Body */}
@@ -413,20 +394,77 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
 
                                 <div className="card border-0 shadow-sm">
                                     <div className="card-header bg-white border-bottom py-2">
-                                        <h6 className="mb-0 fw-bold text-dark">📊 Detailed Time Entries</h6>
+                                        <h6 className="mb-0 fw-bold text-dark">
+                                            {viewMode === 'table' ? '📊 Detailed Time Entries' : '📈 Time Visualization'}
+                                        </h6>
                                     </div>
-                                    <div className="table-responsive">
-                                        <table className="table table-hover table-sm mb-0" style={{ fontSize: '0.85rem' }}>
-                                            <thead style={{ 
-                                                background: 'linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%)',
-                                                borderBottom: '2px solid #dee2e6'
-                                            }}>
-                                                {headerRow}
-                                            </thead>
-                                            <tbody>
-                                                {rows}
-                                            </tbody>
-                                        </table>
+                                    <div className="card-body p-3">
+                                        {viewMode === 'table' ? (
+                                            <div className="table-responsive">
+                                                <table className="table-sm time-report-table">
+                                                    <thead className="bg-success">
+                                                        {headerRow}
+                                                    </thead>
+                                                    <tbody>
+                                                        {rows}
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        ) : (
+                                            <div>
+                                                <div className="mb-4">
+                                                    <h6 className="mb-3 fw-bold text-primary">📊 Daily Time Distribution</h6>
+                                                    <TimeTrendChart 
+                                                        timeReportTasks={timeReport?.timeReportTasks} 
+                                                        days={timeReport?.days} 
+                                                    />
+                                                </div>
+                                                
+                                                {/* Transform data for other charts */}
+                                                {(() => {
+                                                    if (!timeReport?.timeReportTasks) return null;
+                                                    
+                                                    // Create user reports format for chart components
+                                                    const userReports = [{
+                                                        fullName: "Current User",
+                                                        totalTime: (() => {
+                                                            let total = 0;
+                                                            timeReport.timeReportTasks.forEach(task => {
+                                                                task.timeEntries.forEach(entry => {
+                                                                    if (entry.time) total += parseFloat(entry.time) || 0;
+                                                                });
+                                                            });
+                                                            return total;
+                                                        })(),
+                                                        taskReports: timeReport.timeReportTasks.map(task => ({
+                                                            accountName: task.task.account.name,
+                                                            taskName: task.task.name,
+                                                            totalHours: (() => {
+                                                                let total = 0;
+                                                                task.timeEntries.forEach(entry => {
+                                                                    if (entry.time) total += parseFloat(entry.time) || 0;
+                                                                });
+                                                                return total;
+                                                            })()
+                                                        }))
+                                                    }];
+
+                                                    return (
+                                                        <>
+                                                            <div className="mb-4">
+                                                                <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                                                <TaskDistributionPieChart userReports={userReports} />
+                                                            </div>
+                                                            
+                                                            <div className="mb-4">
+                                                                <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                                                <AccountHoursChart userReports={userReports} />
+                                                            </div>
+                                                        </>
+                                                    );
+                                                })()}
+                                            </div>
+                                        )}
                                     </div>
                                 </div>
                             </div>
@@ -455,6 +493,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
 
 function UserTaskReportTable({ report, reportView, fromDate }) {
     const { showError } = useToast();
+    const [viewMode, setViewMode] = useState('table');
     
     if (report == null)
         return null;
@@ -473,14 +512,38 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
         <div className="col-12">
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
-                    <h5 className="mb-0 fw-bold text-white">👥 User Task Time Summary</h5>
+                    <div className="d-flex justify-content-between align-items-center">
+                        <h5 className="mb-0 fw-bold text-white">👥 User Task Time Summary</h5>
+                        <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
+                    </div>
                 </div>
                 <div className="card-body p-0">
-                    <div className="table-responsive">
-                        <table className="table table-hover table-striped mb-0">
-                            {rows}
-                        </table>
-                    </div>
+                    {viewMode === 'table' ? (
+                        <div className="table-responsive">
+                            <table className="table table-hover table-striped mb-0">
+                                {rows}
+                            </table>
+                        </div>
+                    ) : (
+                        <div className="p-3">
+                            <div className="row">
+                                <div className="col-lg-6 mb-4">
+                                    <h6 className="mb-3 fw-bold text-primary">👤 User Hours Overview</h6>
+                                    <UserTaskBarChart userReports={report.userReports} />
+                                </div>
+                                <div className="col-lg-6 mb-4">
+                                    <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                    <TaskDistributionPieChart userReports={report.userReports} />
+                                </div>
+                            </div>
+                            <div className="row">
+                                <div className="col-12">
+                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <AccountHoursChart userReports={report.userReports} />
+                                </div>
+                            </div>
+                        </div>
+                    )}
                 </div>
             </div>
         </div>

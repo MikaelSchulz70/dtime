@@ -111,11 +111,9 @@ function AdminReports(props) {
         return null;
 
     return (
-        <div className="container-fluid p-4">
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Administrative Reports</h2>
             <div className="card shadow-sm mb-4">
-                <div className="card-header bg-success text-white">
-                    <h2 className="mb-0 fw-bold text-white">📊 Administrative Reports</h2>
-                </div>
                 <div className="card-body">
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">

@@ -125,9 +125,10 @@ function Task(props) {
     if (tasks == null) return null;
 
     return (
-        <div className="container">
-            <h2>Task</h2>
-            <div className="row mb-3">
+        <div className="container-fluid ml-2 mr-2">
+            <h2>Tasks</h2>
+            <div className="mt-0">
+                <div className="row mb-3">
                 <div className="col-sm-2">
                     <input className="form-control input-sm" type="text" placeholder="account name" name="accountNameFilter" onChange={filterChanged} />
                 </div>
@@ -150,6 +151,7 @@ function Task(props) {
                     nameFilter={nameFilter}
                     accountNameFilter={accountNameFilter}
                     statusFilter={statusFilter} />
+            </div>
             </div>
         </div>
     );

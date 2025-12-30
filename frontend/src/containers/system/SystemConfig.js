@@ -86,7 +86,7 @@ function SystemConfig(props) {
     if (systemConfig == null) return null;
 
     return (
-        <div className="container">
+        <div className="container-fluid ml-2 mr-2">
             <h2>System Properties</h2>
             <SystemPropertyTable systemProperties={systemConfig.systemProperties} showError={showError} />
         </div>
