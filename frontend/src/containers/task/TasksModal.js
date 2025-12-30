@@ -2,8 +2,10 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
+import { useTranslation } from 'react-i18next';
 
 const TasksModal = () => {
+    const { t } = useTranslation();
     const [tasks, setTasks] = useState([]);
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -287,7 +289,7 @@ const TasksModal = () => {
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button variant="primary" size="sm" onClick={handleCreate}>
-                                + Add Task
+                                + {t('tasks.addTask')}
                             </Button>
                         </Col>
                     </Row>
@@ -429,7 +431,7 @@ const TasksModal = () => {
             <Modal show={showModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingTask ? 'Edit Task' : 'Create Task'}
+                        {editingTask ? t('tasks.editTask') : t('tasks.createTask')}
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmit}>

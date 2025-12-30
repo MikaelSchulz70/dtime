@@ -1,4 +1,5 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 import {
     BarChart,
     Bar,
@@ -52,8 +53,9 @@ const CustomTooltip = ({ active, payload, label }) => {
 
 // User Task Report Bar Chart
 export const UserTaskBarChart = ({ userReports }) => {
+    const { t } = useTranslation();
     if (!userReports || userReports.length === 0) {
-        return <div className="text-center text-muted p-4">No data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
 
     // Transform data for chart
@@ -77,7 +79,7 @@ export const UserTaskBarChart = ({ userReports }) => {
                 <YAxis fontSize={12} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="totalHours" fill={Constants.BRAND_SUCCESS} name="Total Hours" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="totalHours" fill={Constants.BRAND_SUCCESS} name={t('common.labels.totalHours')} radius={[4, 4, 0, 0]} />
             </BarChart>
         </ResponsiveContainer>
     );
@@ -86,7 +88,7 @@ export const UserTaskBarChart = ({ userReports }) => {
 // Task Distribution Pie Chart
 export const TaskDistributionPieChart = ({ userReports }) => {
     if (!userReports || userReports.length === 0) {
-        return <div className="text-center text-muted p-4">No data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
 
     // Aggregate all tasks from all users
@@ -144,7 +146,7 @@ export const TaskDistributionPieChart = ({ userReports }) => {
 // Account Hours Bar Chart
 export const AccountHoursChart = ({ userReports }) => {
     if (!userReports || userReports.length === 0) {
-        return <div className="text-center text-muted p-4">No data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
 
     // Aggregate hours by account
@@ -191,7 +193,7 @@ export const AccountHoursChart = ({ userReports }) => {
 // Time Trend Chart for detailed time entries
 export const TimeTrendChart = ({ timeReportTasks, days }) => {
     if (!timeReportTasks || !days || timeReportTasks.length === 0 || days.length === 0) {
-        return <div className="text-center text-muted p-4">No data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
 
     // Transform data for time trend

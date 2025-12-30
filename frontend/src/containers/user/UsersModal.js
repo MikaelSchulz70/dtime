@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import UserService from '../../service/UserService';
+import { useTranslation } from 'react-i18next';
 
 const UsersModal = () => {
+    const { t } = useTranslation();
     const [users, setUsers] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -269,7 +271,7 @@ const UsersModal = () => {
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button variant="primary" size="sm" onClick={handleCreate}>
-                                + Add User
+                                + {t('users.addUser')}
                             </Button>
                         </Col>
                     </Row>
@@ -412,7 +414,7 @@ const UsersModal = () => {
             <Modal show={showModal} onHide={closeModal} size="lg">
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingUser ? 'Edit User' : 'Create User'}
+                        {editingUser ? t('users.editUser') : t('users.createUser')}
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmit}>

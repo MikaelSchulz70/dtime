@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 function SystemPropertyRow({ systemProperty: initialSystemProperty, showError }) {
     const [systemProperty, setSystemProperty] = useState(initialSystemProperty);
@@ -37,6 +38,7 @@ function SystemPropertyRow({ systemProperty: initialSystemProperty, showError })
 }
 
 function SystemPropertyTable({ systemProperties, showError }) {
+    const { t } = useTranslation();
     if (systemProperties == null) return null;
 
     var systemPropRows = [];
@@ -51,10 +53,10 @@ function SystemPropertyTable({ systemProperties, showError }) {
             <table className="table table-striped">
                 <thead className="thead-inverse bg-success text-white">
                     <tr>
-                        <th>Name</th>
-                        <th>Value</th>
-                        <th>Type</th>
-                        <th>Description</th>
+                        <th>{t('common.labels.name')}</th>
+                        <th>{t('common.labels.value')}</th>
+                        <th>{t('common.labels.type')}</th>
+                        <th>{t('common.labels.description')}</th>
                     </tr>
                 </thead>
                 <tbody>{systemPropRows}</tbody>
@@ -67,6 +69,7 @@ function SystemPropertyTable({ systemProperties, showError }) {
 function SystemConfig(props) {
     const [systemConfig, setSystemConfig] = useState(null);
     const { showError } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadFromServer();
@@ -87,7 +90,7 @@ function SystemConfig(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>System Properties</h2>
+            <h2>{t('system.title')}</h2>
             <SystemPropertyTable systemProperties={systemConfig.systemProperties} showError={showError} />
         </div>
     );

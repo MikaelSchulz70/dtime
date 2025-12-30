@@ -21,14 +21,17 @@
       "inactive": "Inactive",
       "all": "All Status",
       "open": "⏳ Open",
-      "closed": "✅ Closed"
+      "closed": "✅ Closed",
+      "open": "Open",
+      "closed": "Closed"
     },
     "loading": {
       "default": "Loading...",
       "loggingOut": "Logging out...",
       "loadingPage": "Loading page...",
       "loadingSession": "Loading session...",
-      "loggingIn": "Logging in..."
+      "loggingIn": "Logging in...",
+      "users": "Loading users..."
     },
     "placeholders": {
       "name": "Name",
@@ -57,10 +60,16 @@
       "account": "Account",
       "task": "Task",
       "time": "Time",
+      "user": "User",
       "workableHours": "Workable hours",
       "totalHours": "Total Hours",
       "accountName": "Account name",
-      "taskType": "Task Type"
+      "taskType": "Task Type",
+      "userName": "User Name",
+      "totalTime": "Total Time",
+      "value": "Value",
+      "unknownUser": "Unknown User",
+      "noEmail": "No Email"
     },
     "messages": {
       "noDataFound": "No data found",
@@ -141,7 +150,7 @@
   },
   "users": {
     "title": "Users",
-    "addUser": "+ Add User",
+    "addUser": "Add User",
     "createUser": "Create User",
     "editUser": "Edit User",
     "placeholders": {
@@ -180,7 +189,7 @@
   },
   "accounts": {
     "title": "Accounts",
-    "addAccount": "+ Add Account",
+    "addAccount": "Add Account",
     "createAccount": "Create Account",
     "editAccount": "Edit Account",
     "placeholders": {
@@ -198,7 +207,7 @@
   },
   "tasks": {
     "title": "Tasks",
-    "addTask": "+ Add Task",
+    "addTask": "Add Task",
     "createTask": "Create Task",
     "editTask": "Edit Task",
     "placeholders": {
@@ -227,7 +236,7 @@
       "allAccounts": "All Accounts"
     }
   },
-  "timeReport": {
+  "time": {
     "title": "Time",
     "headers": {
       "account": "Account",
@@ -246,25 +255,26 @@
     }
   },
   "reports": {
-    "userReports": {
-      "title": "My Time Report",
-      "taskTimeBreakdown": "📋 Task Time Breakdown",
-      "taskDistribution": "📋 Task Distribution",
-      "hoursByAccount": "🏢 Hours by Account"
-    },
-    "adminReports": {
-      "title": "Administrative Reports",
-      "userTaskReport": "👥 User Task Report",
-      "accountReport": "🏢 Account Report",
-      "taskReport": "📋 Task Report",
-      "userReport": "👤 User Report"
-    },
-    "labels": {
-      "periodType": "Period Type",
-      "reportType": "Report Type",
-      "previousPeriod": "Previous Period",
-      "nextPeriod": "Next Period"
-    }
+    "userTimeSummary": "User Time Summary",
+    "userHoursOverview": "User Hours Overview", 
+    "myTimeReport": "My Time Report",
+    "administrativeReports": "Administrative Reports",
+    "previousPeriod": "Previous Period",
+    "nextPeriod": "Next Period",
+    "allUsers": "All Users",
+    "allTasks": "All Tasks", 
+    "currentUser": "Current User",
+    "periodType": "Period Type",
+    "monthly": "Monthly",
+    "yearly": "Yearly",
+    "reportType": "Report Type",
+    "userTaskReport": "User Task Report",
+    "accountReport": "Account Report",
+    "taskReport": "Task Report",
+    "userReport": "User Report",
+    "taskTimeBreakdown": "📋 Task Time Breakdown",
+    "taskDistribution": "📋 Task Distribution", 
+    "hoursByAccount": "🏢 Hours by Account"
   },
   "specialDays": {
     "title": "Special Days",
@@ -300,46 +310,36 @@
       "pleaseSelectJson": "Please select a JSON file"
     }
   },
-  "systemConfig": {
-    "title": "System Properties",
-    "headers": {
-      "name": "Name",
-      "value": "Value",
-      "type": "Type",
-      "description": "Description"
-    },
-    "messages": {
-      "updateFailed": "Failed to update configuration",
-      "loadFailed": "Failed to load configuration"
-    }
+  "system": {
+    "title": "System Properties"
   },
-  "timeReportStatus": {
+  "timeReports": {
     "title": "Unclosed Time Reports",
-    "headers": {
-      "user": "👤 User",
-      "email": "📧 Email",
-      "totalHours": "⏱️ Total Hours",
-      "workableHours": "📊 Workable Hours",
-      "status": "📋 Status",
-      "action": "⚙️ Action"
+    "userStatusOverview": "User Status Overview",
+    "labels": {
+      "totalHours": "Total Hours",
+      "workableHours": "Workable Hours"
     },
-    "userStatusOverview": "👥 User Status Overview",
     "actions": {
-      "reopen": "🔓 Reopen",
-      "close": "🔒 Close"
+      "reopen": "Reopen",
+      "close": "Close"
     },
     "messages": {
-      "closeConfirm": "Do you really want to close the time report for {{userName}}?",
+      "confirmCloseReport": "Do you really want to close the time report for {{userName}}?",
       "allUsersClosed": "All users have closed their time reports for this month",
-      "loadingUsers": "Loading users...",
-      "unknownUser": "Unknown User",
-      "noEmail": "No Email",
       "noUnclosedUsers": "No users have unclosed time reports. No emails will be sent.",
-      "emailReminderConfirm": "Send email reminders to {{count}} user{{plural}} who have unclosed time reports for this month?",
-      "emailReminderSuccess": "Email reminders sent successfully to {{count}} user{{plural}} with unclosed time reports",
-      "emailReminderFailed": "Failed to send email reminders",
-      "loadFailed": "Failed to load unclosed users report"
-    }
+      "confirmSendReminders": "Send email reminders to {{count}} user{{plural}} who have unclosed time reports for this month?",
+      "remindersSent": "Email reminders sent successfully to {{count}} user{{plural}} with unclosed time reports",
+      "failedToSendReminders": "Failed to send email reminders",
+      "failedToLoad": "Failed to load unclosed users report",
+      "failedToLoadPrevious": "Failed to load previous unclosed users report",
+      "failedToLoadNext": "Failed to load next unclosed users report",
+      "failedToggleReport": "Failed to open/close report"
+    },
+    "sendReminders": "Send Reminders",
+    "sendRemindersTooltip": "Send email reminders to users with unclosed time reports",
+    "previousPeriod": "Previous Period",
+    "nextPeriod": "Next Period"
   },
   "taskContributors": {
     "title": "Task Contributors",
@@ -413,7 +413,8 @@
     "tooltips": {
       "hours": "{{value}} hours",
       "percentage": "{{value}}%"
-    }
+    },
+    "noDataAvailable": "No data available for chart"
   },
   "tables": {
     "noData": "No data available",

@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Alert, Container, Row, Col, Card } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import SpecialDayService from '../../service/SpecialDayService';
 import * as Constants from '../../common/Constants';
 
 const SpecialDays = () => {
+    const { t } = useTranslation();
     const [specialDays, setSpecialDays] = useState([]);
     const [availableYears, setAvailableYears] = useState([]);
     const [selectedYear, setSelectedYear] = useState(null);
@@ -84,13 +86,13 @@ const SpecialDays = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this special day?')) {
+        if (!window.confirm(t('specialDays.messages.specialDayDeleteConfirm'))) {
             return;
         }
 
         try {
             await SpecialDayService.deleteSpecialDay(id);
-            showAlert('Special day deleted successfully');
+            showAlert(t('specialDays.messages.specialDayDeleted'));
             if (selectedYear) {
                 loadSpecialDaysForYear(selectedYear);
             }
@@ -103,13 +105,13 @@ const SpecialDays = () => {
     };
 
     const handleDeleteYear = async (year) => {
-        if (!window.confirm(`Are you sure you want to delete all special days for year ${year}?`)) {
+        if (!window.confirm(t('specialDays.messages.yearDeleteConfirm', { year }))) {
             return;
         }
 
         try {
             await SpecialDayService.deleteSpecialDaysByYear(year);
-            showAlert(`All special days for year ${year} deleted successfully`);
+            showAlert(t('specialDays.messages.yearDeleted', { year }));
             loadAvailableYears();
             if (selectedYear === year) {
                 setSpecialDays([]);
@@ -134,12 +136,12 @@ const SpecialDays = () => {
                 console.log('Submitting update for special day:', editingSpecialDay.id, formData);
                 const result = await SpecialDayService.updateSpecialDay(editingSpecialDay.id, formData);
                 console.log('Update successful:', result);
-                showAlert('Special day updated successfully');
+                showAlert(t('specialDays.messages.specialDayUpdated'));
             } else {
                 console.log('Submitting create for special day:', formData);
                 const result = await SpecialDayService.createSpecialDay(formData);
                 console.log('Create successful:', result);
-                showAlert('Special day created successfully');
+                showAlert(t('specialDays.messages.specialDayCreated'));
             }
 
             setShowModal(false);
@@ -159,13 +161,13 @@ const SpecialDays = () => {
         if (!file) return;
 
         if (!file.name.endsWith('.json')) {
-            showAlert('Please select a JSON file', 'danger');
+            showAlert(t('specialDays.messages.pleaseSelectJson'), 'danger');
             return;
         }
 
         try {
             await SpecialDayService.uploadSpecialDays(file);
-            showAlert('Special days uploaded successfully');
+            showAlert(t('specialDays.messages.uploadSuccess'));
             loadAvailableYears();
             if (selectedYear) {
                 loadSpecialDaysForYear(selectedYear);
@@ -221,11 +223,11 @@ const SpecialDays = () => {
                 </Alert>
             )}
 
-            <h2>Special Days</h2>
+            <h2>{t('specialDays.title')}</h2>
             <div className="row mb-3 align-items-center">
                 {/* Left side - Year controls */}
                 <div className="col-auto">
-                    <label htmlFor="year-select" className="form-label me-2">Select Year:</label>
+                    <label htmlFor="year-select" className="form-label me-2">{t('specialDays.selectYear')}</label>
                     <select
                         id="year-select"
                         className="form-select d-inline-block"
@@ -233,7 +235,7 @@ const SpecialDays = () => {
                         value={selectedYear || ''}
                         onChange={(e) => setSelectedYear(parseInt(e.target.value))}
                     >
-                        <option value="">Select year</option>
+                        <option value="">{t('specialDays.selectYearOption')}</option>
                         {availableYears.map(year => (
                             <option key={year} value={year}>{year}</option>
                         ))}
@@ -249,11 +251,11 @@ const SpecialDays = () => {
                             onClick={() => handleDeleteYear(selectedYear)}
                             className="me-2"
                         >
-                            Delete All for {selectedYear}
+                            {t('specialDays.deleteAllForYear', { year: selectedYear })}
                         </Button>
                     )}
                     <Button variant="outline-secondary" size="sm" onClick={downloadSampleJson} className="me-2">
-                        Download Sample JSON
+                        {t('specialDays.downloadSampleJson')}
                     </Button>
                     <input
                         type="file"
@@ -264,11 +266,11 @@ const SpecialDays = () => {
                     />
                     <label htmlFor="file-upload">
                         <Button variant="outline-primary" size="sm" as="span" className="me-2">
-                            Upload JSON
+                            {t('specialDays.uploadJson')}
                         </Button>
                     </label>
                     <Button variant="primary" size="sm" onClick={handleCreate}>
-                        + Add Special Day
+                        {t('specialDays.addSpecialDay')}
                     </Button>
                 </div>
             </div>
@@ -278,7 +280,7 @@ const SpecialDays = () => {
                     {loading ? (
                         <div className="text-center">
                             <div className="spinner-border" role="status">
-                                <span className="visually-hidden">Loading...</span>
+                                <span className="visually-hidden">{t('common.loading.default')}</span>
                             </div>
                         </div>
                     ) : (
@@ -286,10 +288,10 @@ const SpecialDays = () => {
                             <table className="table table-striped table-hover">
                                 <thead className="table-dark">
                                     <tr>
-                                        <th>Name</th>
-                                        <th>Date</th>
-                                        <th>Type</th>
-                                        <th>Actions</th>
+                                        <th>{t('common.labels.name')}</th>
+                                        <th>{t('common.labels.date')}</th>
+                                        <th>{t('common.labels.type')}</th>
+                                        <th>{t('common.labels.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
@@ -306,7 +308,7 @@ const SpecialDays = () => {
                                                         border: `1px solid ${specialDay.dayType === 'PUBLIC_HOLIDAY' ? '#bee5eb' : '#81d4fa'}`
                                                     }}
                                                 >
-                                                    {specialDay.dayType === 'PUBLIC_HOLIDAY' ? 'Public Holiday' : 'Half Day'}
+                                                    {specialDay.dayType === 'PUBLIC_HOLIDAY' ? t('specialDays.types.publicHoliday') : t('specialDays.types.halfDay')}
                                                 </span>
                                             </td>
                                             <td>
@@ -316,14 +318,14 @@ const SpecialDays = () => {
                                                     className="me-2"
                                                     onClick={() => handleEdit(specialDay)}
                                                 >
-                                                    Edit
+                                                    {t('common.buttons.edit')}
                                                 </Button>
                                                 <Button
                                                     variant="outline-danger"
                                                     size="sm"
                                                     onClick={() => handleDelete(specialDay.id)}
                                                 >
-                                                    Delete
+                                                    {t('common.buttons.delete')}
                                                 </Button>
                                             </td>
                                         </tr>
@@ -331,7 +333,7 @@ const SpecialDays = () => {
                                     {specialDays.length === 0 && (
                                         <tr>
                                             <td colSpan="4" className="text-center text-muted">
-                                                {selectedYear ? 'No special days found for this year' : 'Please select a year to view special days'}
+                                                {selectedYear ? t('specialDays.messages.noSpecialDaysFound') : t('specialDays.messages.selectYearMessage')}
                                             </td>
                                         </tr>
                                     )}
@@ -345,7 +347,7 @@ const SpecialDays = () => {
             <Modal show={showModal} onHide={() => { setShowModal(false); setModalError({ show: false, message: '' }); }}>
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingSpecialDay ? 'Edit Special Day' : 'Create Special Day'}
+                        {editingSpecialDay ? t('specialDays.editSpecialDay') : t('specialDays.createSpecialDay')}
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmit}>
@@ -356,33 +358,33 @@ const SpecialDays = () => {
                             </Alert>
                         )}
                         <Form.Group className="mb-3">
-                            <Form.Label>Name *</Form.Label>
+                            <Form.Label>{t('common.labels.name')} *</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                placeholder="Enter special day name"
+                                placeholder={t('specialDays.placeholders.enterSpecialDayName')}
                                 maxLength="40"
                                 required
                             />
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Type *</Form.Label>
+                            <Form.Label>{t('common.labels.type')} *</Form.Label>
                             <Form.Select
                                 name="dayType"
                                 value={formData.dayType}
                                 onChange={handleInputChange}
                                 required
                             >
-                                <option value="PUBLIC_HOLIDAY">Public Holiday</option>
-                                <option value="HALF_DAY">Half Day</option>
+                                <option value="PUBLIC_HOLIDAY">{t('specialDays.types.publicHoliday')}</option>
+                                <option value="HALF_DAY">{t('specialDays.types.halfDay')}</option>
                             </Form.Select>
                         </Form.Group>
 
                         <Form.Group className="mb-3">
-                            <Form.Label>Date *</Form.Label>
+                            <Form.Label>{t('common.labels.date')} *</Form.Label>
                             <Form.Control
                                 type="date"
                                 name="date"
@@ -394,10 +396,10 @@ const SpecialDays = () => {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={() => { setShowModal(false); setModalError({ show: false, message: '' }); }}>
-                            Cancel
+                            {t('common.buttons.cancel')}
                         </Button>
                         <Button variant="primary" type="submit">
-                            {editingSpecialDay ? 'Update' : 'Create'}
+                            {editingSpecialDay ? t('common.buttons.update') : t('common.buttons.create')}
                         </Button>
                     </Modal.Footer>
                 </Form>

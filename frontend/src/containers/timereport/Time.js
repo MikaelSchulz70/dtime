@@ -3,6 +3,7 @@ import TimeService from '../../service/TimeService';
 import * as Constants from '../../common/Constants';
 import ReportService from '../../service/ReportService';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged, id }) {
     const [timeReportDay, setTimeReportDay] = useState(initialTimeReportDay);
@@ -298,6 +299,7 @@ function Times(props) {
     const [timeReport, setTimeReport] = useState(null);
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const { showError, showSuccess } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadCurrentTimes(Constants.MONTH_VIEW);
@@ -369,7 +371,7 @@ function Times(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Time</h2>
+            <h2>{t('time.title')}</h2>
             <div className="row mb-2">
                 <div className="col-auto">
                     <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={loadPreviousTimes}>&lt;&lt;</button>
@@ -383,11 +385,9 @@ function Times(props) {
                         <option value={Constants.MONTH_VIEW}>Month</option>
                     </select>
                 </div>
-                <div className="col">
+                <div className="col text-end">
                     {reportView === Constants.MONTH_VIEW && !timeReport.closed ? (
-                        <span className="float-right">
-                            <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={closeReport}>Close report</button>
-                        </span>
+                        <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={closeReport}>Close report</button>
                     ) : ''}
                 </div>
                 <div className="col-auto">

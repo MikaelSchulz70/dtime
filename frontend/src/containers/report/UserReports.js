@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from "react";
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 import { 
     TaskDistributionPieChart, 
     AccountHoursChart,
@@ -97,6 +98,7 @@ function UserReports(props) {
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const [viewMode, setViewMode] = useState('table');
     const { showError } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadFromServer(Constants.MONTH_VIEW);
@@ -148,29 +150,29 @@ function UserReports(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>My Time Report</h2>
+            <h2>{t('reports.myTimeReport')}</h2>
             <div className="card shadow-sm mb-4">
                 <div className="card-body">
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">
                             <div className="d-flex gap-2" role="group" aria-label="Navigation">
-                                <button className="btn btn-success btn-sm" name={report.fromDate} onClick={handlePreviousReport} title="Previous Period">
+                                <button className="btn btn-success btn-sm" name={report.fromDate} onClick={handlePreviousReport} title={t('reports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>
-                                <button className="btn btn-success btn-sm" name={report.toDate} onClick={handleNextReport} title="Next Period">
+                                <button className="btn btn-success btn-sm" name={report.toDate} onClick={handleNextReport} title={t('reports.nextPeriod')}>
                                     &gt;&gt;
                                 </button>
                             </div>
                         </div>
                         <div className="col-sm-2">
-                            <label className="form-label fw-bold text-muted small">Period Type</label>
+                            <label className="form-label fw-bold text-muted small">{t('reports.periodType')}</label>
                             <select className="form-select form-select-sm" value={reportView} name="reportView" onChange={viewChange}>
-                                <option value={Constants.MONTH_VIEW}>📅 Monthly</option>
-                                <option value={Constants.YEAR_VIEW}>📆 Yearly</option>
+                                <option value={Constants.MONTH_VIEW}>📅 {t('reports.monthly')}</option>
+                                <option value={Constants.YEAR_VIEW}>📆 {t('reports.yearly')}</option>
                             </select>
                         </div>
                         <div className="col-sm-3">
-                            <label className="form-label fw-bold text-muted small">Workable Hours</label>
+                            <label className="form-label fw-bold text-muted small">{t('common.labels.workableHours')}</label>
                             <div className="badge bg-info fs-6 py-2 px-3">
                                 🕰️ {report.workableHours} hours
                             </div>

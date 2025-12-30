@@ -6,12 +6,14 @@ import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 function AdminReports(props) {
     const [report, setReport] = useState(null);
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const [reportType, setReportType] = useState(Constants.USER_TASK_REPORT);
     const { showError } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         loadFromServer(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
@@ -112,34 +114,34 @@ function AdminReports(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Administrative Reports</h2>
+            <h2>{t('reports.administrativeReports')}</h2>
             <div className="card shadow-sm mb-4">
                 <div className="card-body">
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">
                             <div className="d-flex gap-2" role="group" aria-label="Navigation">
-                                <button className="btn btn-success btn-sm" name={report.fromDate} onClick={handlePreviousReport} title="Previous Period">
+                                <button className="btn btn-success btn-sm" name={report.fromDate} onClick={handlePreviousReport} title={t('reports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>
-                                <button className="btn btn-success btn-sm" name={report.toDate} onClick={handleNextReport} title="Next Period">
+                                <button className="btn btn-success btn-sm" name={report.toDate} onClick={handleNextReport} title={t('reports.nextPeriod')}>
                                     &gt;&gt;
                                 </button>
                             </div>
                         </div>
                         <div className="col-sm-2">
-                            <label className="form-label fw-bold text-muted small">Period Type</label>
+                            <label className="form-label fw-bold text-muted small">{t('reports.periodType')}</label>
                             <select className="form-select form-select-sm" value={reportView} name="reportView" onChange={viewChange}>
-                                <option value="MONTH">📅 Monthly</option>
-                                <option value="YEAR">📆 Yearly</option>
+                                <option value="MONTH">📅 {t('reports.monthly')}</option>
+                                <option value="YEAR">📆 {t('reports.yearly')}</option>
                             </select>
                         </div>
                         <div className="col-sm-3">
-                            <label className="form-label fw-bold text-muted small">Report Type</label>
+                            <label className="form-label fw-bold text-muted small">{t('reports.reportType')}</label>
                             <select className="form-select form-select-sm" value={reportType} name="reportType" onChange={typeChange}>
-                                <option value={Constants.USER_TASK_REPORT}>👥 User Task Report</option>
-                                <option value={Constants.ACCOUNT_REPORT}>🏢 Account Report</option>
-                                <option value={Constants.TASK_REPORT}>📋 Task Report</option>
-                                <option value={Constants.USER_REPORT}>👤 User Report</option>
+                                <option value={Constants.USER_TASK_REPORT}>👥 {t('reports.userTaskReport')}</option>
+                                <option value={Constants.ACCOUNT_REPORT}>🏢 {t('reports.accountReport')}</option>
+                                <option value={Constants.TASK_REPORT}>📋 {t('reports.taskReport')}</option>
+                                <option value={Constants.USER_REPORT}>👤 {t('reports.userReport')}</option>
                             </select>
                         </div>
                         <div className="col-sm-5">

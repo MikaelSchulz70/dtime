@@ -2,9 +2,11 @@ import React, { useState, useEffect, useCallback } from "react";
 import TimeReportStatusService from '../../service/TimeReportStatusService';
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }) {
     const [report, setReport] = useState(initialReport);
+    const { t } = useTranslation();
 
     useEffect(() => {
         setReport(initialReport);
@@ -21,7 +23,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 
         // Show confirmation dialog when closing a time report
         if (!user.closed) {
-            const confirmMessage = `Do you really want to close the time report for ${user.fullName || 'this user'}?`;
+            const confirmMessage = t('timeReports.messages.confirmCloseReport', { userName: user.fullName || t('common.labels.user') });
             if (!window.confirm(confirmMessage)) {
                 // User cancelled, revert the checkbox
                 event.target.checked = false;
@@ -52,7 +54,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
             })
             .catch(error => {
                 console.error('Error toggling report status:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to open/close report';
+                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToggleReport');
                 showError(errorMessage);
 
                 // Revert the checkbox on error
@@ -64,7 +66,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
         return (
             <div className="text-center">
                 <div className="spinner-border" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">{t('common.loading.default')}</span>
                 </div>
             </div>
         );
@@ -76,12 +78,12 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 
     rows.push(
         <tr key={0} className="bg-success text-white">
-            <th className="fw-bold">👤 User</th>
-            <th className="fw-bold">📧 Email</th>
-            <th className="fw-bold">⏱️ Total Hours</th>
-            <th className="fw-bold">📊 Workable Hours</th>
-            <th className="fw-bold">📋 Status</th>
-            <th className="fw-bold">⚙️ Action</th>
+            <th className="fw-bold">👤 {t('common.labels.user')}</th>
+            <th className="fw-bold">📧 {t('common.labels.email')}</th>
+            <th className="fw-bold">⏱️ {t('timeReports.labels.totalHours')}</th>
+            <th className="fw-bold">📊 {t('timeReports.labels.workableHours')}</th>
+            <th className="fw-bold">📋 {t('common.labels.status')}</th>
+            <th className="fw-bold">⚙️ {t('common.labels.actions')}</th>
         </tr>);
 
     var key = 1;
@@ -95,13 +97,13 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 
             rows.push(
                 <tr key={key}>
-                    <td className="fw-medium">{user.fullName || 'Unknown User'}</td>
-                    <td className="text-muted">{user.email || 'No Email'}</td>
+                    <td className="fw-medium">{user.fullName || t('common.labels.unknownUser')}</td>
+                    <td className="text-muted">{user.email || t('common.labels.noEmail')}</td>
                     <td className={`fw-bold ${textColor}`}>{totalTime} hrs</td>
                     <td className="fw-bold text-primary">{workableHours} hrs</td>
                     <td>
                         <span className={`badge ${user.closed ? 'bg-success' : 'bg-warning text-dark'} py-1 px-2`}>
-                            {user.closed ? '✅ Closed' : '⏳ Open'}
+                            {user.closed ? `✅ ${t('common.status.closed')}` : `⏳ ${t('common.status.open')}`}
                         </span>
                     </td>
                     <td>
@@ -115,7 +117,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                                 onChange={handleOpenCloseReport}
                             />
                             <label className="form-check-label fw-medium" htmlFor={user.userId}>
-                                {user.closed ? '🔓 Reopen' : '🔒 Close'}
+                                {user.closed ? `🔓 ${t('timeReports.actions.reopen')}` : `🔒 ${t('timeReports.actions.close')}`}
                             </label>
                         </div>
                     </td>
@@ -127,8 +129,8 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
             <tr key={key}>
                 <td colSpan="6" className="text-center text-muted">
                     {report.unclosedUsers === undefined ?
-                        'Loading users...' :
-                        'All users have closed their time reports for this month'
+                        t('common.loading.users') :
+                        t('timeReports.messages.allUsersClosed')
                     }
                 </td>
             </tr>
@@ -138,7 +140,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
     return (
         <div className="card shadow-sm">
             <div className="card-header bg-light">
-                <h5 className="mb-0 fw-bold text-muted">👥 User Status Overview</h5>
+                <h5 className="mb-0 fw-bold text-muted">👥 {t('timeReports.userStatusOverview')}</h5>
             </div>
             <div className="card-body p-0">
                 <div className="table-responsive">
@@ -157,6 +159,7 @@ function UnclosedUsersPage(props) {
     const [report, setReport] = useState(null);
     const [mailEnabled, setMailEnabled] = useState(false);
     const { showError, showSuccess, showWarning } = useToast();
+    const { t } = useTranslation();
 
     const loadCurrentReport = useCallback(() => {
         TimeReportStatusService.getCurrentUnclosedUsers()
@@ -166,7 +169,7 @@ function UnclosedUsersPage(props) {
             })
             .catch(error => {
                 console.error('Error loading unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to load unclosed users report';
+                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoad');
                 showError(errorMessage);
             });
     }, [showError]);
@@ -199,7 +202,7 @@ function UnclosedUsersPage(props) {
             })
             .catch(error => {
                 console.error('Error loading previous unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to load previous unclosed users report';
+                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoadPrevious');
                 showError(errorMessage);
             });
     }, [showError]);
@@ -214,7 +217,7 @@ function UnclosedUsersPage(props) {
             })
             .catch(error => {
                 console.error('Error loading next unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to load next unclosed users report';
+                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoadNext');
                 showError(errorMessage);
             });
     }, [showError]);
@@ -228,11 +231,11 @@ function UnclosedUsersPage(props) {
         const unclosedCount = unclosedUsers.length;
 
         if (unclosedCount === 0) {
-            showWarning('No users have unclosed time reports. No emails will be sent.');
+            showWarning(t('timeReports.messages.noUnclosedUsers'));
             return;
         }
 
-        const confirmMessage = `Send email reminders to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} who have unclosed time reports for this month?`;
+        const confirmMessage = t('timeReports.messages.confirmSendReminders', { count: unclosedCount, plural: unclosedCount === 1 ? '' : 's' });
         if (!window.confirm(confirmMessage)) {
             return;
         }
@@ -240,12 +243,12 @@ function UnclosedUsersPage(props) {
         const systemService = new SystemService();
         systemService.sendEmailReminderToUnclosedUsers()
             .then(response => {
-                showSuccess(`Email reminders sent successfully to ${unclosedCount} user${unclosedCount === 1 ? '' : 's'} with unclosed time reports`);
+                showSuccess(t('timeReports.messages.remindersSent', { count: unclosedCount, plural: unclosedCount === 1 ? '' : 's' }));
             })
             .catch(error => {
                 console.error('Error sending email reminders:', error);
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to send email reminders';
-                showError('Failed to send email reminders: ' + errorMessage);
+                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToSendReminders');
+                showError(t('timeReports.messages.failedToSendReminders') + ': ' + errorMessage);
             });
     }, [report, showWarning, showSuccess, showError]);
 
@@ -253,7 +256,7 @@ function UnclosedUsersPage(props) {
         return (
             <div className="text-center">
                 <div className="spinner-border" role="status">
-                    <span className="visually-hidden">Loading...</span>
+                    <span className="visually-hidden">{t('common.loading.default')}</span>
                 </div>
             </div>
         );
@@ -263,40 +266,33 @@ function UnclosedUsersPage(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Unclosed Time Reports</h2>
+            <h2>{t('timeReports.title')}</h2>
             <div className="card shadow-sm mb-4">
                 <div className="card-body">
                     <div className="row align-items-center mb-3">
                         <div className="col-sm-6">
-                            
-                        </div>
-                        <div className="col-sm-6 text-end">
-                            {mailEnabled && (
-                                <button
-                                    className="btn btn-primary btn-sm me-3"
-                                    onClick={handleSendEmailReminder}
-                                    title="Send email reminders to users with unclosed time reports"
-                                >
-                                    📧 Send Reminders
-                                </button>
-                            )}
-                            <span className="badge bg-secondary fs-6 py-2 px-3">
-                                📅 {fromDate} - {toDate}
-                            </span>
-                        </div>
-                    </div>
-                </div>
-                <div className="card-body">
-                    <div className="row mb-3">
-                        <div className="col-sm-2">
                             <div className="d-flex gap-2" role="group" aria-label="Navigation">
-                                <button className="btn btn-success btn-sm" name={fromDate} onClick={handlePreviousReport} title="Previous Period">
+                                <button className="btn btn-success btn-sm" name={fromDate} onClick={handlePreviousReport} title={t('timeReports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>
-                                <button className="btn btn-success btn-sm" name={toDate} onClick={handleNextReport} title="Next Period">
+                                <button className="btn btn-success btn-sm" name={toDate} onClick={handleNextReport} title={t('timeReports.nextPeriod')}>
                                     &gt;&gt;
                                 </button>
                             </div>
+                        </div>
+                        <div className="col-sm-6 text-end">
+                            <span className="badge bg-secondary fs-6 py-2 px-3 me-3">
+                                📅 {fromDate} - {toDate}
+                            </span>
+                            {mailEnabled && (
+                                <button
+                                    className="btn btn-primary btn-sm"
+                                    onClick={handleSendEmailReminder}
+                                    title={t('timeReports.sendRemindersTooltip')}
+                                >
+                                    📧 {t('timeReports.sendReminders')}
+                                </button>
+                            )}
                         </div>
                     </div>
                 </div>

@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import AccountService from '../../service/AccountService';
+import { useTranslation } from 'react-i18next';
 
 const AccountsModal = () => {
+    const { t } = useTranslation();
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -248,7 +250,7 @@ const AccountsModal = () => {
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button variant="primary" size="sm" onClick={handleCreate}>
-                                + Add Account
+                                + {t('accounts.addAccount')}
                             </Button>
                         </Col>
                     </Row>
@@ -376,7 +378,7 @@ const AccountsModal = () => {
             <Modal show={showModal} onHide={closeModal}>
                 <Modal.Header closeButton>
                     <Modal.Title>
-                        {editingAccount ? 'Edit Account' : 'Create Account'}
+                        {editingAccount ? t('accounts.editAccount') : t('accounts.createAccount')}
                     </Modal.Title>
                 </Modal.Header>
                 <Form onSubmit={handleSubmit}>

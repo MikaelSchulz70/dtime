@@ -2,11 +2,13 @@ import React, { useState, useCallback } from "react";
 import UserService from '../../service/UserService';
 import { useBaseDetails } from '../BaseDetails';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 function PasswordChanger(props) {
     const [userPwd, setUserPwd] = useState({ currentPassword: "", newPassword1: "", newPassword2: "" });
     const { showSuccess } = useToast();
     const { handleError, clearErrors } = useBaseDetails();
+    const { t } = useTranslation();
 
     const handleChange = useCallback((event) => {
         let updatedUserPwd = JSON.parse(JSON.stringify(userPwd));
@@ -23,7 +25,7 @@ function PasswordChanger(props) {
         var service = new UserService();
         service.changePwd(userPwd)
             .then(response => {
-                showSuccess('Password changed successfully!');
+                showSuccess(t('common.messages.passwordChanged'));
             })
             .catch(error => {
                 handleError(error.response.status, error.response.data.error, error.response.data.fieldErrors);
@@ -32,9 +34,9 @@ function PasswordChanger(props) {
 
     return (
         <div className="container">
-            <h2>Change Password</h2>
+            <h2>{t('changePassword.title')}</h2>
             <div className="form-group row">
-                <label className="col-sm-2 col-form-label">Current password</label>
+                <label className="col-sm-2 col-form-label">{t('changePassword.labels.currentPassword')}</label>
                 <div className="col-sm-6">
                     <input className="form-control" type="password" value={userPwd.currentPassword} name="currentPassword" maxLength="80" onChange={handleChange} />
                 </div>
@@ -43,7 +45,7 @@ function PasswordChanger(props) {
                 </div>
             </div>
             <div className="form-group row">
-                <label className="col-sm-2 col-form-label">New password</label>
+                <label className="col-sm-2 col-form-label">{t('changePassword.labels.newPassword')}</label>
                 <div className="col-sm-6">
                     <input className="form-control" type="password" value={userPwd.newPassword1} name="newPassword1" maxLength="80" onChange={handleChange} />
                 </div>
@@ -52,7 +54,7 @@ function PasswordChanger(props) {
                 </div>
             </div>
             <div className="form-group row">
-                <label className="col-sm-2 col-form-label">New password</label>
+                <label className="col-sm-2 col-form-label">{t('changePassword.labels.newPassword')}</label>
                 <div className="col-sm-6">
                     <input className="form-control" type="password" value={userPwd.newPassword2} name="newPassword2" maxLength="80" onChange={handleChange} />
                 </div>
@@ -62,7 +64,7 @@ function PasswordChanger(props) {
             </div>
             <div className="form-group row">
                 <div className="col-sm-8">
-                    <button className="btn btn-success float-sm-right" onClick={changePassword}>Change password</button>
+                    <button className="btn btn-success float-sm-right" onClick={changePassword}>{t('changePassword.changePasswordButton')}</button>
                 </div>
             </div>
         </div>
