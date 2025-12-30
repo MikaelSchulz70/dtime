@@ -1,10 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { Container, Row, Col, Card, Form, Button, Alert } from 'react-bootstrap';
 import { useLocation } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import axios from 'axios';
 // import logo from '../assets/logo.png'; // Using public logo instead
 
 const Login = () => {
+  const { t } = useTranslation();
   const location = useLocation();
   const [formData, setFormData] = useState({
     username: '',
@@ -60,15 +62,15 @@ const Login = () => {
         // Handle redirect - check if it's success or error
         const location = error.response.headers.location;
         if (location && location.includes('error')) {
-          setError('Invalid username or password.');
+          setError(t('auth.login.errors.invalidCredentials'));
         } else {
           // Successful login redirect
           window.location.href = '/';
         }
       } else if (error.response?.status === 401) {
-        setError('Invalid username or password.');
+        setError(t('auth.login.errors.invalidCredentials'));
       } else {
-        setError('Login failed. Please try again.');
+        setError(t('auth.login.errors.loginFailed'));
       }
     } finally {
       setLoading(false);
@@ -99,22 +101,22 @@ const Login = () => {
                   style={{ maxWidth: '60%', height: 'auto' }}
                   className="mb-3"
                 />
-                <h2 className="text-center fw-bold text-success mb-4">Login</h2>
+                <h2 className="text-center fw-bold text-success mb-4">{t('auth.login.title')}</h2>
               </div>
 
               {/* Error Messages */}
               {hasError && (
                 <Alert variant="danger" className="mb-3">
                   {hasError === 'oauth' ? 
-                    'Google login failed. Please ensure your account exists in the system.' : 
-                    'Invalid username or password.'
+                    t('auth.login.errors.googleLoginFailed') : 
+                    t('auth.login.errors.invalidCredentials')
                   }
                 </Alert>
               )}
 
               {hasLogout && (
                 <Alert variant="info" className="mb-3">
-                  You have been logged out.
+                  {t('auth.login.logoutMessage')}
                 </Alert>
               )}
 
@@ -130,7 +132,7 @@ const Login = () => {
                   <Form.Control
                     type="email"
                     name="username"
-                    placeholder="Username"
+                    placeholder={t('auth.login.placeholders.username')}
                     value={formData.username}
                     onChange={handleChange}
                     required
@@ -143,7 +145,7 @@ const Login = () => {
                   <Form.Control
                     type="password"
                     name="password"
-                    placeholder="Password"
+                    placeholder={t('auth.login.placeholders.password')}
                     value={formData.password}
                     onChange={handleChange}
                     required
@@ -160,7 +162,7 @@ const Login = () => {
                     size="lg"
                     className="rounded-3 fw-bold"
                   >
-                    {loading ? 'Logging in...' : 'Log in'}
+                    {loading ? t('common.loading.loggingIn') : t('auth.login.logIn')}
                   </Button>
                 </div>
               </Form>
@@ -169,7 +171,7 @@ const Login = () => {
               {googleAuthEnabled && (
                 <>
                   <div className="text-center my-3">
-                    <small className="text-muted">or</small>
+                    <small className="text-muted">{t('auth.login.or')}</small>
                   </div>
                   <div className="d-grid">
                     <Button
@@ -180,7 +182,7 @@ const Login = () => {
                       disabled={loading}
                     >
                       <i className="fab fa-google me-2"></i>
-                      Sign in with Google
+                      {t('auth.login.signInWithGoogle')}
                     </Button>
                   </div>
                 </>

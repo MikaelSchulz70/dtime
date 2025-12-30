@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
 
 function UserTableRow({ user, handleDelete }) {
+    const { t } = useTranslation();
     if (user == null) return null;
 
     const editRoute = '/users/' + user.id;
@@ -17,14 +19,15 @@ function UserTableRow({ user, handleDelete }) {
             <td>{user.userRole}</td>
             <td>{user.activationStatus}</td>
             <td>
-                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>Edit</Link>
-                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(user.id)}>Delete</button>
+                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>{t('common.buttons.edit')}</Link>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(user.id)}>{t('common.buttons.delete')}</button>
             </td>
         </tr>
     );
 }
 
 function UserTable({ users, handleDelete, statusFilter, emailFilter, roleFilter }) {
+    const { t } = useTranslation();
     if (users == null) return null;
 
     var emailFilterValue = emailFilter || '';
@@ -46,12 +49,12 @@ function UserTable({ users, handleDelete, statusFilter, emailFilter, roleFilter 
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>First name</th>
-                    <th>Last name</th>
-                    <th>Email</th>
-                    <th>Role</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{t('users.headers.firstName')}</th>
+                    <th>{t('users.headers.lastName')}</th>
+                    <th>{t('users.headers.email')}</th>
+                    <th>{t('users.headers.role')}</th>
+                    <th>{t('users.headers.status')}</th>
+                    <th>{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
@@ -60,6 +63,7 @@ function UserTable({ users, handleDelete, statusFilter, emailFilter, roleFilter 
 }
 
 function Users(props) {
+    const { t } = useTranslation();
     const [firstNameFilter, setFirstNameFilter] = useState('');
     const [lastNameFilter, setLastNameFilter] = useState('');
     const [emailFilter, setEmailFilter] = useState('');
@@ -87,7 +91,7 @@ function Users(props) {
                 })
                 .catch(error => {
                     console.error('Failed to load users with search:', error);
-                    showError('Failed to load users: ' + (error.response?.data?.error || error.message));
+                    showError(t('users.messages.loadUsersFailed') + ': ' + (error.response?.data?.error || error.message));
                 });
         } else {
             // Use regular getAll for initial load or when no search terms
@@ -98,7 +102,7 @@ function Users(props) {
                 })
                 .catch(error => {
                     console.error('Failed to load users:', error);
-                    showError('Failed to load users');
+                    showError(t('users.messages.loadUsersFailed'));
                 });
         }
     }, [showError]);
@@ -166,7 +170,7 @@ function Users(props) {
     }, [firstNameFilter, lastNameFilter, loadFromServer]);
 
     const handleDelete = useCallback((id) => {
-        const shallDelete = confirm('Are you really sure you want to delete?');
+        const shallDelete = confirm(t('users.messages.userDeleteConfirm'));
         if (!shallDelete) {
             return;
         }
@@ -174,45 +178,45 @@ function Users(props) {
         const userService = new UserService();
         userService.delete(id)
             .then(response => {
-                showSuccess('User deleted successfully');
+                showSuccess(t('users.messages.userDeleted'));
                 loadFromServer();
             })
             .catch(error => {
-                showError('Failed to delete: ' + (error.response.data.error));
+                showError(t('users.messages.deleteUserFailed') + ': ' + (error.response.data.error));
             });
-    }, [loadFromServer, showSuccess, showError]);
+    }, [loadFromServer, showSuccess, showError, t]);
 
     if (users == null) return null;
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Users</h2>
+            <h2>{t('users.title')}</h2>
             <div className="row mb-3">
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="First Name" name="firstNameFilter" value={firstNameFilter} onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('users.placeholders.filterByFirstName')} name="firstNameFilter" value={firstNameFilter} onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="Last name" name="lastNameFilter" value={lastNameFilter} onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('users.placeholders.filterByLastName')} name="lastNameFilter" value={lastNameFilter} onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="Email" name="emailFilter" value={emailFilter} onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('common.placeholders.email')} name="emailFilter" value={emailFilter} onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
                     <select className="form-control input-sm" name="roleFilter" value={roleFilter} onChange={filterChanged}>
-                        <option value=""></option>
-                        <option value={Constants.USER_ROLE}>User</option>
-                        <option value={Constants.ADMIN_ROLE}>Admin</option>
+                        <option value="">{t('common.labels.role')}</option>
+                        <option value={Constants.USER_ROLE}>{t('users.roles.user')}</option>
+                        <option value={Constants.ADMIN_ROLE}>{t('users.roles.admin')}</option>
                     </select>
                 </div>
                 <div className="col-sm-2">
                     <select className="form-control input-sm" name="statusFilter" value={statusFilter} onChange={filterChanged}>
-                        <option value={Constants.ACTIVE_STATUS}>Active</option>
-                        <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                        <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                        <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                     </select>
                 </div>
                 <div className="col-sm-2 text-end">
                     <button className="btn btn-warning btn-sm me-2" onClick={() => console.log('Test button clicked', { firstNameFilter, lastNameFilter, emailFilter, statusFilter, roleFilter })}>Test</button>
-                    <Link className="btn btn-primary btn-sm" to='/users/0'>+ Add User</Link>
+                    <Link className="btn btn-primary btn-sm" to='/users/0'>{t('users.addUser')}</Link>
                 </div>
             </div>
             <div className="row">

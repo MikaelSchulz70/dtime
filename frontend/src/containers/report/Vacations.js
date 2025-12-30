@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import TimeService from '../../service/TimeService';
 import * as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
@@ -43,6 +44,7 @@ function VacationTableEntry({ vacationsDay }) {
 }
 
 function VacationTableRow({ userVacation }) {
+    const { t } = useTranslation();
     if (userVacation == null) return null;
 
     var keyBase = userVacation.userId;
@@ -66,7 +68,7 @@ function VacationTableRow({ userVacation }) {
     return (
         <tr key={keyBase}>
             <th key={keyBase + '-0'} className="text-nowrap" title={userName}>{userNameShort}</th>
-            <th key={keyBase + '-1'}>Vacation</th>
+            <th key={keyBase + '-1'}>{t('vacations.labels.vacation')}</th>
             <th key={keyBase + '-2'}><input className="time" style={{ width: "50px" }} readOnly={true} type="text" value={vacationCount} /></th>
             {entries}
         </tr>
@@ -74,6 +76,7 @@ function VacationTableRow({ userVacation }) {
 }
 
 function VacationTableHeaderRow({ days }) {
+    const { t } = useTranslation();
     if (days == null) return null;
 
     var columns = [];
@@ -100,9 +103,9 @@ function VacationTableHeaderRow({ days }) {
 
     return (
         <tr key="0">
-            <th key="header-0"><font color={Constants.DAY_COLOR}>Employee</font></th>
-            <th key="header-1"><font color={Constants.DAY_COLOR}>Type</font></th>
-            <th key="header-2"><font color={Constants.DAY_COLOR}>Days</font></th>
+            <th key="header-0"><font color={Constants.DAY_COLOR}>{t('vacations.labels.employee')}</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>{t('vacations.labels.type')}</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>{t('vacations.labels.days')}</font></th>
             {columns}
         </tr>
     );
@@ -161,6 +164,7 @@ if (typeof document !== 'undefined') {
 }
 
 export default function Vacations(props) {
+    const { t } = useTranslation();
     const [vacations, setVacations] = useState(null);
     const { showError } = useToast();
 
@@ -171,7 +175,7 @@ export default function Vacations(props) {
                 setVacations(response.data);
             })
             .catch(error => {
-                showError?.('Failed to load vacations') || alert('Failed to load vacations');
+                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
             });
     }, [showError]);
 
@@ -184,7 +188,7 @@ export default function Vacations(props) {
                 setVacations(response.data);
             })
             .catch(error => {
-                showError?.('Failed to load vacations') || alert('Failed to load vacations');
+                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
             });
     }, [showError]);
 
@@ -197,7 +201,7 @@ export default function Vacations(props) {
                 setVacations(response.data);
             })
             .catch(error => {
-                showError?.('Failed to load time vacations') || alert('Failed to load time vacations');
+                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
             });
     }, [showError]);
 
@@ -209,7 +213,7 @@ export default function Vacations(props) {
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Vacation Calendar</h2>
+            <h2>{t('vacations.title')}</h2>
             <div className="row mb-4">
                 <div className="col-12">
                     <div className="card shadow-sm">
@@ -221,7 +225,7 @@ export default function Vacations(props) {
                                             className="btn btn-success btn-sm"
                                             name={vacations.firstDate}
                                             onClick={loadPreviousVacations}
-                                            title="Previous Month"
+                                            title={t('vacations.navigation.previousMonth')}
                                         >
                                             &lt;&lt;
                                         </button>
@@ -229,7 +233,7 @@ export default function Vacations(props) {
                                             className="btn btn-success btn-sm"
                                             name={vacations.lastDate}
                                             onClick={loadNextVacations}
-                                            title="Next Month"
+                                            title={t('vacations.navigation.nextMonth')}
                                         >
                                             &gt;&gt;
                                         </button>
@@ -248,15 +252,15 @@ export default function Vacations(props) {
                                     <div className="d-flex justify-content-end gap-3 small">
                                         <span>
                                             <span className="badge me-1" style={{ backgroundColor: Constants.BRAND_SUCCESS, color: 'white' }}>V</span>
-                                            Vacation
+                                            {t('vacations.labels.vacation')}
                                         </span>
                                         <span>
                                             <span className="badge me-1" style={{ backgroundColor: Constants.MAJOR_HOLIDAY_COLOR, color: '#0c5460' }}>H</span>
-                                            Holiday
+                                            {t('vacations.labels.holiday')}
                                         </span>
                                         <span>
                                             <span className="badge me-1" style={{ backgroundColor: Constants.WEEKEND_COLOR, color: '#856404' }}>W</span>
-                                            Weekend
+                                            {t('vacations.labels.weekend')}
                                         </span>
                                     </div>
                                 </div>

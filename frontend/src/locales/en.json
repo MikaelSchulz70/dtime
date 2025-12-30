@@ -1,0 +1,473 @@
+{
+  "common": {
+    "buttons": {
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "create": "Create",
+      "update": "Update",
+      "add": "Add",
+      "close": "Close",
+      "tryAgain": "Try Again",
+      "reloadPage": "Reload Page",
+      "previous": "<<",
+      "next": ">>",
+      "closeReport": "Close report",
+      "sendReminders": "📧 Send Reminders"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive",
+      "all": "All Status",
+      "open": "⏳ Open",
+      "closed": "✅ Closed"
+    },
+    "loading": {
+      "default": "Loading...",
+      "loggingOut": "Logging out...",
+      "loadingPage": "Loading page...",
+      "loadingSession": "Loading session...",
+      "loggingIn": "Logging in..."
+    },
+    "placeholders": {
+      "name": "Name",
+      "filterByName": "Filter by name",
+      "email": "Email",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "username": "Username",
+      "password": "Password"
+    },
+    "labels": {
+      "name": "Name",
+      "status": "Status",
+      "actions": "Actions",
+      "type": "Type",
+      "date": "Date",
+      "role": "Role",
+      "email": "Email",
+      "firstName": "First name",
+      "lastName": "Last name",
+      "password": "Password",
+      "currentPassword": "Current password",
+      "newPassword": "New password",
+      "mobileNumber": "Mobile number",
+      "userRole": "User role",
+      "account": "Account",
+      "task": "Task",
+      "time": "Time",
+      "workableHours": "Workable hours",
+      "totalHours": "Total Hours",
+      "accountName": "Account name",
+      "taskType": "Task Type"
+    },
+    "messages": {
+      "noDataFound": "No data found",
+      "confirmDelete": "Are you really sure you want to delete?",
+      "deleteSuccess": "Deleted successfully",
+      "createSuccess": "Created successfully",
+      "updateSuccess": "Updated successfully",
+      "saveFailed": "Failed to save",
+      "loadFailed": "Failed to load",
+      "internalServerError": "Internal server error",
+      "fillRequiredFields": "Please fill in all required fields",
+      "passwordChanged": "Password changed successfully!",
+      "entries": "entries",
+      "showing": "Showing",
+      "to": "to",
+      "of": "of"
+    },
+    "timeView": {
+      "week": "Week",
+      "month": "Month",
+      "year": "📆 Yearly",
+      "monthly": "📅 Monthly"
+    },
+    "forms": {
+      "required": "Required",
+      "optional": "Optional",
+      "select": "Select...",
+      "selectOption": "Select an option"
+    },
+    "pagination": {
+      "show": "Show:",
+      "entries": "entries",
+      "showing": "Showing",
+      "to": "to",
+      "of": "of",
+      "previous": "Previous",
+      "next": "Next",
+      "first": "First",
+      "last": "Last"
+    }
+  },
+  "auth": {
+    "login": {
+      "title": "Login",
+      "logIn": "Log in",
+      "signInWithGoogle": "Sign in with Google",
+      "or": "or",
+      "placeholders": {
+        "username": "Username",
+        "password": "Password"
+      },
+      "errors": {
+        "invalidCredentials": "Invalid username or password.",
+        "loginFailed": "Login failed. Please try again.",
+        "googleLoginFailed": "Google login failed. Please ensure your account exists in the system."
+      },
+      "logoutMessage": "You have been logged out."
+    }
+  },
+  "navigation": {
+    "appName": "D-Time",
+    "menu": {
+      "time": "Time",
+      "admin": "Admin",
+      "report": "Report",
+      "changePassword": "Change password",
+      "logout": "Logout",
+      "user": "User",
+      "account": "Account",
+      "task": "Task",
+      "taskContributor": "Task contributor",
+      "reports": "Reports",
+      "vacations": "Vacations",
+      "timeReportStatus": "Time Report Status",
+      "systemProperties": "System properties",
+      "specialDays": "Special Days"
+    }
+  },
+  "users": {
+    "title": "Users",
+    "addUser": "+ Add User",
+    "createUser": "Create User",
+    "editUser": "Edit User",
+    "placeholders": {
+      "firstName": "First Name",
+      "lastName": "Last name",
+      "email": "Email",
+      "filterByFirstName": "Filter by first name",
+      "filterByLastName": "Filter by last name",
+      "enterFirstName": "Enter first name",
+      "enterLastName": "Enter last name",
+      "enterEmail": "Enter email address",
+      "passwordPlaceholder": "Change password or leave as-is to keep current",
+      "newUserPasswordPlaceholder": "Enter password"
+    },
+    "headers": {
+      "firstName": "First name",
+      "lastName": "Last name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status"
+    },
+    "roles": {
+      "user": "User",
+      "admin": "Admin"
+    },
+    "messages": {
+      "noUsersFound": "No users found",
+      "userDeleteConfirm": "Are you sure you want to delete this user?",
+      "userDeleted": "User deleted successfully",
+      "userCreated": "User created successfully",
+      "userUpdated": "User updated successfully",
+      "loadUsersFailed": "Failed to load users",
+      "deleteUserFailed": "Failed to delete user",
+      "passwordRequired": "Password is required for new users"
+    }
+  },
+  "accounts": {
+    "title": "Accounts",
+    "addAccount": "+ Add Account",
+    "createAccount": "Create Account",
+    "editAccount": "Edit Account",
+    "placeholders": {
+      "enterAccountName": "Enter account name"
+    },
+    "messages": {
+      "noAccountsFound": "No accounts found",
+      "accountDeleteConfirm": "Are you sure you want to delete this account?",
+      "accountDeleted": "Account deleted successfully",
+      "accountCreated": "Account created successfully",
+      "accountUpdated": "Account updated successfully",
+      "loadAccountsFailed": "Failed to load accounts",
+      "deleteAccountFailed": "Failed to delete account"
+    }
+  },
+  "tasks": {
+    "title": "Tasks",
+    "addTask": "+ Add Task",
+    "createTask": "Create Task",
+    "editTask": "Edit Task",
+    "placeholders": {
+      "accountName": "account name",
+      "name": "Name",
+      "filterByName": "Filter by name",
+      "enterTaskName": "Enter task name"
+    },
+    "types": {
+      "normal": "Normal",
+      "vacation": "Vacation",
+      "sickLeave": "Sick Leave",
+      "parentalLeave": "Parental Leave"
+    },
+    "messages": {
+      "noTasksFound": "No tasks found",
+      "taskDeleteConfirm": "Are you sure you want to delete this task?",
+      "taskDeleted": "Task deleted successfully",
+      "taskCreated": "Task created successfully",
+      "taskUpdated": "Task updated successfully",
+      "loadTasksFailed": "Failed to load tasks",
+      "deleteTaskFailed": "Failed to delete task",
+      "selectAccount": "Select an account"
+    },
+    "filters": {
+      "allAccounts": "All Accounts"
+    }
+  },
+  "timeReport": {
+    "title": "Time",
+    "headers": {
+      "account": "Account",
+      "task": "Task",
+      "time": "Time"
+    },
+    "labels": {
+      "sumTotal": "Sum total",
+      "workableHours": "Workable hours"
+    },
+    "messages": {
+      "closeConfirm": "Are you really sure you want close this month?\\nYou will not be able to open it again.",
+      "reportClosed": "Report closed successfully",
+      "loadFailed": "Failed to load time report",
+      "closeFailed": "Failed to close report"
+    }
+  },
+  "reports": {
+    "userReports": {
+      "title": "My Time Report",
+      "taskTimeBreakdown": "📋 Task Time Breakdown",
+      "taskDistribution": "📋 Task Distribution",
+      "hoursByAccount": "🏢 Hours by Account"
+    },
+    "adminReports": {
+      "title": "Administrative Reports",
+      "userTaskReport": "👥 User Task Report",
+      "accountReport": "🏢 Account Report",
+      "taskReport": "📋 Task Report",
+      "userReport": "👤 User Report"
+    },
+    "labels": {
+      "periodType": "Period Type",
+      "reportType": "Report Type",
+      "previousPeriod": "Previous Period",
+      "nextPeriod": "Next Period"
+    }
+  },
+  "specialDays": {
+    "title": "Special Days",
+    "addSpecialDay": "+ Add Special Day",
+    "createSpecialDay": "Create Special Day",
+    "editSpecialDay": "Edit Special Day",
+    "downloadSampleJson": "Download Sample JSON",
+    "uploadJson": "Upload JSON",
+    "selectYear": "Select Year:",
+    "selectYearOption": "Select year",
+    "deleteAllForYear": "Delete All for {{year}}",
+    "placeholders": {
+      "enterSpecialDayName": "Enter special day name"
+    },
+    "types": {
+      "publicHoliday": "Public Holiday",
+      "halfDay": "Half Day"
+    },
+    "messages": {
+      "noSpecialDaysFound": "No special days found for this year",
+      "selectYearMessage": "Please select a year to view special days",
+      "specialDayDeleteConfirm": "Are you sure you want to delete this special day?",
+      "yearDeleteConfirm": "Are you sure you want to delete all special days for year {{year}}?",
+      "specialDayDeleted": "Special day deleted successfully",
+      "yearDeleted": "All special days for year {{year}} deleted successfully",
+      "specialDayCreated": "Special day created successfully",
+      "specialDayUpdated": "Special day updated successfully",
+      "uploadSuccess": "Special days uploaded successfully",
+      "loadFailed": "Failed to load special days",
+      "saveFailed": "Failed to save special day",
+      "deleteFailed": "Failed to delete special day",
+      "uploadFailed": "Failed to upload special days",
+      "pleaseSelectJson": "Please select a JSON file"
+    }
+  },
+  "systemConfig": {
+    "title": "System Properties",
+    "headers": {
+      "name": "Name",
+      "value": "Value",
+      "type": "Type",
+      "description": "Description"
+    },
+    "messages": {
+      "updateFailed": "Failed to update configuration",
+      "loadFailed": "Failed to load configuration"
+    }
+  },
+  "timeReportStatus": {
+    "title": "Unclosed Time Reports",
+    "headers": {
+      "user": "👤 User",
+      "email": "📧 Email",
+      "totalHours": "⏱️ Total Hours",
+      "workableHours": "📊 Workable Hours",
+      "status": "📋 Status",
+      "action": "⚙️ Action"
+    },
+    "userStatusOverview": "👥 User Status Overview",
+    "actions": {
+      "reopen": "🔓 Reopen",
+      "close": "🔒 Close"
+    },
+    "messages": {
+      "closeConfirm": "Do you really want to close the time report for {{userName}}?",
+      "allUsersClosed": "All users have closed their time reports for this month",
+      "loadingUsers": "Loading users...",
+      "unknownUser": "Unknown User",
+      "noEmail": "No Email",
+      "noUnclosedUsers": "No users have unclosed time reports. No emails will be sent.",
+      "emailReminderConfirm": "Send email reminders to {{count}} user{{plural}} who have unclosed time reports for this month?",
+      "emailReminderSuccess": "Email reminders sent successfully to {{count}} user{{plural}} with unclosed time reports",
+      "emailReminderFailed": "Failed to send email reminders",
+      "loadFailed": "Failed to load unclosed users report"
+    }
+  },
+  "taskContributors": {
+    "title": "Task Contributors",
+    "placeholders": {
+      "searchUser": "Search for a user...",
+      "filterByAccount": "Filter by account",
+      "filterByTask": "Filter by task"
+    },
+    "headers": {
+      "account": "Account",
+      "task": "Task",
+      "status": "Status"
+    },
+    "messages": {
+      "loadUsersFailed": "Failed to load users",
+      "loadTaskContributorsFailed": "Failed to load taskcontributors",
+      "updateFailed": "Failed to update task contributor",
+      "accessDenied": "Access denied: You need admin privileges to view task contributors"
+    }
+  },
+  "vacations": {
+    "title": "Vacation Calendar",
+    "labels": {
+      "employee": "Employee",
+      "type": "Type",
+      "days": "Days",
+      "vacation": "Vacation",
+      "holiday": "Holiday",
+      "weekend": "Weekend"
+    },
+    "navigation": {
+      "previousMonth": "Previous Month",
+      "nextMonth": "Next Month"
+    },
+    "messages": {
+      "loadFailed": "Failed to load vacations"
+    }
+  },
+  "changePassword": {
+    "title": "Change Password",
+    "labels": {
+      "currentPassword": "Current password",
+      "newPassword": "New password"
+    },
+    "changePasswordButton": "Change password"
+  },
+  "errors": {
+    "boundary": {
+      "title": "Oops! Something went wrong",
+      "description": "We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.",
+      "errorDetails": "Error Details (Development Only)",
+      "error": "Error:",
+      "errorInfo": "Error Info:",
+      "noAdditionalInfo": "No additional error information available"
+    },
+    "toast": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  },
+  "charts": {
+    "labels": {
+      "hours": "Hours",
+      "tasks": "Tasks",
+      "accounts": "Accounts",
+      "users": "Users",
+      "total": "Total"
+    },
+    "tooltips": {
+      "hours": "{{value}} hours",
+      "percentage": "{{value}}%"
+    }
+  },
+  "tables": {
+    "noData": "No data available",
+    "search": "Search:",
+    "clear": "Clear",
+    "refresh": "Refresh"
+  },
+  "dates": {
+    "today": "Today",
+    "yesterday": "Yesterday",
+    "thisWeek": "This Week",
+    "thisMonth": "This Month",
+    "thisYear": "This Year"
+  },
+  "modals": {
+    "common": {
+      "close": "Close",
+      "cancel": "Cancel",
+      "confirm": "Confirm",
+      "yes": "Yes",
+      "no": "No"
+    },
+    "deleteConfirmation": {
+      "title": "Confirm Delete",
+      "message": "Are you sure you want to delete this item? This action cannot be undone.",
+      "deleteButton": "Delete",
+      "cancelButton": "Cancel"
+    }
+  },
+  "forms": {
+    "validation": {
+      "required": "This field is required",
+      "email": "Please enter a valid email address",
+      "minLength": "Must be at least {{min}} characters",
+      "maxLength": "Must be no more than {{max}} characters",
+      "passwordMatch": "Passwords must match"
+    },
+    "labels": {
+      "required": "Required",
+      "optional": "Optional"
+    }
+  },
+  "fileUpload": {
+    "selectFile": "Select File",
+    "dragAndDrop": "Drag and drop files here",
+    "uploadSuccess": "File uploaded successfully",
+    "uploadFailed": "File upload failed",
+    "invalidFileType": "Invalid file type",
+    "fileTooLarge": "File is too large"
+  },
+  "loading": {
+    "saving": "Saving...",
+    "deleting": "Deleting...",
+    "uploading": "Uploading...",
+    "processing": "Processing..."
+  }
+}

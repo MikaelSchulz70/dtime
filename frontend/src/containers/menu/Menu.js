@@ -1,9 +1,11 @@
 import React from "react";
 import { Navbar, Nav, NavDropdown } from 'react-bootstrap';
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import logo from "../../assets/logo_white.png";
 
 const NavigationMenu = ({ session }) => {
+  const { t } = useTranslation();
 
   if (!session || !session.loggedInUser) {
     return null;
@@ -18,18 +20,18 @@ const NavigationMenu = ({ session }) => {
             alt="D-Time"
             style={{ height: "40px", marginRight: "10px" }}
           />
-          <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>D-Time</span>
+          <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>{t('navigation.appName')}</span>
         </Navbar.Brand>
         <Navbar.Toggle aria-controls="basic-navbar-nav" />
         <Navbar.Collapse id="basic-navbar-nav">
           <Nav className="mr-auto">
-            <Nav.Link as={Link} to="/time" eventKey={1} className="nav-link-professional">Time</Nav.Link>
-            <NavDropdown title="Admin" id="basic-nav-dropdown" className="nav-dropdown-professional">
-              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/userreport" eventKey={2}>Report</Nav.Link>
+            <Nav.Link as={Link} to="/time" eventKey={1} className="nav-link-professional">{t('navigation.menu.time')}</Nav.Link>
+            <NavDropdown title={t('navigation.menu.admin')} id="basic-nav-dropdown" className="nav-dropdown-professional">
+              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/userreport" eventKey={2}>{t('navigation.menu.report')}</Nav.Link>
               <NavDropdown.Divider />
-              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={3}>Change password</Nav.Link>
+              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={3}>{t('navigation.menu.changePassword')}</Nav.Link>
             </NavDropdown>
-            <Nav.Link as={Link} to="/logout" eventKey={15} className="nav-link-professional">Logout</Nav.Link>
+            <Nav.Link as={Link} to="/logout" eventKey={15} className="nav-link-professional">{t('navigation.menu.logout')}</Nav.Link>
           </Nav>
         </Navbar.Collapse>
         <Navbar.Text className="justify-content-end mr-3 text-light">
@@ -57,29 +59,29 @@ const NavigationMenu = ({ session }) => {
           alt="D-Time"
           style={{ height: "40px", marginRight: "10px" }}
         />
-        <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>D-Time</span>
+        <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>{t('navigation.appName')}</span>
       </Navbar.Brand>
       <Navbar.Toggle aria-controls="basic-navbar-nav" />
       <Navbar.Collapse id="basic-navbar-nav">
         <Nav className="mr-auto">
-          <Nav.Link as={Link} to="/time" eventKey={1} className="nav-link-professional">Time</Nav.Link>
-          <NavDropdown title="Admin" id="basic-nav-dropdown" className="nav-dropdown-professional">
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/users" eventKey={2}>User</Nav.Link>
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/account" eventKey={3}>Account</Nav.Link>
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/task" eventKey={4}>Task</Nav.Link>
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/taskcontributor" eventKey={5}>Task contributor</Nav.Link>
+          <Nav.Link as={Link} to="/time" eventKey={1} className="nav-link-professional">{t('navigation.menu.time')}</Nav.Link>
+          <NavDropdown title={t('navigation.menu.admin')} id="basic-nav-dropdown" className="nav-dropdown-professional">
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/users" eventKey={2}>{t('navigation.menu.user')}</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/account" eventKey={3}>{t('navigation.menu.account')}</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/task" eventKey={4}>{t('navigation.menu.task')}</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/taskcontributor" eventKey={5}>{t('navigation.menu.taskContributor')}</Nav.Link>
             <NavDropdown.Divider />
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/reports" eventKey={6}>Reports</Nav.Link>
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/vacations" eventKey={7}>Vacations</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/reports" eventKey={6}>{t('navigation.menu.reports')}</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/vacations" eventKey={7}>{t('navigation.menu.vacations')}</Nav.Link>
             <NavDropdown.Divider />
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/timereportstatus" eventKey={16}>Time Report Status</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/timereportstatus" eventKey={16}>{t('navigation.menu.timeReportStatus')}</Nav.Link>
             <NavDropdown.Divider />
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={12}>Change password</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={12}>{t('navigation.menu.changePassword')}</Nav.Link>
             <NavDropdown.Divider />
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/system/properties" eventKey={13}>System properties</Nav.Link>
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/specialdays" eventKey={14}>Special Days</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/system/properties" eventKey={13}>{t('navigation.menu.systemProperties')}</Nav.Link>
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/specialdays" eventKey={14}>{t('navigation.menu.specialDays')}</Nav.Link>
           </NavDropdown>
-          <Nav.Link as={Link} to="/logout" eventKey={22} className="nav-link-professional">Logout</Nav.Link>
+          <Nav.Link as={Link} to="/logout" eventKey={22} className="nav-link-professional">{t('navigation.menu.logout')}</Nav.Link>
         </Nav>
       </Navbar.Collapse>
       <Navbar.Text className="justify-content-end mr-3 text-light">

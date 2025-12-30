@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
 
 function AccountTableRow({ organization, handleDelete }) {
+    const { t } = useTranslation();
     if (organization == null) return null;
 
     const editRoute = '/account/' + organization.id;
@@ -14,14 +16,15 @@ function AccountTableRow({ organization, handleDelete }) {
             <td>{organization.name}</td>
             <td>{organization.activationStatus}</td>
             <td>
-                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>Edit</Link>
-                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(organization.id)}>Delete</button>
+                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>{t('common.buttons.edit')}</Link>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(organization.id)}>{t('common.buttons.delete')}</button>
             </td>
         </tr>
     );
 }
 
 function AccountTable({ accounts, handleDelete, nameFilter, statusFilter }) {
+    const { t } = useTranslation();
     if (accounts == null) return null;
 
     var filteredAccounts = accounts.filter(function (account) {
@@ -39,9 +42,9 @@ function AccountTable({ accounts, handleDelete, nameFilter, statusFilter }) {
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>Name</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{t('common.labels.name')}</th>
+                    <th>{t('common.labels.status')}</th>
+                    <th>{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
@@ -50,6 +53,7 @@ function AccountTable({ accounts, handleDelete, nameFilter, statusFilter }) {
 }
 
 function Account(props) {
+    const { t } = useTranslation();
     const [nameFilter, setNameFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState(Constants.ACTIVE_STATUS);
     const [accounts, setAccounts] = useState(null);
@@ -66,7 +70,7 @@ function Account(props) {
             })
             .catch(error => {
                 console.error('Failed to load accounts:', error);
-                showError('Failed to load accounts: ' + (error.response?.data?.error || error.message));
+                showError(t('accounts.messages.loadAccountsFailed') + ': ' + (error.response?.data?.error || error.message));
             });
     }, [showError]);
 
@@ -115,7 +119,7 @@ function Account(props) {
     }, []);
 
     const handleDelete = useCallback((id) => {
-        const shallDelete = confirm('Are you really sure you want to delete?');
+        const shallDelete = confirm(t('accounts.messages.accountDeleteConfirm'));
         if (!shallDelete) {
             return;
         }
@@ -123,32 +127,32 @@ function Account(props) {
         var accountService = new AccountService();
         accountService.delete(id)
             .then(_response => {
-                showSuccess('Account deleted successfully');
+                showSuccess(t('accounts.messages.accountDeleted'));
                 loadFromServer();
             })
             .catch(error => {
-                showError('Failed to delete: ' + (error.response.data.error));
+                showError(t('accounts.messages.deleteAccountFailed') + ': ' + (error.response.data.error));
             });
-    }, [loadFromServer, showSuccess, showError]);
+    }, [loadFromServer, showSuccess, showError, t]);
 
     if (accounts == null) return null;
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Accounts</h2>
+            <h2>{t('accounts.title')}</h2>
             <div className="mt-0">
                 <div className="row mb-3">
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="Name" name="nameFilter" onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('common.placeholders.filterByName')} name="nameFilter" onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
                     <select className="form-control input-sm" name="statusFilter" onChange={filterChanged}>
-                        <option value={Constants.ACTIVE_STATUS}>Active</option>
-                        <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                        <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                        <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                     </select>
                 </div>
                 <div className="col-sm-8 text-end">
-                    <Link className="btn btn-primary btn-sm" to='/account/0'>+ Add Account</Link>
+                    <Link className="btn btn-primary btn-sm" to='/account/0'>{t('accounts.addAccount')}</Link>
                 </div>
             </div>
             <div className="row">

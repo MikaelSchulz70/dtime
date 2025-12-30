@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Link } from 'react-router';
+import { useTranslation } from 'react-i18next';
 import TaskService from '../../service/TaskService';
 import *  as Constants from '../../common/Constants';
 import { TaskTypeLabels } from '../../common/TaskType';
 import { useToast } from '../../components/Toast';
 
 function TaskTableRow({ task, handleDelete }) {
+    const { t } = useTranslation();
     if (task == null) return null;
 
     const editRoute = '/tasks/' + task.id;
@@ -17,14 +19,15 @@ function TaskTableRow({ task, handleDelete }) {
             <td>{TaskTypeLabels[task.taskType] || task.taskType}</td>
             <td>{task.activationStatus}</td>
             <td>
-                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>Edit</Link>
-                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(task.id)}>Delete</button>
+                <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>{t('common.buttons.edit')}</Link>
+                <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(task.id)}>{t('common.buttons.delete')}</button>
             </td>
         </tr>
     );
 }
 
 function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusFilter }) {
+    const { t } = useTranslation();
     if (tasks == null) return null;
 
     var filteredtasks = tasks.filter(function (task) {
@@ -43,11 +46,11 @@ function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusF
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>Account name</th>
-                    <th>Name</th>
-                    <th>Task Type</th>
-                    <th>Status</th>
-                    <th>Actions</th>
+                    <th>{t('common.labels.accountName')}</th>
+                    <th>{t('common.labels.name')}</th>
+                    <th>{t('common.labels.taskType')}</th>
+                    <th>{t('common.labels.status')}</th>
+                    <th>{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
@@ -56,6 +59,7 @@ function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusF
 }
 
 function Task(props) {
+    const { t } = useTranslation();
     const [accountNameFilter, setAccountNameFilter] = useState('');
     const [nameFilter, setNameFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState(Constants.ACTIVE_STATUS);
@@ -69,7 +73,7 @@ function Task(props) {
                 setTasks(response.data);
             })
             .catch(error => {
-                showError('Failed to load tasks: ' + (error.response?.data?.error || error.message));
+                showError(t('tasks.messages.loadTasksFailed') + ': ' + (error.response?.data?.error || error.message));
             });
     }, [showError]);
 
@@ -106,7 +110,7 @@ function Task(props) {
     }, []);
 
     const handleDelete = useCallback((id) => {
-        const shallDelete = confirm('Are you really sure you want to delete?');
+        const shallDelete = confirm(t('tasks.messages.taskDeleteConfirm'));
         if (!shallDelete) {
             return;
         }
@@ -114,35 +118,35 @@ function Task(props) {
         var service = new TaskService();
         service.delete(id)
             .then(response => {
-                showSuccess('Task deleted successfully');
+                showSuccess(t('tasks.messages.taskDeleted'));
                 loadFromServer();
             })
             .catch(error => {
-                showError('Failed to delete task: ' + (error.response.data.error));
+                showError(t('tasks.messages.deleteTaskFailed') + ': ' + (error.response.data.error));
             });
-    }, [loadFromServer, showSuccess, showError]);
+    }, [loadFromServer, showSuccess, showError, t]);
 
     if (tasks == null) return null;
 
     return (
         <div className="container-fluid ml-2 mr-2">
-            <h2>Tasks</h2>
+            <h2>{t('tasks.title')}</h2>
             <div className="mt-0">
                 <div className="row mb-3">
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="account name" name="accountNameFilter" onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('tasks.placeholders.accountName')} name="accountNameFilter" onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
-                    <input className="form-control input-sm" type="text" placeholder="Name" name="nameFilter" onChange={filterChanged} />
+                    <input className="form-control input-sm" type="text" placeholder={t('tasks.placeholders.filterByName')} name="nameFilter" onChange={filterChanged} />
                 </div>
                 <div className="col-sm-2">
                     <select className="form-control input-sm" name="statusFilter" onChange={filterChanged}>
-                        <option value={Constants.ACTIVE_STATUS}>Active</option>
-                        <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                        <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                        <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                     </select>
                 </div>
                 <div className="col-sm-6 text-end">
-                    <Link className="btn btn-primary btn-sm" to='/tasks/0'>+ Add Task</Link>
+                    <Link className="btn btn-primary btn-sm" to='/tasks/0'>{t('tasks.addTask')}</Link>
                 </div>
             </div>
             <div className="row">

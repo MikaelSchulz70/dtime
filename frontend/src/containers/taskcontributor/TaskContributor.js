@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Table } from 'react-bootstrap';
+import { useTranslation } from 'react-i18next';
 import TaskContributorService from '../../service/TaskContributorService';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
 
 function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, activationStatusChanged }) {
+    const { t } = useTranslation();
     const [taskcontributor, setTaskcontributor] = useState(initialTaskcontributor);
     const { showError } = useToast();
 
@@ -27,7 +29,7 @@ function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, acti
             })
             .catch(error => {
                 console.error('Failed to update task contributor:', error);
-                showError('Failed to update task contributor: ' + (error.response?.data?.error || error.message));
+                showError(t('taskContributors.messages.updateFailed') + ': ' + (error.response?.data?.error || error.message));
             });
     }, [taskcontributor, activationStatusChanged, showError]);
 
@@ -39,8 +41,8 @@ function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, acti
             <td>{taskcontributor.task.name}</td>
             <td>
                 <select className="form-control input-sm" name="activationStatus" value={taskcontributor.activationStatus} onChange={handleChange}>
-                    <option value={Constants.ACTIVE_STATUS}>Active</option>
-                    <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                    <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                    <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                 </select>
             </td>
         </tr>
@@ -48,6 +50,7 @@ function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, acti
 }
 
 function TaskContributorTable({ taskcontributors, accountNameFilter, taskNameFilter, statusFilter, activationStatusChanged }) {
+    const { t } = useTranslation();
     if (taskcontributors == null) return null;
 
     var filteredTaskcontributors = taskcontributors.filter(function (taskcontributor) {
@@ -67,9 +70,9 @@ function TaskContributorTable({ taskcontributors, accountNameFilter, taskNameFil
         <Table striped bordered hover responsive>
             <thead>
                 <tr>
-                    <th>Account</th>
-                    <th>Task</th>
-                    <th>Status</th>
+                    <th>{t('taskContributors.headers.account')}</th>
+                    <th>{t('taskContributors.headers.task')}</th>
+                    <th>{t('taskContributors.headers.status')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
@@ -78,6 +81,7 @@ function TaskContributorTable({ taskcontributors, accountNameFilter, taskNameFil
 }
 
 function TaskContributor(props) {
+    const { t } = useTranslation();
     const [accountNameFilter, setAccountNameFilter] = useState('');
     const [taskNameFilter, setTaskNameFilter] = useState('');
     const [statusFilter, setStatusFilter] = useState(Constants.ACTIVE_STATUS);
@@ -102,7 +106,7 @@ function TaskContributor(props) {
             })
             .catch(error => {
                 console.error('Failed to load users:', error);
-                showError('Failed to load users');
+                showError(t('taskContributors.messages.loadUsersFailed'));
             });
     }, [showError]);
 
@@ -215,9 +219,9 @@ function TaskContributor(props) {
             .catch(error => {
                 console.error('Failed to load taskcontributors:', error.response?.status, error.response?.data);
                 if (error.response?.status === 403) {
-                    showError('Access denied: You need admin privileges to view task contributors');
+                    showError(t('taskContributors.messages.accessDenied'));
                 } else {
-                    showError('Failed to load taskcontributors: ' + (error.response?.data?.error || error.message));
+                    showError(t('taskContributors.messages.loadTaskContributorsFailed') + ': ' + (error.response?.data?.error || error.message));
                 }
             });
     }, [showError]);
@@ -245,7 +249,7 @@ function TaskContributor(props) {
             <div className="container-fluid mt-4">
                 <div className="text-center">
                     <div className="spinner-border" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{t('common.loading.default')}</span>
                     </div>
                 </div>
             </div>
@@ -263,7 +267,7 @@ function TaskContributor(props) {
         <div className="container-fluid ml-2 mr-2">
             <div className="card">
                 <div className="card-header">
-                    <h4>Task Contributors</h4>
+                    <h4>{t('taskContributors.title')}</h4>
                 </div>
                 <div className="card-body">
                     <div className="row mb-3">
@@ -271,7 +275,7 @@ function TaskContributor(props) {
                             <input
                                 type="text"
                                 className="form-control input-sm"
-                                placeholder="Search for a user..."
+                                placeholder={t('taskContributors.placeholders.searchUser')}
                                 value={userSearchTerm}
                                 onChange={handleUserSearchUpdated}
                                 onKeyDown={handleKeyDown}
@@ -308,7 +312,7 @@ function TaskContributor(props) {
                             <input
                                 className="form-control input-sm"
                                 type="text"
-                                placeholder="Filter by account"
+                                placeholder={t('taskContributors.placeholders.filterByAccount')}
                                 name="accountNameFilter"
                                 value={accountNameFilter}
                                 onChange={filterChanged}
@@ -318,7 +322,7 @@ function TaskContributor(props) {
                             <input
                                 className="form-control input-sm"
                                 type="text"
-                                placeholder="Filter by task"
+                                placeholder={t('taskContributors.placeholders.filterByTask')}
                                 name="taskNameFilter"
                                 value={taskNameFilter}
                                 onChange={filterChanged}
@@ -331,8 +335,8 @@ function TaskContributor(props) {
                                 value={statusFilter}
                                 onChange={filterChanged}
                             >
-                                <option value={Constants.ACTIVE_STATUS}>Active</option>
-                                <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                                <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                                <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                             </select>
                         </div>
                         <div className="col-sm-4 text-end">
