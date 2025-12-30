@@ -146,7 +146,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
     }
 
     var key = keyBase + "_footer";
-    rows.push(<tr key={key} className="table-primary border-top border-2">
+    rows.push(<tr key={key} className="bg-success text-white border-top border-2">
         <th className="text-muted"></th>
         <th className="fw-bold fs-6">📊 Total Time</th>
         <th></th>

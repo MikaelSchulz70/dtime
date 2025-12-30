@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Button, Table, Modal, Form, Alert, Container, Row, Col, Card } from 'react-bootstrap';
 import SpecialDayService from '../../service/SpecialDayService';
+import * as Constants from '../../common/Constants';
 
 const SpecialDays = () => {
     const [specialDays, setSpecialDays] = useState([]);
@@ -221,8 +222,36 @@ const SpecialDays = () => {
             )}
 
             <h2>Special Days</h2>
-            <div className="row mb-3">
+            <div className="row mb-3 align-items-center">
+                {/* Left side - Year controls */}
                 <div className="col-auto">
+                    <label htmlFor="year-select" className="form-label me-2">Select Year:</label>
+                    <select
+                        id="year-select"
+                        className="form-select d-inline-block"
+                        style={{ width: 'auto' }}
+                        value={selectedYear || ''}
+                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
+                    >
+                        <option value="">Select year</option>
+                        {availableYears.map(year => (
+                            <option key={year} value={year}>{year}</option>
+                        ))}
+                    </select>
+                </div>
+                
+                {/* Right side - Action buttons */}
+                <div className="col text-end">
+                    {selectedYear && (
+                        <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={() => handleDeleteYear(selectedYear)}
+                            className="me-2"
+                        >
+                            Delete All for {selectedYear}
+                        </Button>
+                    )}
                     <Button variant="outline-secondary" size="sm" onClick={downloadSampleJson} className="me-2">
                         Download Sample JSON
                     </Button>
@@ -242,36 +271,6 @@ const SpecialDays = () => {
                         + Add Special Day
                     </Button>
                 </div>
-            </div>
-
-            <div className="row mb-3">
-                <div className="col-auto">
-                    <label htmlFor="year-select" className="form-label">Select Year:</label>
-                </div>
-                <div className="col-auto">
-                    <select
-                        id="year-select"
-                        className="form-select"
-                        value={selectedYear || ''}
-                        onChange={(e) => setSelectedYear(parseInt(e.target.value))}
-                    >
-                        <option value="">Select year</option>
-                        {availableYears.map(year => (
-                            <option key={year} value={year}>{year}</option>
-                        ))}
-                    </select>
-                </div>
-                {selectedYear && (
-                    <div className="col-auto">
-                        <Button
-                            variant="danger"
-                            size="sm"
-                            onClick={() => handleDeleteYear(selectedYear)}
-                        >
-                            Delete All for {selectedYear}
-                        </Button>
-                    </div>
-                )}
             </div>
 
             <Card>
@@ -299,7 +298,14 @@ const SpecialDays = () => {
                                             <td>{specialDay.name}</td>
                                             <td>{specialDay.date}</td>
                                             <td>
-                                                <span className={`badge ${specialDay.dayType === 'PUBLIC_HOLIDAY' ? 'bg-primary' : 'bg-warning'}`}>
+                                                <span 
+                                                    className="badge"
+                                                    style={{
+                                                        backgroundColor: specialDay.dayType === 'PUBLIC_HOLIDAY' ? Constants.MAJOR_HOLIDAY_COLOR : Constants.HALF_DAY_COLOR,
+                                                        color: specialDay.dayType === 'PUBLIC_HOLIDAY' ? '#0c5460' : '#0288d1',
+                                                        border: `1px solid ${specialDay.dayType === 'PUBLIC_HOLIDAY' ? '#bee5eb' : '#81d4fa'}`
+                                                    }}
+                                                >
                                                     {specialDay.dayType === 'PUBLIC_HOLIDAY' ? 'Public Holiday' : 'Half Day'}
                                                 </span>
                                             </td>

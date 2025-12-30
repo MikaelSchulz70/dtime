@@ -75,7 +75,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
     const fromDate = report.fromDate || '';
 
     rows.push(
-        <tr key={0} className="bg-primary text-white">
+        <tr key={0} className="bg-success text-white">
             <th className="fw-bold">👤 User</th>
             <th className="fw-bold">📧 Email</th>
             <th className="fw-bold">⏱️ Total Hours</th>
@@ -100,7 +100,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                     <td className={`fw-bold ${textColor}`}>{totalTime} hrs</td>
                     <td className="fw-bold text-primary">{workableHours} hrs</td>
                     <td>
-                        <span className={`badge ${user.closed ? 'bg-primary' : 'bg-warning text-dark'} py-1 px-2`}>
+                        <span className={`badge ${user.closed ? 'bg-success' : 'bg-warning text-dark'} py-1 px-2`}>
                             {user.closed ? '✅ Closed' : '⏳ Open'}
                         </span>
                     </td>

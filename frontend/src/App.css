@@ -101,6 +101,17 @@ h2 {
   box-shadow: 0 0 0 0.2rem rgba(40, 167, 69, 0.25);
 }
 
+/* Background Success - Consistent dark green */
+.bg-success {
+  background-color: var(--brand-success) !important;
+}
+
+/* Table Primary - Use consistent green instead of blue */
+.table-primary {
+  --bs-table-bg: var(--brand-success) !important;
+  --bs-table-color: white !important;
+}
+
 /* Outline Primary - Edit actions */
 .btn-outline-primary {
   color: var(--brand-primary);

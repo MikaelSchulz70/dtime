@@ -28,7 +28,7 @@ function TaskReportTable({ report }) {
 
     // Add summary row
     rows.push(
-        <tr key="summary" className="table-primary border-top border-2">
+        <tr key="summary" className="bg-success text-white border-top border-2">
             <td className="fw-bold fs-6">📊 Total Time</td>
             <td></td>
             <td className="text-end fw-bold fs-6">{totalSum.toFixed(2)} hrs</td>

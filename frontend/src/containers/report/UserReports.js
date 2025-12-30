@@ -26,7 +26,7 @@ function UserReportRows({ userReport }) {
     });
 
     var key = 'row-' + i;
-    rows.push(<tr key={key} className="table-primary border-top border-2">
+    rows.push(<tr key={key} className="bg-success text-white border-top border-2">
         <td className="fw-bold fs-6" colSpan="2">📊 Total Time</td>
         <td className="text-end fw-bold fs-6">{userReport.totalTime} hrs</td>
     </tr>);
