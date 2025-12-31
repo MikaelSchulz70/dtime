@@ -5,10 +5,8 @@ import {
 } from '../../components/Charts';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
-import { useTranslation } from 'react-i18next';
 
 function AccountReportTable({ report }) {
-    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState('table');
     const { sortedData: sortedAccountReports, requestSort, getSortIcon } = useTableSort(
         report?.accountReports, 

@@ -6,10 +6,8 @@ import {
 } from '../../components/Charts';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
-import { useTranslation } from 'react-i18next';
 
 function TaskReportTable({ report }) {
-    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState('table');
     const { sortedData: sortedTaskReports, requestSort, getSortIcon } = useTableSort(
         report?.taskReports, 
