@@ -2,6 +2,8 @@ import React, { useState, useEffect, useCallback } from "react";
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function SystemPropertyRow({ systemProperty: initialSystemProperty, showError }) {
     const [systemProperty, setSystemProperty] = useState(initialSystemProperty);
@@ -39,10 +41,12 @@ function SystemPropertyRow({ systemProperty: initialSystemProperty, showError })
 
 function SystemPropertyTable({ systemProperties, showError }) {
     const { t } = useTranslation();
+    const { sortedData, requestSort, getSortIcon } = useTableSort(systemProperties, 'name');
+
     if (systemProperties == null) return null;
 
     var systemPropRows = [];
-    systemProperties.forEach(function (systemProperty) {
+    sortedData.forEach(function (systemProperty) {
         systemPropRows.push(
             <SystemPropertyRow key={systemProperty.id} systemProperty={systemProperty} showError={showError} />
         );
@@ -50,13 +54,41 @@ function SystemPropertyTable({ systemProperties, showError }) {
 
     return (
         <div className="row">
-            <table className="table table-striped">
+            <table className="table table-striped table-hover">
                 <thead className="thead-inverse bg-success text-white">
                     <tr>
-                        <th>{t('common.labels.name')}</th>
-                        <th>{t('common.labels.value')}</th>
-                        <th>{t('common.labels.type')}</th>
-                        <th>{t('common.labels.description')}</th>
+                        <SortableTableHeader 
+                            field="name" 
+                            onSort={requestSort} 
+                            getSortIcon={getSortIcon}
+                            className="text-white"
+                        >
+                            {t('common.labels.name')}
+                        </SortableTableHeader>
+                        <SortableTableHeader 
+                            field="value" 
+                            onSort={requestSort} 
+                            getSortIcon={getSortIcon}
+                            className="text-white"
+                        >
+                            {t('common.labels.value')}
+                        </SortableTableHeader>
+                        <SortableTableHeader 
+                            field="systemPropertyType" 
+                            onSort={requestSort} 
+                            getSortIcon={getSortIcon}
+                            className="text-white"
+                        >
+                            {t('common.labels.type')}
+                        </SortableTableHeader>
+                        <SortableTableHeader 
+                            field="description" 
+                            onSort={requestSort} 
+                            getSortIcon={getSortIcon}
+                            className="text-white"
+                        >
+                            {t('common.labels.description')}
+                        </SortableTableHeader>
                     </tr>
                 </thead>
                 <tbody>{systemPropRows}</tbody>

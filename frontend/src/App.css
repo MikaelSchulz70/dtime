@@ -1020,3 +1020,26 @@ label:has(input[type="checkbox"]):hover span {
     transform: rotate(360deg);
   }
 }
+
+/* Sortable Table Headers */
+.sortable-header {
+  transition: background-color 0.2s ease, transform 0.1s ease;
+}
+
+.sortable-header:hover {
+  background-color: rgba(255, 255, 255, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+.sortable-header:active {
+  transform: translateY(0);
+}
+
+.sortable-header .sort-icon {
+  transition: opacity 0.2s ease, transform 0.2s ease;
+}
+
+.sortable-header:hover .sort-icon {
+  opacity: 1 !important;
+  transform: scale(1.1);
+}

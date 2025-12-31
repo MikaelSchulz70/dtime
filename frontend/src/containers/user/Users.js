@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function UserTableRow({ user, handleDelete }) {
     const { t } = useTranslation();
@@ -28,12 +30,14 @@ function UserTableRow({ user, handleDelete }) {
 
 function UserTable({ users, handleDelete, statusFilter, emailFilter, roleFilter }) {
     const { t } = useTranslation();
+    const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(users, 'firstName');
+    
     if (users == null) return null;
 
     var emailFilterValue = emailFilter || '';
 
     // Filter only by status, email, and role since firstName/lastName filtering is now done server-side
-    var filteredUsers = users.filter(function (user) {
+    var filteredUsers = (sortedUsers || []).filter(function (user) {
         return (user.activationStatus === statusFilter) &&
             (user.email.toLowerCase().includes(emailFilterValue.toLowerCase())) &&
             (user.userRole === roleFilter || roleFilter === '');
@@ -49,12 +53,47 @@ function UserTable({ users, handleDelete, statusFilter, emailFilter, roleFilter 
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>{t('users.headers.firstName')}</th>
-                    <th>{t('users.headers.lastName')}</th>
-                    <th>{t('users.headers.email')}</th>
-                    <th>{t('users.headers.role')}</th>
-                    <th>{t('users.headers.status')}</th>
-                    <th>{t('common.labels.actions')}</th>
+                    <SortableTableHeader 
+                        field="firstName" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('users.headers.firstName')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="lastName" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('users.headers.lastName')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="email" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('users.headers.email')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="userRole" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('users.headers.role')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="activationStatus" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('users.headers.status')}
+                    </SortableTableHeader>
+                    <th className="text-white">{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>

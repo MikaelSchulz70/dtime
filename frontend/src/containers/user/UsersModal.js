@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import UserService from '../../service/UserService';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 const UsersModal = () => {
     const { t } = useTranslation();
     const [users, setUsers] = useState([]);
+    const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(users, 'firstName');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingUser, setEditingUser] = useState(null);
@@ -328,14 +331,49 @@ const UsersModal = () => {
 
                     {/* Users Table */}
                     <Table striped bordered hover responsive>
-                        <thead>
+                        <thead className="bg-success">
                             <tr>
-                                <th>First Name</th>
-                                <th>Last Name</th>
-                                <th>Email</th>
-                                <th>Role</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <SortableTableHeader 
+                                    field="firstName" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    First Name
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="lastName" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Last Name
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="email" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Email
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="userRole" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Role
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="activationStatus" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Status
+                                </SortableTableHeader>
+                                <th className="text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -343,12 +381,12 @@ const UsersModal = () => {
                                 <tr>
                                     <td colSpan="6" className="text-center">Loading...</td>
                                 </tr>
-                            ) : users.length === 0 ? (
+                            ) : (sortedUsers || []).length === 0 ? (
                                 <tr>
                                     <td colSpan="6" className="text-center">No users found</td>
                                 </tr>
                             ) : (
-                                users.map(user => (
+                                (sortedUsers || []).map(user => (
                                     <tr key={user.id}>
                                         <td>{user.firstName}</td>
                                         <td>{user.lastName}</td>

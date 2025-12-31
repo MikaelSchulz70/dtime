@@ -3,10 +3,13 @@ import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Paginatio
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 const TasksModal = () => {
     const { t } = useTranslation();
     const [tasks, setTasks] = useState([]);
+    const { sortedData: sortedTasks, requestSort, getSortIcon } = useTableSort(tasks, 'name');
     const [accounts, setAccounts] = useState([]);
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
@@ -347,13 +350,41 @@ const TasksModal = () => {
 
                     {/* Tasks Table */}
                     <Table striped bordered hover responsive>
-                        <thead>
+                        <thead className="bg-success">
                             <tr>
-                                <th>Name</th>
-                                <th>Type</th>
-                                <th>Account</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <SortableTableHeader 
+                                    field="name" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Name
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="taskType" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Type
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="account.name" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Account
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="activationStatus" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Status
+                                </SortableTableHeader>
+                                <th className="text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -361,12 +392,12 @@ const TasksModal = () => {
                                 <tr>
                                     <td colSpan="5" className="text-center">Loading...</td>
                                 </tr>
-                            ) : tasks.length === 0 ? (
+                            ) : (sortedTasks || []).length === 0 ? (
                                 <tr>
                                     <td colSpan="5" className="text-center">No tasks found</td>
                                 </tr>
                             ) : (
-                                tasks.map(task => (
+                                (sortedTasks || []).map(task => (
                                     <tr key={task.id}>
                                         <td>{task.name}</td>
                                         <td>{task.taskType}</td>

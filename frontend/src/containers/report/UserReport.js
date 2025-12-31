@@ -4,10 +4,16 @@ import {
     ChartViewToggle 
 } from '../../components/Charts';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function UserReportTable({ report }) {
     const [viewMode, setViewMode] = useState('table');
     const { t } = useTranslation();
+    const { sortedData: sortedUserReports, requestSort, getSortIcon } = useTableSort(
+        report?.userReports, 
+        'fullName'
+    );
     
     if (report == null)
         return null;
@@ -15,7 +21,7 @@ function UserReportTable({ report }) {
     var rows = [];
     var totalSum = 0;
 
-    report.userReports.forEach(function (userReport) {
+    sortedUserReports.forEach(function (userReport) {
         const hours = parseFloat(userReport.totalTime) || 0;
         totalSum += hours;
 
@@ -49,8 +55,22 @@ function UserReportTable({ report }) {
                             <table className="table table-hover table-striped mb-0">
                                 <tbody>
                                     <tr>
-                                        <th className="fw-bold">{t('common.labels.userName')}</th>
-                                        <th className="fw-bold text-end">{t('common.labels.totalHours')}</th>
+                                        <SortableTableHeader 
+                                            field="fullName" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="fw-bold"
+                                        >
+                                            {t('common.labels.userName')}
+                                        </SortableTableHeader>
+                                        <SortableTableHeader 
+                                            field="totalTime" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="fw-bold text-end"
+                                        >
+                                            {t('common.labels.totalHours')}
+                                        </SortableTableHeader>
                                     </tr>
                                     {rows}
                                 </tbody>

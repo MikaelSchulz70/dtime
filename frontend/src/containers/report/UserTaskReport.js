@@ -3,43 +3,49 @@ import Modal from 'react-modal';
 import * as Constants from '../../common/Constants';
 import TimeService from '../../service/TimeService';
 import { useToast } from '../../components/Toast';
-import { 
-    UserTaskBarChart, 
-    TaskDistributionPieChart, 
+import {
+    UserTaskBarChart,
+    TaskDistributionPieChart,
     AccountHoursChart,
     TimeTrendChart,
-    ChartViewToggle 
+    ChartViewToggle
 } from '../../components/Charts';
 
 Modal.setAppElement('#root');
 
 function TimeReportTableEntry({ timeReportDay }) {
     if (timeReportDay == null) return null;
-    
+
     var backgroundColor = '';
     var time = (timeReportDay.time == null || timeReportDay.time === 0 ? '' : timeReportDay.time);
-    
+
     if (timeReportDay.day.weekend) {
         backgroundColor = Constants.WEEKEND_COLOR;
     } else if (timeReportDay.day.majorHoliday) {
         backgroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+    } else if (timeReportDay.day.halfDay) {
+        backgroundColor = Constants.HALF_DAY_COLOR;
     } else {
         backgroundColor = Constants.DAY_COLOR;
     }
 
     const inputStyle = {
         backgroundColor: backgroundColor,
-        width: '40px'
+        width: '55px',
+        textAlign: 'center',
+        border: '1px solid #dee2e6',
+        fontSize: '0.875rem',
+        fontWeight: time ? '600' : '400'
     }
 
     return (
-        <td style={{ padding: "0px" }}>
-            <input 
-                style={inputStyle} 
-                className="time" 
-                readOnly={true} 
-                type="text" 
-                value={time} 
+        <td style={{ padding: "2px" }}>
+            <input
+                style={inputStyle}
+                className="form-control form-control-sm"
+                readOnly={true}
+                type="text"
+                value={time}
             />
         </td>
     );
@@ -88,15 +94,32 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime }) {
     }
 
     var accountName = timeReportTask.task.account.name;
-    var accountShortName = accountName.substring(0, Math.min(40, accountName.length));
+    var accountShortName = accountName.length > 25 ? accountName.substring(0, 25) + '...' : accountName;
     var taskName = timeReportTask.task.name;
-    var taskShortName = taskName.substring(0, Math.min(40, taskName.length));
+    var taskShortName = taskName.length > 30 ? taskName.substring(0, 30) + '...' : taskName;
 
     return (
-        <tr>
-            <th className="text-nowrap" title={accountName}>{accountShortName}</th>
-            <th className="text-nowrap" title={taskName}>{taskShortName}</th>
-            <th><input className="time" style={{ width: "50px" }} readOnly={true} type="text" value={totalTaskTime} /></th>
+        <tr className="border-bottom">
+            <td className="fw-medium text-truncate" title={accountName} style={{ maxWidth: '150px', padding: '8px' }}>
+                <span className="badge bg-light text-dark border">{accountShortName}</span>
+            </td>
+            <td className="fw-medium text-truncate" title={taskName} style={{ maxWidth: '180px', padding: '8px' }}>
+                {taskShortName}
+            </td>
+            <td style={{ padding: '8px' }}>
+                <input
+                    className="form-control form-control-sm fw-bold text-center"
+                    style={{
+                        width: "60px",
+                        backgroundColor: '#f8f9fa',
+                        border: '2px solid #28a745',
+                        color: '#28a745'
+                    }}
+                    readOnly={true}
+                    type="text"
+                    value={totalTaskTime || '0'}
+                />
+            </td>
             {entries}
         </tr>
     );
@@ -119,7 +142,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         <th className="fw-bold">{userReport.fullName}</th>
         <th className="fw-bold">Account</th>
         <th className="fw-bold">Task</th>
-        <th className="fw-bold">Total Hours</th>
+        <th className="fw-bold">Hours</th>
         <th></th>
     </tr>);
 
@@ -148,7 +171,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
     var key = keyBase + "_footer";
     rows.push(<tr key={key} className="bg-success text-white border-top border-2">
         <th className="text-muted"></th>
-        <th className="fw-bold fs-6">📊 Total Time</th>
+        <th className="fw-bold fs-6"></th>
         <th></th>
         <th className={`fw-bold fs-6`}>{userReport.totalTime} hrs</th>
         <th>
@@ -172,28 +195,36 @@ function TimeReportTableHeaderRow({ days }) {
         var i = 3;
         days.forEach(function (day) {
             var backGroundColor = '';
+            var textClass = 'text-white';
             if (day.weekend) {
                 backGroundColor = Constants.WEEKEND_COLOR;
+                textClass = 'text-dark fw-bold';
             } else if (day.majorHoliday) {
                 backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
+                textClass = 'text-dark fw-bold';
             } else if (day.halfDay) {
                 backGroundColor = Constants.HALF_DAY_COLOR;
+                textClass = 'text-dark fw-bold';
             } else {
                 backGroundColor = Constants.DAY_COLOR;
+                textClass = 'text-white';
             }
 
             var key = 'header-' + i;
             columns.push(
-                <th key={key}><font color={backGroundColor}>{day.day}</font></th>);
+                <th key={key} className={`text-center ${textClass} p-2`} style={{ backgroundColor: backGroundColor, minWidth: '60px' }}>
+                    {day.day}
+                </th>
+            );
             i++;
         });
     }
 
     return (
-        <tr key="0">
-            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
-            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
-            <th key="header-2"><font color={Constants.DAY_COLOR}>Time</font></th>
+        <tr key="0" className="table-success">
+            <th key="header-0" className="text-white fw-bold p-2" style={{ minWidth: '150px' }}>📋 Account</th>
+            <th key="header-1" className="text-white fw-bold p-2" style={{ minWidth: '180px' }}>📄 Task</th>
+            <th key="header-2" className="text-white fw-bold text-center p-2" style={{ minWidth: '80px' }}>⏱️ Total</th>
             {columns}
         </tr>
     );
@@ -300,8 +331,8 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                             </div>
                             <div className="d-flex align-items-center gap-3">
                                 <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
-                                <button 
-                                    type="button" 
+                                <button
+                                    type="button"
                                     className="btn btn-outline-light btn-sm px-3 py-2"
                                     onClick={closeDetails}
                                     style={{ borderRadius: '8px' }}
@@ -323,7 +354,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                         <div className="text-primary mb-2">
                                                             <span className="fs-4">📈</span>
                                                         </div>
-                                                        <h6 className="card-title text-muted mb-1">Total Hours</h6>
+                                                        <h6 className="card-title text-muted mb-1">Hours</h6>
                                                         <p className="card-text fs-5 fw-bold text-dark mb-0">
                                                             {(() => {
                                                                 if (!timeReport.timeReportTasks) return '0h';
@@ -401,8 +432,8 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     <div className="card-body p-3">
                                         {viewMode === 'table' ? (
                                             <div className="table-responsive">
-                                                <table className="table-sm time-report-table">
-                                                    <thead className="bg-success">
+                                                <table className="table table-hover time-report-table" style={{ fontSize: '0.9rem' }}>
+                                                    <thead className="table-success sticky-top">
                                                         {headerRow}
                                                     </thead>
                                                     <tbody>
@@ -414,16 +445,16 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                             <div>
                                                 <div className="mb-4">
                                                     <h6 className="mb-3 fw-bold text-primary">📊 Daily Time Distribution</h6>
-                                                    <TimeTrendChart 
-                                                        timeReportTasks={timeReport?.timeReportTasks} 
-                                                        days={timeReport?.days} 
+                                                    <TimeTrendChart
+                                                        timeReportTasks={timeReport?.timeReportTasks}
+                                                        days={timeReport?.days}
                                                     />
                                                 </div>
-                                                
+
                                                 {/* Transform data for other charts */}
                                                 {(() => {
                                                     if (!timeReport?.timeReportTasks) return null;
-                                                    
+
                                                     // Create user reports format for chart components
                                                     const userReports = [{
                                                         fullName: "Current User",
@@ -455,7 +486,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                                 <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
                                                                 <TaskDistributionPieChart userReports={userReports} />
                                                             </div>
-                                                            
+
                                                             <div className="mb-4">
                                                                 <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
                                                                 <AccountHoursChart userReports={userReports} />
@@ -475,8 +506,8 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                             <small className="text-muted me-auto">
                                 💡 <strong>Tip:</strong> Hover over truncated names to see full text
                             </small>
-                            <button 
-                                type="button" 
+                            <button
+                                type="button"
                                 className="btn btn-primary px-4"
                                 onClick={closeDetails}
                                 style={{ borderRadius: '8px' }}
@@ -494,7 +525,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
 function UserTaskReportTable({ report, reportView, fromDate }) {
     const { showError } = useToast();
     const [viewMode, setViewMode] = useState('table');
-    
+
     if (report == null)
         return null;
 
@@ -520,7 +551,7 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
                 <div className="card-body p-0">
                     {viewMode === 'table' ? (
                         <div className="table-responsive">
-                            <table className="table table-hover table-striped mb-0">
+                            <table className="table table-hover mb-0">
                                 {rows}
                             </table>
                         </div>

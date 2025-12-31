@@ -87,6 +87,8 @@ export const UserTaskBarChart = ({ userReports }) => {
 
 // Task Distribution Pie Chart
 export const TaskDistributionPieChart = ({ userReports }) => {
+    const { t } = useTranslation();
+    
     if (!userReports || userReports.length === 0) {
         return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
@@ -145,6 +147,8 @@ export const TaskDistributionPieChart = ({ userReports }) => {
 
 // Account Hours Bar Chart
 export const AccountHoursChart = ({ userReports }) => {
+    const { t } = useTranslation();
+    
     if (!userReports || userReports.length === 0) {
         return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }
@@ -192,6 +196,8 @@ export const AccountHoursChart = ({ userReports }) => {
 
 // Time Trend Chart for detailed time entries
 export const TimeTrendChart = ({ timeReportTasks, days }) => {
+    const { t } = useTranslation();
+    
     if (!timeReportTasks || !days || timeReportTasks.length === 0 || days.length === 0) {
         return <div className="text-center text-muted p-4">{t('charts.noDataAvailable')}</div>;
     }

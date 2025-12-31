@@ -5,6 +5,8 @@ import TaskContributorService from '../../service/TaskContributorService';
 import UserService from '../../service/UserService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, activationStatusChanged }) {
     const { t } = useTranslation();
@@ -51,9 +53,11 @@ function TaskcontributorTableRow({ taskcontributor: initialTaskcontributor, acti
 
 function TaskContributorTable({ taskcontributors, accountNameFilter, taskNameFilter, statusFilter, activationStatusChanged }) {
     const { t } = useTranslation();
+    const { sortedData: sortedTaskcontributors, requestSort, getSortIcon } = useTableSort(taskcontributors, 'task.account.name');
+    
     if (taskcontributors == null) return null;
 
-    var filteredTaskcontributors = taskcontributors.filter(function (taskcontributor) {
+    var filteredTaskcontributors = (sortedTaskcontributors || []).filter(function (taskcontributor) {
         return (taskcontributor.activationStatus === statusFilter) &&
             (taskcontributor.task.account.name.toLowerCase().startsWith(accountNameFilter.toLowerCase())) &&
             (taskcontributor.task.name.toLowerCase().startsWith(taskNameFilter.toLowerCase()));
@@ -68,11 +72,32 @@ function TaskContributorTable({ taskcontributors, accountNameFilter, taskNameFil
 
     return (
         <Table striped bordered hover responsive>
-            <thead>
+            <thead className="bg-success">
                 <tr>
-                    <th>{t('taskContributors.headers.account')}</th>
-                    <th>{t('taskContributors.headers.task')}</th>
-                    <th>{t('taskContributors.headers.status')}</th>
+                    <SortableTableHeader 
+                        field="task.account.name" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('taskContributors.headers.account')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="task.name" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('taskContributors.headers.task')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="activationStatus" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('taskContributors.headers.status')}
+                    </SortableTableHeader>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>

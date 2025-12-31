@@ -3,10 +3,16 @@ import TimeReportStatusService from '../../service/TimeReportStatusService';
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }) {
     const [report, setReport] = useState(initialReport);
     const { t } = useTranslation();
+    const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(
+        report?.unclosedUsers, 
+        'fullName'
+    );
 
     useEffect(() => {
         setReport(initialReport);
@@ -78,17 +84,45 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 
     rows.push(
         <tr key={0} className="bg-success text-white">
-            <th className="fw-bold">👤 {t('common.labels.user')}</th>
-            <th className="fw-bold">📧 {t('common.labels.email')}</th>
-            <th className="fw-bold">⏱️ {t('timeReports.labels.totalHours')}</th>
+            <SortableTableHeader 
+                field="fullName" 
+                onSort={requestSort} 
+                getSortIcon={getSortIcon}
+                className="text-white fw-bold"
+            >
+                👤 {t('common.labels.user')}
+            </SortableTableHeader>
+            <SortableTableHeader 
+                field="email" 
+                onSort={requestSort} 
+                getSortIcon={getSortIcon}
+                className="text-white fw-bold"
+            >
+                📧 {t('common.labels.email')}
+            </SortableTableHeader>
+            <SortableTableHeader 
+                field="totalTime" 
+                onSort={requestSort} 
+                getSortIcon={getSortIcon}
+                className="text-white fw-bold"
+            >
+                ⏱️ {t('timeReports.labels.totalHours')}
+            </SortableTableHeader>
             <th className="fw-bold">📊 {t('timeReports.labels.workableHours')}</th>
-            <th className="fw-bold">📋 {t('common.labels.status')}</th>
+            <SortableTableHeader 
+                field="closed" 
+                onSort={requestSort} 
+                getSortIcon={getSortIcon}
+                className="text-white fw-bold"
+            >
+                📋 {t('common.labels.status')}
+            </SortableTableHeader>
             <th className="fw-bold">⚙️ {t('common.labels.actions')}</th>
         </tr>);
 
     var key = 1;
-    if (report.unclosedUsers && Array.isArray(report.unclosedUsers) && report.unclosedUsers.length > 0) {
-        report.unclosedUsers.forEach((user) => {
+    if (sortedUsers && Array.isArray(sortedUsers) && sortedUsers.length > 0) {
+        sortedUsers.forEach((user) => {
             if (!user) return; // Skip null/undefined users
 
             const totalTime = user.totalTime || 0;
@@ -128,7 +162,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
         rows.push(
             <tr key={key}>
                 <td colSpan="6" className="text-center text-muted">
-                    {report.unclosedUsers === undefined ?
+                    {report?.unclosedUsers === undefined ?
                         t('common.loading.users') :
                         t('timeReports.messages.allUsersClosed')
                     }

@@ -2,10 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import AccountService from '../../service/AccountService';
 import { useTranslation } from 'react-i18next';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 const AccountsModal = () => {
     const { t } = useTranslation();
     const [accounts, setAccounts] = useState([]);
+    const { sortedData: sortedAccounts, requestSort, getSortIcon } = useTableSort(accounts, 'name');
     const [loading, setLoading] = useState(false);
     const [showModal, setShowModal] = useState(false);
     const [editingAccount, setEditingAccount] = useState(null);
@@ -298,11 +301,25 @@ const AccountsModal = () => {
 
                     {/* Accounts Table */}
                     <Table striped bordered hover responsive>
-                        <thead>
+                        <thead className="bg-success">
                             <tr>
-                                <th>Name</th>
-                                <th>Status</th>
-                                <th>Actions</th>
+                                <SortableTableHeader 
+                                    field="name" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Name
+                                </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="activationStatus" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Status
+                                </SortableTableHeader>
+                                <th className="text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -310,12 +327,12 @@ const AccountsModal = () => {
                                 <tr>
                                     <td colSpan="3" className="text-center">Loading...</td>
                                 </tr>
-                            ) : accounts.length === 0 ? (
+                            ) : (sortedAccounts || []).length === 0 ? (
                                 <tr>
                                     <td colSpan="3" className="text-center">No accounts found</td>
                                 </tr>
                             ) : (
-                                accounts.map(account => (
+                                (sortedAccounts || []).map(account => (
                                     <tr key={account.id}>
                                         <td>{account.name}</td>
                                         <td>{account.activationStatus}</td>

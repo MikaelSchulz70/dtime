@@ -5,6 +5,8 @@ import TaskService from '../../service/TaskService';
 import *  as Constants from '../../common/Constants';
 import { TaskTypeLabels } from '../../common/TaskType';
 import { useToast } from '../../components/Toast';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function TaskTableRow({ task, handleDelete }) {
     const { t } = useTranslation();
@@ -28,9 +30,11 @@ function TaskTableRow({ task, handleDelete }) {
 
 function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusFilter }) {
     const { t } = useTranslation();
+    const { sortedData: sortedTasks, requestSort, getSortIcon } = useTableSort(tasks, 'name');
+    
     if (tasks == null) return null;
 
-    var filteredtasks = tasks.filter(function (task) {
+    var filteredtasks = (sortedTasks || []).filter(function (task) {
         return (task.activationStatus === statusFilter) &&
             (task.name.toLowerCase().startsWith(nameFilter.toLowerCase())) &&
             (task.account.name.toLowerCase().startsWith(accountNameFilter.toLowerCase()));
@@ -46,11 +50,39 @@ function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusF
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>{t('common.labels.accountName')}</th>
-                    <th>{t('common.labels.name')}</th>
-                    <th>{t('common.labels.taskType')}</th>
-                    <th>{t('common.labels.status')}</th>
-                    <th>{t('common.labels.actions')}</th>
+                    <SortableTableHeader 
+                        field="account.name" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.accountName')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="name" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.name')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="taskType" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.taskType')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="activationStatus" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.status')}
+                    </SortableTableHeader>
+                    <th className="text-white">{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>

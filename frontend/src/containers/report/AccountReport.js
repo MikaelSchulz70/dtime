@@ -3,9 +3,17 @@ import {
     AccountHoursChart,
     ChartViewToggle 
 } from '../../components/Charts';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
+import { useTranslation } from 'react-i18next';
 
 function AccountReportTable({ report }) {
+    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState('table');
+    const { sortedData: sortedAccountReports, requestSort, getSortIcon } = useTableSort(
+        report?.accountReports, 
+        'accountName'
+    );
     
     if (report == null)
         return null;
@@ -13,7 +21,7 @@ function AccountReportTable({ report }) {
     var rows = [];
     var totalSum = 0;
 
-    report.accountReports.forEach(function (accountReport) {
+    (sortedAccountReports || []).forEach(function (accountReport) {
         const hours = parseFloat(accountReport.totalHours) || 0;
         totalSum += hours;
 
@@ -58,8 +66,22 @@ function AccountReportTable({ report }) {
                             <table className="table table-hover table-striped mb-0">
                                 <tbody>
                                     <tr>
-                                        <th className="fw-bold">Account Name</th>
-                                        <th className="fw-bold text-end">Total Hours</th>
+                                        <SortableTableHeader 
+                                            field="accountName" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="fw-bold"
+                                        >
+                                            🏢 Account Name
+                                        </SortableTableHeader>
+                                        <SortableTableHeader 
+                                            field="totalHours" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="fw-bold text-end"
+                                        >
+                                            ⏱️ Total Hours
+                                        </SortableTableHeader>
                                     </tr>
                                     {rows}
                                 </tbody>

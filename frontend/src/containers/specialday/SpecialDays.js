@@ -3,10 +3,13 @@ import { Button, Table, Modal, Form, Alert, Container, Row, Col, Card } from 're
 import { useTranslation } from 'react-i18next';
 import SpecialDayService from '../../service/SpecialDayService';
 import * as Constants from '../../common/Constants';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 const SpecialDays = () => {
     const { t } = useTranslation();
     const [specialDays, setSpecialDays] = useState([]);
+    const { sortedData: sortedSpecialDays, requestSort, getSortIcon } = useTableSort(specialDays, 'date');
     const [availableYears, setAvailableYears] = useState([]);
     const [selectedYear, setSelectedYear] = useState(null);
     const [loading, setLoading] = useState(false);
@@ -288,14 +291,35 @@ const SpecialDays = () => {
                             <table className="table table-striped table-hover">
                                 <thead className="table-dark">
                                     <tr>
-                                        <th>{t('common.labels.name')}</th>
-                                        <th>{t('common.labels.date')}</th>
-                                        <th>{t('common.labels.type')}</th>
-                                        <th>{t('common.labels.actions')}</th>
+                                        <SortableTableHeader 
+                                            field="name" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="text-white"
+                                        >
+                                            {t('common.labels.name')}
+                                        </SortableTableHeader>
+                                        <SortableTableHeader 
+                                            field="date" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="text-white"
+                                        >
+                                            {t('common.labels.date')}
+                                        </SortableTableHeader>
+                                        <SortableTableHeader 
+                                            field="dayType" 
+                                            onSort={requestSort} 
+                                            getSortIcon={getSortIcon}
+                                            className="text-white"
+                                        >
+                                            {t('common.labels.type')}
+                                        </SortableTableHeader>
+                                        <th className="text-white">{t('common.labels.actions')}</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {specialDays.map(specialDay => (
+                                    {sortedSpecialDays.map(specialDay => (
                                         <tr key={specialDay.id}>
                                             <td>{specialDay.name}</td>
                                             <td>{specialDay.date}</td>
@@ -330,7 +354,7 @@ const SpecialDays = () => {
                                             </td>
                                         </tr>
                                     ))}
-                                    {specialDays.length === 0 && (
+                                    {sortedSpecialDays.length === 0 && (
                                         <tr>
                                             <td colSpan="4" className="text-center text-muted">
                                                 {selectedYear ? t('specialDays.messages.noSpecialDaysFound') : t('specialDays.messages.selectYearMessage')}

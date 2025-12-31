@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { useTableSort } from '../../hooks/useTableSort';
+import SortableTableHeader from '../../components/SortableTableHeader';
 
 function AccountTableRow({ organization, handleDelete }) {
     const { t } = useTranslation();
@@ -25,9 +27,11 @@ function AccountTableRow({ organization, handleDelete }) {
 
 function AccountTable({ accounts, handleDelete, nameFilter, statusFilter }) {
     const { t } = useTranslation();
+    const { sortedData: sortedAccounts, requestSort, getSortIcon } = useTableSort(accounts, 'name');
+    
     if (accounts == null) return null;
 
-    var filteredAccounts = accounts.filter(function (account) {
+    var filteredAccounts = (sortedAccounts || []).filter(function (account) {
         return (account.activationStatus === statusFilter) &&
             (account.name.toLowerCase().startsWith(nameFilter.toLowerCase()));
     });
@@ -42,9 +46,23 @@ function AccountTable({ accounts, handleDelete, nameFilter, statusFilter }) {
         <table className="table table-striped">
             <thead className="thead-inverse bg-success">
                 <tr className="text-white">
-                    <th>{t('common.labels.name')}</th>
-                    <th>{t('common.labels.status')}</th>
-                    <th>{t('common.labels.actions')}</th>
+                    <SortableTableHeader 
+                        field="name" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.name')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="activationStatus" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        {t('common.labels.status')}
+                    </SortableTableHeader>
+                    <th className="text-white">{t('common.labels.actions')}</th>
                 </tr>
             </thead>
             <tbody>{rows}</tbody>
