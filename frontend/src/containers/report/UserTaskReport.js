@@ -31,7 +31,7 @@ function TimeReportTableEntry({ timeReportDay }) {
 
     const inputStyle = {
         backgroundColor: backgroundColor,
-        width: '55px',
+        width: '40px',
         textAlign: 'center',
         border: '1px solid #dee2e6',
         fontSize: '0.875rem',
@@ -39,7 +39,7 @@ function TimeReportTableEntry({ timeReportDay }) {
     }
 
     return (
-        <td style={{ padding: "2px" }}>
+        <td style={{ padding: "0px" }}>
             <input
                 style={inputStyle}
                 className="form-control form-control-sm"
@@ -94,23 +94,23 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime }) {
     }
 
     var accountName = timeReportTask.task.account.name;
-    var accountShortName = accountName.length > 25 ? accountName.substring(0, 25) + '...' : accountName;
+    var accountShortName = accountName.substring(0, Math.min(15, accountName.length));
     var taskName = timeReportTask.task.name;
-    var taskShortName = taskName.length > 30 ? taskName.substring(0, 30) + '...' : taskName;
+    var taskShortName = taskName.substring(0, Math.min(15, taskName.length));
 
     return (
         <tr className="border-bottom">
-            <td className="fw-medium text-truncate" title={accountName} style={{ maxWidth: '150px', padding: '8px' }}>
-                <span className="badge bg-light text-dark border">{accountShortName}</span>
-            </td>
-            <td className="fw-medium text-truncate" title={taskName} style={{ maxWidth: '180px', padding: '8px' }}>
+            <th className="text-nowrap" title={accountName} style={{ padding: '0px' }}>
+                {accountShortName}
+            </th>
+            <th className="text-nowrap" title={taskName} style={{ padding: '0px' }}>
                 {taskShortName}
-            </td>
-            <td style={{ padding: '8px' }}>
+            </th>
+            <td style={{ padding: '0px' }}>
                 <input
-                    className="form-control form-control-sm fw-bold text-center"
+                    className="time form-control form-control-sm fw-bold text-center"
                     style={{
-                        width: "60px",
+                        width: "40px",
                         backgroundColor: '#f8f9fa',
                         border: '2px solid #28a745',
                         color: '#28a745'
@@ -143,7 +143,11 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         <th className="fw-bold">Account</th>
         <th className="fw-bold">Task</th>
         <th className="fw-bold">Hours</th>
-        <th></th>
+        <th className="fw-bold">
+            {reportView === Constants.MONTH_VIEW ? (
+                <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
+            ) : ''}
+        </th>
     </tr>);
 
     userReport.taskReports.forEach(function (taskReport) {
@@ -174,11 +178,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         <th className="fw-bold fs-6"></th>
         <th></th>
         <th className={`fw-bold fs-6`}>{userReport.totalTime} hrs</th>
-        <th>
-            {reportView === Constants.MONTH_VIEW ? (
-                <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
-            ) : ''}
-        </th>
+        <th></th>
     </tr>);
     return (
         <tbody>
@@ -194,25 +194,23 @@ function TimeReportTableHeaderRow({ days }) {
     if (days != null) {
         var i = 3;
         days.forEach(function (day) {
-            var backGroundColor = '';
-            var textClass = 'text-white';
+            var textClass = 'fw-bold text-center';
+            var dayStyle = {};
+            
+            // Use text colors that mirror the main grid color patterns but are visible on green background
             if (day.weekend) {
-                backGroundColor = Constants.WEEKEND_COLOR;
-                textClass = 'text-dark fw-bold';
+                dayStyle = { color: '#4a90e2', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Blue for weekends (represents weekend color)
             } else if (day.majorHoliday) {
-                backGroundColor = Constants.MAJOR_HOLIDAY_COLOR;
-                textClass = 'text-dark fw-bold';
+                dayStyle = { color: '#e74c3c', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Red for major holidays  
             } else if (day.halfDay) {
-                backGroundColor = Constants.HALF_DAY_COLOR;
-                textClass = 'text-dark fw-bold';
+                dayStyle = { color: '#f39c12', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Orange/Gold for half days
             } else {
-                backGroundColor = Constants.DAY_COLOR;
-                textClass = 'text-white';
+                dayStyle = { color: 'white', textShadow: '0 0 2px rgba(0,0,0,0.5)' }; // White with shadow for regular days
             }
 
             var key = 'header-' + i;
             columns.push(
-                <th key={key} className={`text-center ${textClass} p-2`} style={{ backgroundColor: backGroundColor, minWidth: '60px' }}>
+                <th key={key} className={`${textClass} p-2`} style={dayStyle}>
                     {day.day}
                 </th>
             );
@@ -222,9 +220,9 @@ function TimeReportTableHeaderRow({ days }) {
 
     return (
         <tr key="0" className="table-success">
-            <th key="header-0" className="text-white fw-bold p-2" style={{ minWidth: '150px' }}>📋 Account</th>
-            <th key="header-1" className="text-white fw-bold p-2" style={{ minWidth: '180px' }}>📄 Task</th>
-            <th key="header-2" className="text-white fw-bold text-center p-2" style={{ minWidth: '80px' }}>⏱️ Total</th>
+            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>Total</font></th>
             {columns}
         </tr>
     );
@@ -262,8 +260,6 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
         headerRow = <TimeReportTableHeaderRow days={timeReport.days} />;
     }
 
-    console.log('Tr', timeReport);
-
     var rows = [];
     if (timeReport != null && timeReport.timeReportTasks != null) {
         timeReport.timeReportTasks.forEach(function (timeReportTask) {
@@ -299,12 +295,14 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                             bottom: 'auto',
                             marginRight: '-50%',
                             transform: 'translate(-50%, -50%)',
-                            maxWidth: '95%',
-                            maxHeight: '95%',
+                            width: '95vw',
+                            maxWidth: '95vw',
+                            maxHeight: '95vh',
                             padding: '0',
                             border: 'none',
                             borderRadius: '12px',
-                            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)'
+                            boxShadow: '0 10px 30px rgba(0, 0, 0, 0.3)',
+                            overflow: 'hidden'
                         },
                         overlay: {
                             backgroundColor: 'rgba(0, 0, 0, 0.6)',
@@ -312,7 +310,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                         }
                     }}
                 >
-                    <div className="modal-content border-0" style={{ borderRadius: '12px', overflow: 'hidden' }}>
+                    <div className="modal-content border-0" style={{ borderRadius: '12px', overflow: 'hidden', height: '100%', display: 'flex', flexDirection: 'column' }}>
                         {/* Modal Header */}
                         <div className="modal-header bg-success" style={{
                             borderBottom: 'none',
@@ -343,7 +341,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                         </div>
 
                         {/* Modal Body */}
-                        <div className="modal-body p-0" style={{ maxHeight: '75vh', overflowY: 'auto' }}>
+                        <div className="modal-body p-0" style={{ flex: '1', overflow: 'auto', minHeight: '0' }}>
                             <div style={{ padding: '1rem 1.5rem' }}>
                                 {timeReport && (
                                     <div className="mb-3">
@@ -431,8 +429,18 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     </div>
                                     <div className="card-body p-3">
                                         {viewMode === 'table' ? (
-                                            <div className="table-responsive">
-                                                <table className="table table-hover time-report-table" style={{ fontSize: '0.9rem' }}>
+                                            <div className="table-responsive" style={{ 
+                                                overflowX: 'auto', 
+                                                overflowY: 'auto',
+                                                maxHeight: 'calc(75vh - 200px)',
+                                                border: '1px solid #dee2e6',
+                                                borderRadius: '8px'
+                                            }}>
+                                                <table className="table-sm time-report-table mb-0" style={{ 
+                                                    fontSize: '0.9rem',
+                                                    minWidth: 'max-content',
+                                                    width: 'auto'
+                                                }}>
                                                     <thead className="table-success sticky-top">
                                                         {headerRow}
                                                     </thead>

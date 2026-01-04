@@ -64,7 +64,7 @@ function TaskReportTable({ report }) {
                 <div className="card-body p-0">
                     {viewMode === 'table' ? (
                         <div className="table-responsive">
-                            <table className="table table-hover table-striped mb-0">
+                            <table className="table table-hover mb-0">
                                 <tbody>
                                     <tr>
                                         <SortableTableHeader 

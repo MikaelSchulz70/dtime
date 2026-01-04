@@ -64,7 +64,7 @@ function UserReportTable({ report, viewMode, setViewMode }) {
                 <div className="card-body p-0">
                     {viewMode === 'table' ? (
                         <div className="table-responsive">
-                            <table className="table table-hover table-striped mb-0">
+                            <table className="table table-hover mb-0">
                                 <tr>
                                     <th className="fw-bold">🏢 Account</th>
                                     <th className="fw-bold">📋 Task</th>
