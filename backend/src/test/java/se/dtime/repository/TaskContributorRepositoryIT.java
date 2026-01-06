@@ -257,6 +257,7 @@ class TaskContributorRepositoryIT extends BaseRepositoryIT {
         task.setName(name);
         task.setActivationStatus(ActivationStatus.ACTIVE);
         task.setAccount(savedAccount);
+        task.setIsBillable(false);
         task.setCreatedBy(1L);
         task.setUpdatedBy(1L);
         task.setCreateDateTime(LocalDateTime.now());

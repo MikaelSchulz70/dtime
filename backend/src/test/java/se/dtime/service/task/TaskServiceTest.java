@@ -71,6 +71,7 @@ class TaskServiceTest {
                 .name("Test Task")
                 .taskType(TaskType.NORMAL)
                 .activationStatus(ActivationStatus.ACTIVE)
+                .isBillable(false)
                 .account(testAccount)
                 .build();
 
@@ -79,6 +80,7 @@ class TaskServiceTest {
         testTaskPO.setName("Test Task");
         testTaskPO.setTaskType(TaskType.NORMAL);
         testTaskPO.setActivationStatus(ActivationStatus.ACTIVE);
+        testTaskPO.setIsBillable(false);
         testTaskPO.setAccount(testAccountPO);
     }
 
@@ -120,6 +122,7 @@ class TaskServiceTest {
 
         TaskPO inactiveTaskPO = new TaskPO();
         inactiveTaskPO.setActivationStatus(ActivationStatus.INACTIVE);
+        inactiveTaskPO.setIsBillable(false);
 
         TaskContributorPO taskContributor = new TaskContributorPO();
         taskContributor.setActivationStatus(ActivationStatus.ACTIVE);
@@ -178,6 +181,7 @@ class TaskServiceTest {
         // Given
         TaskPO inactiveTaskPO = new TaskPO();
         inactiveTaskPO.setActivationStatus(ActivationStatus.INACTIVE);
+        inactiveTaskPO.setIsBillable(false);
 
         Task inactiveTask = Task.builder()
                 .activationStatus(ActivationStatus.INACTIVE)
@@ -267,6 +271,7 @@ class TaskServiceTest {
 
         TaskPO vacationTaskPO = new TaskPO();
         vacationTaskPO.setTaskType(TaskType.VACATION);
+        vacationTaskPO.setIsBillable(false);
 
         when(taskConverter.toPO(vacationTask)).thenReturn(vacationTaskPO);
         when(taskRepository.save(vacationTaskPO)).thenReturn(vacationTaskPO);
@@ -289,6 +294,7 @@ class TaskServiceTest {
 
         TaskPO sickLeaveTaskPO = new TaskPO();
         sickLeaveTaskPO.setTaskType(TaskType.SICK_LEAVE);
+        sickLeaveTaskPO.setIsBillable(false);
 
         when(taskConverter.toPO(sickLeaveTask)).thenReturn(sickLeaveTaskPO);
 

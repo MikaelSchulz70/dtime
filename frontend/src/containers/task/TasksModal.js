@@ -35,42 +35,42 @@ const TasksModal = () => {
         totalPages: 0,
         totalElements: 0
     });
-    
+
     const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadTasks();
         loadAccounts();
     }, []);
-    
+
     useEffect(() => {
         loadTasks();
     }, [pagination.currentPage, pagination.itemsPerPage]);
-    
+
     // Handle filter changes with debouncing for name
     useEffect(() => {
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        
+
         searchTimeoutRef.current = setTimeout(() => {
             console.log('Task name filter effect triggered, loading tasks with filters:', filters);
             loadTasks();
         }, 300);
-        
+
         return () => {
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
             }
         };
     }, [filters.name]);
-    
+
     // Status and account filter changes should be immediate
     useEffect(() => {
         console.log('Task status/account filter changed, loading tasks immediately');
         loadTasks();
     }, [filters.status, filters.account]);
-    
+
     // Cleanup timeout on component unmount
     useEffect(() => {
         return () => {
@@ -96,7 +96,7 @@ const TasksModal = () => {
                 name: filters.name,
                 account: accountFilter
             });
-            
+
             const response = await taskService.getAllPaged(
                 pagination.currentPage - 1, // Backend uses 0-based indexing
                 pagination.itemsPerPage,
@@ -106,7 +106,7 @@ const TasksModal = () => {
                 filters.name,
                 accountFilter
             );
-            
+
             // Update pagination info from server response
             const serverResponse = response.data;
             setPagination(prev => ({
@@ -115,7 +115,7 @@ const TasksModal = () => {
                 totalPages: serverResponse.totalPages,
                 totalElements: serverResponse.totalElements
             }));
-            
+
             setTasks(serverResponse.content);
         } catch (error) {
             console.error('Error loading tasks:', error);
@@ -180,12 +180,12 @@ const TasksModal = () => {
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
         console.log('Task filter changed:', { name, value });
-        
+
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
-        
+
         // Reset to first page when filters change
         setPagination(prev => ({ ...prev, currentPage: 1 }));
     };
@@ -209,7 +209,7 @@ const TasksModal = () => {
         e.preventDefault();
         setModalError({ show: false, message: '' });
         setFieldErrors({});
-        
+
         if (!formData.name || !formData.accountId) {
             setModalError({ show: true, message: 'Please fill in all required fields' });
             return;
@@ -221,7 +221,7 @@ const TasksModal = () => {
                 ...formData,
                 account: { id: formData.accountId }
             };
-            
+
             if (editingTask) {
                 taskData.id = editingTask.id;
                 await taskService.update(taskData);
@@ -235,7 +235,7 @@ const TasksModal = () => {
             loadTasks();
         } catch (error) {
             console.error('Error saving task:', error);
-            
+
             if (error.response?.status === 400 && error.response?.data?.fieldErrors) {
                 // Handle field-level validation errors
                 const errors = {};
@@ -337,10 +337,10 @@ const TasksModal = () => {
                         </Col>
                         <Col md={3} className="d-flex align-items-center">
                             <span className="me-2">Show:</span>
-                            <Form.Select 
-                                size="sm" 
-                                style={{ width: 'auto' }} 
-                                value={pagination.itemsPerPage} 
+                            <Form.Select
+                                size="sm"
+                                style={{ width: 'auto' }}
+                                value={pagination.itemsPerPage}
                                 onChange={handlePageSizeChange}
                             >
                                 <option value={10}>10</option>
@@ -355,41 +355,41 @@ const TasksModal = () => {
                     <Table striped bordered hover responsive>
                         <thead className="bg-success">
                             <tr>
-                                <SortableTableHeader 
-                                    field="name" 
-                                    onSort={requestSort} 
+                                <SortableTableHeader
+                                    field="name"
+                                    onSort={requestSort}
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
                                     Name
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="taskType" 
-                                    onSort={requestSort} 
+                                <SortableTableHeader
+                                    field="taskType"
+                                    onSort={requestSort}
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
                                     Type
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="account.name" 
-                                    onSort={requestSort} 
+                                <SortableTableHeader
+                                    field="account.name"
+                                    onSort={requestSort}
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
                                     Account
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="activationStatus" 
-                                    onSort={requestSort} 
+                                <SortableTableHeader
+                                    field="activationStatus"
+                                    onSort={requestSort}
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
                                     Status
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="isBillable" 
-                                    onSort={requestSort} 
+                                <SortableTableHeader
+                                    field="isBillable"
+                                    onSort={requestSort}
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
@@ -443,7 +443,7 @@ const TasksModal = () => {
                             )}
                         </tbody>
                     </Table>
-                    
+
                     {/* Pagination */}
                     {totalPages > 1 && (
                         <Row className="mt-3">
@@ -452,7 +452,7 @@ const TasksModal = () => {
                                     Showing {Math.min(startIndex + 1, totalItems)} to {endIndex} of {totalItems} entries
                                 </div>
                                 <Pagination size="sm">
-                                    <Pagination.Prev 
+                                    <Pagination.Prev
                                         disabled={pagination.currentPage === 1}
                                         onClick={() => handlePageChange(pagination.currentPage - 1)}
                                     />
@@ -465,7 +465,7 @@ const TasksModal = () => {
                                             {index + 1}
                                         </Pagination.Item>
                                     ))}
-                                    <Pagination.Next 
+                                    <Pagination.Next
                                         disabled={pagination.currentPage === totalPages}
                                         onClick={() => handlePageChange(pagination.currentPage + 1)}
                                     />
@@ -550,6 +550,23 @@ const TasksModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
+                            <Form.Label>Task is billable *</Form.Label>
+                            <Form.Control
+                                className="form-check-input"
+                                type="checkbox"
+                                name="isBillable"
+                                id="isBillable"
+                                checked={formData.isBillable}
+                                onChange={handleInputChange}
+                                style={{ marginTop: '2px' }}
+                            />
+                            {fieldErrors.isBillable && (
+                                <div className="invalid-feedback d-block">
+                                    {fieldErrors.isBillable}
+                                </div>
+                            )}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
                             <Form.Label>Status *</Form.Label>
                             <Form.Select
                                 name="activationStatus"
@@ -564,21 +581,6 @@ const TasksModal = () => {
                             {fieldErrors.activationStatus && (
                                 <Form.Control.Feedback type="invalid">
                                     {fieldErrors.activationStatus}
-                                </Form.Control.Feedback>
-                            )}
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Check
-                                type="checkbox"
-                                name="isBillable"
-                                label="Task is billable"
-                                checked={formData.isBillable}
-                                onChange={handleInputChange}
-                                isInvalid={!!fieldErrors.isBillable}
-                            />
-                            {fieldErrors.isBillable && (
-                                <Form.Control.Feedback type="invalid">
-                                    {fieldErrors.isBillable}
                                 </Form.Control.Feedback>
                             )}
                         </Form.Group>

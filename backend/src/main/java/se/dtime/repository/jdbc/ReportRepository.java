@@ -133,7 +133,8 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            taskReport.setIsBillable((Boolean) row.get("isBillable"));
+            Number isBillableNum = (Number) row.get("isBillable");
+            taskReport.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
             taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             taskReports.add(taskReport);
         }
@@ -165,7 +166,8 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            taskReport.setIsBillable((Boolean) row.get("isBillable"));
+            Number isBillableNum = (Number) row.get("isBillable");
+            taskReport.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
             double totalHoursTask = ((Number) row.get("totalTime")).floatValue();
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);

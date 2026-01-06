@@ -121,6 +121,7 @@ public abstract class BaseRestControllerIT {
         task.setName(name);
         task.setActivationStatus(ActivationStatus.ACTIVE);
         task.setAccount(account);
+        task.setIsBillable(false);
         task.setCreatedBy(1L);
         task.setUpdatedBy(1L);
         task.setCreateDateTime(LocalDateTime.now());

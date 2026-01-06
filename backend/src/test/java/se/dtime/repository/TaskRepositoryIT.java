@@ -31,6 +31,7 @@ class TaskRepositoryIT extends BaseRepositoryIT {
         assertThat(saved.getId()).isNotNull();
         assertThat(saved.getName()).isEqualTo("Test Task");
         assertThat(saved.getActivationStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        assertThat(saved.getIsBillable()).isEqualTo(false);
         assertThat(saved.getAccount().getId()).isEqualTo(savedAccount.getId());
         assertThat(saved.getCreateDateTime()).isNotNull();
         assertThat(saved.getUpdatedDateTime()).isNotNull();
@@ -187,6 +188,7 @@ class TaskRepositoryIT extends BaseRepositoryIT {
         task.setName(name);
         task.setActivationStatus(status);
         task.setAccount(account);
+        task.setIsBillable(false); // Default to false for tests
         task.setCreatedBy(1L);
         task.setUpdatedBy(1L);
         task.setCreateDateTime(LocalDateTime.now());
@@ -203,5 +205,21 @@ class TaskRepositoryIT extends BaseRepositoryIT {
         account.setCreateDateTime(LocalDateTime.now());
         account.setUpdatedDateTime(LocalDateTime.now());
         return account;
+    }
+
+    @Test
+    void shouldSaveBillableTask() {
+        AccountPO account = createAccount("Test Account");
+        AccountPO savedAccount = accountRepository.save(account);
+
+        TaskPO billableTask = createTask("Billable Task", ActivationStatus.ACTIVE, savedAccount);
+        billableTask.setIsBillable(true);
+
+        TaskPO saved = taskRepository.save(billableTask);
+
+        assertThat(saved.getId()).isNotNull();
+        assertThat(saved.getName()).isEqualTo("Billable Task");
+        assertThat(saved.getIsBillable()).isEqualTo(true);
+        assertThat(saved.getAccount().getId()).isEqualTo(savedAccount.getId());
     }
 }

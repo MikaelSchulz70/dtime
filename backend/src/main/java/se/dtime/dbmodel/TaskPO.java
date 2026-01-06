@@ -71,6 +71,7 @@ public class TaskPO extends BasePO {
     }
 
     @Column(name = "is_billable", nullable = false)
+    @Convert(converter = BooleanToNumericConverter.class)
     public Boolean getIsBillable() {
         return isBillable != null ? isBillable : false;
     }
