@@ -9,7 +9,7 @@ import BillableTaskTypeReportTable from './BillableTaskTypeReportTable';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 
-function AdminReports(props) {
+function AdminReports() {
     const [report, setReport] = useState(null);
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const [reportType, setReportType] = useState(Constants.USER_TASK_REPORT);
@@ -18,7 +18,7 @@ function AdminReports(props) {
 
     useEffect(() => {
         loadFromServer(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
-    }, []);
+    }, [loadFromServer]);
 
     const viewChange = useCallback((event) => {
         // Preserve the current date range when changing view type
@@ -27,7 +27,7 @@ function AdminReports(props) {
         } else {
             loadFromServer(event.target.value, reportType);
         }
-    }, [report, reportType]);
+    }, [report, reportType, loadFromServer, loadReportForDate]);
 
     const typeChange = useCallback((event) => {
         // Preserve the current date range when changing report type
@@ -36,7 +36,7 @@ function AdminReports(props) {
         } else {
             loadFromServer(reportView, event.target.value);
         }
-    }, [report, reportView]);
+    }, [report, reportView, loadFromServer, loadReportForDate]);
 
     const loadFromServer = useCallback((view, type) => {
         var service = new ReportService();
@@ -67,7 +67,7 @@ function AdminReports(props) {
                 setReportView(view);
                 setReportType(type);
             })
-            .catch(error => {
+            .catch(_error => {
                 console.log('Failed to load report for specific date, trying direct approach');
                 // If the roundtrip fails, try using the date directly with getNextReport
                 service.getNextReport(view, type, date)
@@ -76,7 +76,7 @@ function AdminReports(props) {
                         setReportView(view);
                         setReportType(type);
                     })
-                    .catch(secondError => {
+                    .catch(_secondError => {
                         console.log('All attempts failed, falling back to current report');
                         // If everything fails, fall back to current report
                         loadFromServer(view, type);

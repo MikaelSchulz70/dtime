@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Table, Row, Col, Form, Button, Card } from 'react-bootstrap';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Table, Row, Col, Card } from 'react-bootstrap';
 import { Bar, Doughnut } from 'react-chartjs-2';
 import {
     Chart as ChartJS,
@@ -30,7 +30,6 @@ ChartJS.register(
 );
 
 const BillableTaskTypeReportTable = ({ report }) => {
-    const { t } = useTranslation();
     const { showError } = useToast();
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -45,9 +44,9 @@ const BillableTaskTypeReportTable = ({ report }) => {
         if (report && report.fromDate && report.toDate) {
             loadReportData();
         }
-    }, [report]);
+    }, [report, loadReportData]);
 
-    const loadReportData = async () => {
+    const loadReportData = useCallback(async () => {
         setLoading(true);
         try {
             const response = await axios.get('/api/report/billable-task-type', {
@@ -63,7 +62,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
         } finally {
             setLoading(false);
         }
-    };
+    }, [report.fromDate, report.toDate, showError]);
 
     const getTaskTypeLabel = (taskType) => {
         const labels = {

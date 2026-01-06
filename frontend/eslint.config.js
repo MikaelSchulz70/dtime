@@ -51,6 +51,7 @@ module.exports = [
       'react/no-deprecated': 'warn',
       'react-hooks/rules-of-hooks': 'error',
       'react-hooks/exhaustive-deps': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
       'no-extra-semi': 'warn',
       'no-prototype-builtins': 'warn',
       'react/no-unescaped-entities': 'error',
