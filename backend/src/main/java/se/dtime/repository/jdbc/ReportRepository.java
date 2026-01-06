@@ -4,8 +4,10 @@ package se.dtime.repository.jdbc;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Repository;
 import se.dtime.model.report.AccountReport;
+import se.dtime.model.report.BillableTaskTypeReport;
 import se.dtime.model.report.TaskReport;
 import se.dtime.model.report.UserReport;
+import se.dtime.model.TaskType;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
@@ -72,6 +74,16 @@ public class ReportRepository {
                     "group by u.id, u.firstname, u.lastname, u.email " +
                     "having sum(tr.reportedtime) > 0 " +
                     "order by sum(tr.reportedtime) desc";
+
+    private final String BILLABLE_TASK_TYPE_REPORT =
+            "select p.task_type taskType, p.is_billable isBillable, sum(tr.reportedtime) totalTime, count(distinct p.id) taskCount " +
+                    "from time_report tr " +
+                    "join task_contributor a on a.id = tr.id_task_contributor " +
+                    "join task p on p.id = a.id_task " +
+                    "where tr.date >= ? and tr.date <= ? " +
+                    "group by p.task_type, p.is_billable " +
+                    "having sum(tr.reportedtime) > 0 " +
+                    "order by p.task_type, p.is_billable desc";
 
     private final JdbcTemplate jdbcTemplate;
 
@@ -140,6 +152,34 @@ public class ReportRepository {
         }
 
         return taskReports;
+    }
+
+    public List<BillableTaskTypeReport> getBillableTaskTypeReports(LocalDate fromDate, LocalDate toDate) {
+        List<Map<String, Object>> rows = jdbcTemplate.queryForList(BILLABLE_TASK_TYPE_REPORT, fromDate, toDate);
+
+        List<BillableTaskTypeReport> billableTaskTypeReports = new ArrayList<>();
+        for (Map<String, Object> row : rows) {
+            BillableTaskTypeReport report = new BillableTaskTypeReport();
+            
+            String taskTypeStr = (String) row.get("taskType");
+            report.setTaskType(taskTypeStr != null ? TaskType.valueOf(taskTypeStr) : TaskType.NORMAL);
+            
+            Number isBillableNum = (Number) row.get("isBillable");
+            report.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
+            
+            report.setTotalHours(((Number) row.get("totalTime")).doubleValue());
+            report.setTaskCount(((Number) row.get("taskCount")).longValue());
+            
+            // Create description based on task type and billable status
+            String description = report.getTaskType().name().toLowerCase().replace('_', ' ');
+            description = description.substring(0, 1).toUpperCase() + description.substring(1);
+            description += report.getIsBillable() ? " (Billable)" : " (Non-billable)";
+            report.setDescription(description);
+            
+            billableTaskTypeReports.add(report);
+        }
+
+        return billableTaskTypeReports;
     }
 
     private List<UserReport> getUserTaskReports(String sql, LocalDate fromDate, LocalDate toDate, Object[] parameters) {

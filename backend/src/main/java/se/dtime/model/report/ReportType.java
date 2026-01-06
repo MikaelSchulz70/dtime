@@ -4,5 +4,6 @@ public enum ReportType {
     USER_TASK,
     TASK,
     USER,
-    ACCOUNT
+    ACCOUNT,
+    BILLABLE_TASK_TYPE
 }

@@ -142,6 +142,9 @@ public class ReportService {
         } else if (reportType == ReportType.ACCOUNT) {
             List<AccountReport> accountReports = reportRepository.getAccountReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setAccountReports(accountReports);
+        } else if (reportType == ReportType.BILLABLE_TASK_TYPE) {
+            // For billable task type report, we don't need to populate the report object
+            // as it will be handled by the dedicated endpoint
         }
 
         return report;

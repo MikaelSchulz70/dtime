@@ -19,6 +19,7 @@ export const USER_REPORT = 'USER';
 export const USER_TASK_REPORT = 'USER_TASK';
 export const TASK_REPORT = 'TASK';
 export const ACCOUNT_REPORT = 'ACCOUNT';
+export const BILLABLE_TASK_TYPE_REPORT = 'BILLABLE_TASK_TYPE';
 
 // Time Report Status
 export const TIME_REPORT_STATUS_UNCLOSED = 'UNCLOSED_USERS';

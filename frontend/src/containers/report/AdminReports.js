@@ -5,6 +5,7 @@ import TaskReportTable from './TaskReport';
 import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
+import BillableTaskTypeReportTable from './BillableTaskTypeReportTable';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 
@@ -142,6 +143,7 @@ function AdminReports(props) {
                                 <option value={Constants.ACCOUNT_REPORT}>🏢 {t('reports.accountReport')}</option>
                                 <option value={Constants.TASK_REPORT}>📋 {t('reports.taskReport')}</option>
                                 <option value={Constants.USER_REPORT}>👤 {t('reports.userReport')}</option>
+                                <option value={Constants.BILLABLE_TASK_TYPE_REPORT}>📊 Billable & Task Type Report</option>
                             </select>
                         </div>
                         <div className="col-sm-5">
@@ -163,6 +165,8 @@ function AdminReports(props) {
                     <UserReportTable report={report} />
                 ) : reportType === Constants.ACCOUNT_REPORT ? (
                     <AccountReportTable report={report} />
+                ) : reportType === Constants.BILLABLE_TASK_TYPE_REPORT ? (
+                    <BillableTaskTypeReportTable report={report} />
                 ) : ''}
             </div>
         </div>
