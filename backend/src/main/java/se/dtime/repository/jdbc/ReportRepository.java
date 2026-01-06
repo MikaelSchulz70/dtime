@@ -17,7 +17,7 @@ import java.util.Map;
 public class ReportRepository {
 
     private final String USERS_TASK_REPORTS =
-            "select u.id userId, u.firstname, u.lastname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(tr.reportedtime) totalTime " +
+            "select u.id userId, u.firstname, u.lastname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, p.is_billable isBillable, sum(tr.reportedtime) totalTime " +
                     "from time_report tr " +
                     "join task_contributor a on a.id = tr.id_task_contributor " +
                     "join users u on u.id = a.id_user " +
@@ -25,7 +25,7 @@ public class ReportRepository {
                     "join account c on c.id = p.id_account " +
                     "where tr.date >= ? and tr.date <= ? " +
                     "{USER_CONDITION}" +
-                    "group by tr.id_task_contributor, u.id, u.firstname, u.lastname, u.email, c.id, c.name, p.id, p.name " +
+                    "group by tr.id_task_contributor, u.id, u.firstname, u.lastname, u.email, c.id, c.name, p.id, p.name, p.is_billable " +
                     "having sum(tr.reportedtime) > 0 " +
                     "order by u.firstname, u.lastname, c.name, p.name";
 
@@ -40,13 +40,13 @@ public class ReportRepository {
                     "group by id_task_contributor))";
 
     private final String TASK_REPORT =
-            "select c.id accountId, c.name accountName, p.id taskId, p.name taskName, sum(tr.reportedtime) totalTime " +
+            "select c.id accountId, c.name accountName, p.id taskId, p.name taskName, p.is_billable isBillable, sum(tr.reportedtime) totalTime " +
                     "from time_report tr " +
                     "join task_contributor a on a.id = tr.id_task_contributor " +
                     "join task p on p.id = a.id_task " +
                     "join account c on c.id = p.id_account " +
                     "where tr.date >= ? and tr.date <= ? " +
-                    "group by c.id, c.name, p.id, p.name " +
+                    "group by c.id, c.name, p.id, p.name, p.is_billable " +
                     "having sum(tr.reportedtime) > 0 " +
                     "order by c.name, p.name";
 
@@ -133,6 +133,7 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
+            taskReport.setIsBillable((Boolean) row.get("isBillable"));
             taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             taskReports.add(taskReport);
         }
@@ -164,6 +165,7 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
+            taskReport.setIsBillable((Boolean) row.get("isBillable"));
             double totalHoursTask = ((Number) row.get("totalTime")).floatValue();
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);

@@ -27,6 +27,7 @@ public class TaskConverter extends BaseConverter {
                 name(taskPO.getName()).
                 activationStatus(taskPO.getActivationStatus()).
                 taskType(taskPO.getTaskType()).
+                isBillable(taskPO.getIsBillable()).
                 account(accountConverter.toModel(taskPO.getAccount())).
                 build();
     }
@@ -45,6 +46,7 @@ public class TaskConverter extends BaseConverter {
         taskPO.setName(task.getName());
         taskPO.setActivationStatus(task.getActivationStatus());
         taskPO.setTaskType(task.getTaskType());
+        taskPO.setIsBillable(task.getIsBillable() != null ? task.getIsBillable() : false);
         updateBaseData(taskPO);
 
         AccountPO accountPO = new AccountPO();

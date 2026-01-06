@@ -21,7 +21,8 @@ const TasksModal = () => {
         name: '',
         taskType: 'NORMAL',
         accountId: '',
-        activationStatus: 'ACTIVE'
+        activationStatus: 'ACTIVE',
+        isBillable: false
     });
     const [filters, setFilters] = useState({
         name: '',
@@ -146,7 +147,8 @@ const TasksModal = () => {
             name: '',
             taskType: 'NORMAL',
             accountId: accounts.length > 0 ? accounts[0].id : '',
-            activationStatus: 'ACTIVE'
+            activationStatus: 'ACTIVE',
+            isBillable: false
         });
         setModalError({ show: false, message: '' });
         setFieldErrors({});
@@ -159,7 +161,8 @@ const TasksModal = () => {
             name: task.name,
             taskType: task.taskType,
             accountId: task.account?.id || '',
-            activationStatus: task.activationStatus
+            activationStatus: task.activationStatus,
+            isBillable: task.isBillable || false
         });
         setModalError({ show: false, message: '' });
         setFieldErrors({});
@@ -167,10 +170,10 @@ const TasksModal = () => {
     };
 
     const handleInputChange = (e) => {
-        const { name, value } = e.target;
+        const { name, value, type, checked } = e.target;
         setFormData(prev => ({
             ...prev,
-            [name]: value
+            [name]: type === 'checkbox' ? checked : value
         }));
     };
 
@@ -384,17 +387,25 @@ const TasksModal = () => {
                                 >
                                     Status
                                 </SortableTableHeader>
+                                <SortableTableHeader 
+                                    field="isBillable" 
+                                    onSort={requestSort} 
+                                    getSortIcon={getSortIcon}
+                                    className="text-white"
+                                >
+                                    Billable
+                                </SortableTableHeader>
                                 <th className="text-white">Actions</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center">Loading...</td>
+                                    <td colSpan="6" className="text-center">Loading...</td>
                                 </tr>
                             ) : (sortedTasks || []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="5" className="text-center">No tasks found</td>
+                                    <td colSpan="6" className="text-center">No tasks found</td>
                                 </tr>
                             ) : (
                                 (sortedTasks || []).map(task => (
@@ -403,6 +414,13 @@ const TasksModal = () => {
                                         <td>{task.taskType}</td>
                                         <td>{task.account?.name || 'Unknown'}</td>
                                         <td>{task.activationStatus}</td>
+                                        <td className="text-center">
+                                            {task.isBillable ? (
+                                                <span className="text-success">✓ Yes</span>
+                                            ) : (
+                                                <span className="text-muted">✗ No</span>
+                                            )}
+                                        </td>
                                         <td>
                                             <Button
                                                 variant="outline-primary"
@@ -546,6 +564,21 @@ const TasksModal = () => {
                             {fieldErrors.activationStatus && (
                                 <Form.Control.Feedback type="invalid">
                                     {fieldErrors.activationStatus}
+                                </Form.Control.Feedback>
+                            )}
+                        </Form.Group>
+                        <Form.Group className="mb-3">
+                            <Form.Check
+                                type="checkbox"
+                                name="isBillable"
+                                label="Task is billable"
+                                checked={formData.isBillable}
+                                onChange={handleInputChange}
+                                isInvalid={!!fieldErrors.isBillable}
+                            />
+                            {fieldErrors.isBillable && (
+                                <Form.Control.Feedback type="invalid">
+                                    {fieldErrors.isBillable}
                                 </Form.Control.Feedback>
                             )}
                         </Form.Group>

@@ -14,5 +14,6 @@ public class TaskReport {
     private Long taskId;
     private String taskName;
     private TaskType taskType;
+    private Boolean isBillable;
     private double totalHours;
 }

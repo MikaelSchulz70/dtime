@@ -20,6 +20,7 @@ public class Task {
     private ActivationStatus activationStatus;
     @NotNull(message = "Task type is required")
     private TaskType taskType;
+    private Boolean isBillable;
     private Account account;
     private LocalDateTime createDateTime;
     private LocalDateTime updatedDateTime;

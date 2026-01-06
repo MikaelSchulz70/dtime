@@ -20,6 +20,13 @@ function TaskTableRow({ task, handleDelete }) {
             <td>{task.name}</td>
             <td>{TaskTypeLabels[task.taskType] || task.taskType}</td>
             <td>{task.activationStatus}</td>
+            <td className="text-center">
+                {task.isBillable ? (
+                    <span className="text-success">✓ Yes</span>
+                ) : (
+                    <span className="text-muted">✗ No</span>
+                )}
+            </td>
             <td>
                 <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>{t('common.buttons.edit')}</Link>
                 <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(task.id)}>{t('common.buttons.delete')}</button>
@@ -81,6 +88,14 @@ function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusF
                         className="text-white"
                     >
                         {t('common.labels.status')}
+                    </SortableTableHeader>
+                    <SortableTableHeader 
+                        field="isBillable" 
+                        onSort={requestSort} 
+                        getSortIcon={getSortIcon}
+                        className="text-white"
+                    >
+                        Billable
                     </SortableTableHeader>
                     <th className="text-white">{t('common.labels.actions')}</th>
                 </tr>

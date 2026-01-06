@@ -19,6 +19,7 @@ public class TaskPO extends BasePO {
     private String name;
     private ActivationStatus activationStatus;
     private TaskType taskType;
+    private Boolean isBillable;
     private AccountPO account;
 
     public TaskPO() {
@@ -67,6 +68,15 @@ public class TaskPO extends BasePO {
 
     public void setTaskType(TaskType taskType) {
         this.taskType = taskType;
+    }
+
+    @Column(name = "is_billable", nullable = false)
+    public Boolean getIsBillable() {
+        return isBillable != null ? isBillable : false;
+    }
+
+    public void setIsBillable(Boolean isBillable) {
+        this.isBillable = isBillable;
     }
 
     @ManyToOne(fetch = FetchType.LAZY)
