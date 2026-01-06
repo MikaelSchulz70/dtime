@@ -17,6 +17,9 @@ module.exports = {
       {
         test: /\.(png|jpe?g|gif|svg)$/i,
         type: 'asset/resource',
+        generator: {
+          filename: 'assets/[name].[contenthash][ext]'
+        }
       },
     ],
   },
@@ -26,7 +29,34 @@ module.exports = {
   output: {
     path: __dirname + '/dist',
     publicPath: '/',
-    filename: 'bundle.js'
+    filename: '[name].[contenthash].js',
+    clean: true
+  },
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      cacheGroups: {
+        vendor: {
+          test: /[\\/]node_modules[\\/]/,
+          name: 'vendors',
+          chunks: 'all',
+        },
+        common: {
+          minChunks: 2,
+          chunks: 'all',
+          enforce: true
+        }
+      }
+    }
+  },
+  performance: {
+    hints: 'warning',
+    maxAssetSize: 1500000, // 1.5MB - accommodate large logo files
+    maxEntrypointSize: 1500000, // 1.5MB
+    assetFilter: function(assetFilename) {
+      // Don't warn about large logo files
+      return !assetFilename.includes('logo');
+    }
   },
   plugins: [
     new webpack.HotModuleReplacementPlugin(),
