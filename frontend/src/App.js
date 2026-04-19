@@ -122,9 +122,7 @@ const AppContent = () => {
         if (response.ok) {
           const data = await response.json();
           setSession(data);
-          console.log('Session found:', data);
         } else {
-          console.log('No session found:', response.status);
           setSession(null);
         }
       } catch (error) {
@@ -135,7 +133,7 @@ const AppContent = () => {
         console.log('Session check complete');
       }
     };
-    
+
     checkSession();
   }, []);
 
