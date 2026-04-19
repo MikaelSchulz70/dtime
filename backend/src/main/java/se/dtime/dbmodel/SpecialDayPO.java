@@ -23,7 +23,7 @@ public class SpecialDayPO extends BasePO {
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
-    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_special_ay")
+    @GeneratedValue(strategy = GenerationType.SEQUENCE, generator = "seq_special_day")
     @SequenceGenerator(name = "seq_special_day", sequenceName = "seq_special_day", allocationSize = 1)
     public Long getId() {
         return id;

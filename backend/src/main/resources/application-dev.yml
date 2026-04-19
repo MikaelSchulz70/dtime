@@ -3,7 +3,7 @@ spring:
     add-properties: true
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: validate
   # Mail Configuration (disabled for development)
   mail:
     host: localhost

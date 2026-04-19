@@ -53,7 +53,7 @@ public class TimeEntryService {
         userValidator.validateLoggedIn();
 
         // User is just tabbing around in the grid
-        boolean noTime = timeEntry.getTime() == null || timeEntry.getTime() == 0;
+        boolean noTime = timeEntry.getTime() == null || timeEntry.getTime().compareTo(java.math.BigDecimal.ZERO) == 0;
         if (noTime) {
             boolean exists = timeEntiryRepository.existsById(timeEntry.getId());
             if (exists) {

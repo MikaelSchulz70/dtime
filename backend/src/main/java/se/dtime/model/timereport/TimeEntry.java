@@ -3,6 +3,8 @@ package se.dtime.model.timereport;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
+import java.math.BigDecimal;
+
 
 @Getter
 @Setter
@@ -12,7 +14,7 @@ import lombok.*;
 public class TimeEntry {
     private long id;
     private long taskContributorId;
-    private Float time;
+    private BigDecimal time;
     @NotNull
     private Day day;
     private boolean isClosed = false;

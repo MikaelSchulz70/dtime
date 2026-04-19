@@ -23,6 +23,7 @@ import se.dtime.repository.*;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.math.BigDecimal;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -83,14 +84,14 @@ class ReportRepositoryIT extends BaseRepositoryIT {
         contributor4 = createAndSaveTaskContributor(user2, task3);
 
         // Create time entries
-        createTimeEntry(contributor1, LocalDate.of(2024, 12, 15), 8.0f);
-        createTimeEntry(contributor1, LocalDate.of(2024, 12, 16), 7.5f);
-        createTimeEntry(contributor2, LocalDate.of(2024, 12, 17), 6.0f);
-        createTimeEntry(contributor3, LocalDate.of(2024, 12, 18), 8.5f);
-        createTimeEntry(contributor4, LocalDate.of(2024, 12, 19), 5.0f);
+        createTimeEntry(contributor1, LocalDate.of(2024, 12, 15), BigDecimal.valueOf(8.0));
+        createTimeEntry(contributor1, LocalDate.of(2024, 12, 16), BigDecimal.valueOf(7.5));
+        createTimeEntry(contributor2, LocalDate.of(2024, 12, 17), BigDecimal.valueOf(6.0));
+        createTimeEntry(contributor3, LocalDate.of(2024, 12, 18), BigDecimal.valueOf(8.5));
+        createTimeEntry(contributor4, LocalDate.of(2024, 12, 19), BigDecimal.valueOf(5.0));
 
         // Time entry outside date range
-        createTimeEntry(contributor1, LocalDate.of(2024, 11, 30), 4.0f);
+        createTimeEntry(contributor1, LocalDate.of(2024, 11, 30), BigDecimal.valueOf(4.0));
 
         // Flush and clear to ensure data is committed to database for JDBC queries
         entityManager.flush();
@@ -351,7 +352,7 @@ class ReportRepositoryIT extends BaseRepositoryIT {
         return taskContributorRepository.save(contributor);
     }
 
-    private void createTimeEntry(TaskContributorPO contributor, LocalDate date, float time) {
+    private void createTimeEntry(TaskContributorPO contributor, LocalDate date, BigDecimal time) {
         TimeEntryPO timeEntry = new TimeEntryPO();
         timeEntry.setTaskContributor(contributor);
         timeEntry.setDate(date);

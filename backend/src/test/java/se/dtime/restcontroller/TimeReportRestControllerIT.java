@@ -14,6 +14,7 @@ import se.dtime.repository.TaskContributorRepository;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -53,7 +54,7 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .taskContributorId(testTaskContributor.getId())
                 .day(Day.builder().year(now.getYear()).month(now.getMonthValue()).date(now).build())
-                .time(8.0f)
+                .time(BigDecimal.valueOf(8.0))
                 .build();
 
         mockMvc.perform(post("/api/timereport")
@@ -70,7 +71,7 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
                 .id(1L) // Existing ID
                 .taskContributorId(testTaskContributor.getId())
                 .day(Day.builder().year(now.getYear()).month(now.getMonthValue()).date(now).build())
-                .time(6.5f)
+                .time(BigDecimal.valueOf(6.5))
                 .build();
 
         mockMvc.perform(post("/api/timereport")
@@ -86,7 +87,7 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .taskContributorId(0L) // Invalid: zero task contributor ID
                 .day(Day.builder().date(LocalDate.now()).build())
-                .time(-1.0f) // Invalid: negative time
+                .time(BigDecimal.valueOf(-1.0)) // Invalid: negative time
                 .build();
 
         mockMvc.perform(post("/api/timereport")
@@ -102,7 +103,7 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .taskContributorId(testTaskContributor.getId())
                 .day(null) // Invalid: null day
-                .time(8.0f)
+                .time(BigDecimal.valueOf(8.0))
                 .build();
 
         mockMvc.perform(post("/api/timereport")
@@ -117,7 +118,7 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
                 .id(0L)
                 .taskContributorId(testTaskContributor.getId())
                 .day(Day.builder().date(LocalDate.now()).build())
-                .time(8.0f)
+                .time(BigDecimal.valueOf(8.0))
                 .build();
 
         mockMvc.perform(post("/api/timereport")

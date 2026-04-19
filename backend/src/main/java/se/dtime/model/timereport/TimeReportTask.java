@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import se.dtime.model.Task;
 
+import java.math.BigDecimal;
 import java.util.List;
 
 @Getter
@@ -12,6 +13,6 @@ import java.util.List;
 @Builder
 public class TimeReportTask {
     private Task task;
-    private float totalTime;
+    private BigDecimal totalTime;
     private List<TimeEntry> timeEntries;
 }

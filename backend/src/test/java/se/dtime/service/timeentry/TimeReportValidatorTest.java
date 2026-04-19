@@ -21,6 +21,7 @@ import se.dtime.service.calendar.CalendarService;
 
 import java.time.LocalDate;
 import java.util.Optional;
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.when;
@@ -172,7 +173,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayTimeTooSmall() {
-        TimeEntry timeEntry = TimeEntry.builder().taskContributorId(1).time(-1f).build();
+        TimeEntry timeEntry = TimeEntry.builder().taskContributorId(1).time(BigDecimal.valueOf(-1)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -185,7 +186,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayTimeTooLarge() {
-        TimeEntry timeEntry = TimeEntry.builder().taskContributorId(1).time(25f).build();
+        TimeEntry timeEntry = TimeEntry.builder().taskContributorId(1).time(BigDecimal.valueOf(25)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -198,7 +199,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayTooManyDecimals() {
-        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(8.112f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(BigDecimal.valueOf(8.112)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -211,7 +212,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayNoDecimals() {
-        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(8.f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(BigDecimal.valueOf(8)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -222,7 +223,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayNoDecimals1() {
-        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(8f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(BigDecimal.valueOf(8)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -233,7 +234,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayOneDecimal() {
-        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(8.5f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(BigDecimal.valueOf(8.5)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -244,7 +245,7 @@ public class TimeReportValidatorTest {
 
     @Test
     public void validateTimeReportDayTwoDecimals() {
-        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(8.55f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(createDay()).taskContributorId(1).time(BigDecimal.valueOf(8.55)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         TaskContributorPO.setActivationStatus(ActivationStatus.ACTIVE);
@@ -256,7 +257,7 @@ public class TimeReportValidatorTest {
     @Test
     public void validateTimeReportClosed() {
         Day day = createDay();
-        TimeEntry timeEntry = TimeEntry.builder().day(day).taskContributorId(1).time(8.f).build();
+        TimeEntry timeEntry = TimeEntry.builder().day(day).taskContributorId(1).time(BigDecimal.valueOf(8)).build();
 
         TaskContributorPO TaskContributorPO = new TaskContributorPO();
         UserPO userPO = new UserPO(1L);

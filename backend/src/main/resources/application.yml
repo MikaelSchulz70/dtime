@@ -31,6 +31,7 @@ spring:
     url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/dtime}
     user: ${DATABASE_USERNAME:dtime}
     password: ${DATABASE_PASSWORD:dtime_dev_password}
+    default-schema: dtime
 
   # Mail Configuration
   mail:

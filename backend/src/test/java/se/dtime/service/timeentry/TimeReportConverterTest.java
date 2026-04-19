@@ -18,6 +18,7 @@ import se.dtime.service.user.UserConverter;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
+import java.math.BigDecimal;
 
 import static org.junit.jupiter.api.Assertions.*;
 import static org.mockito.ArgumentMatchers.any;
@@ -39,14 +40,14 @@ public class TimeReportConverterTest {
     @Test
     public void testConvertTimeReportDayPO() {
         LocalDate date = LocalDate.of(YEAR, MONTH, 8);
-        TimeEntryPO timeEntryPO = createTimeEntryPO(11, 1, 2, 8.5f, date);
+        TimeEntryPO timeEntryPO = createTimeEntryPO(11, 1, 2, BigDecimal.valueOf(8.5), date);
 
         Day days = Day.builder().date(date).build();
 
         TimeEntry timeEntry = timeReportConverter.convertToTimeReportDay(days, timeEntryPO);
         assertEquals(11, timeEntry.getId());
         assertEquals(1, timeEntry.getTaskContributorId());
-        assertEquals(8.5f, timeEntry.getTime(), 0.000001);
+        assertEquals(BigDecimal.valueOf(8.5), timeEntry.getTime());
         assertEquals(date, timeEntry.getDay().getDate());
     }
 
@@ -195,22 +196,22 @@ public class TimeReportConverterTest {
     private List<TimeEntryPO> createTimeReportDays() {
         List<TimeEntryPO> timeReportDays = new ArrayList<>();
         LocalDate date = LocalDate.of(YEAR, MONTH, 3);
-        timeReportDays.add(createTimeEntryPO(1, 1, 1, 8f, date));
+        timeReportDays.add(createTimeEntryPO(1, 1, 1, BigDecimal.valueOf(8), date));
 
         date = LocalDate.of(YEAR, MONTH, 5);
-        timeReportDays.add(createTimeEntryPO(2, 1, 1, 8f, date));
+        timeReportDays.add(createTimeEntryPO(2, 1, 1, BigDecimal.valueOf(8), date));
 
         date = LocalDate.of(YEAR, MONTH, 7);
-        timeReportDays.add(createTimeEntryPO(3, 1, 1, 8f, date));
+        timeReportDays.add(createTimeEntryPO(3, 1, 1, BigDecimal.valueOf(8), date));
 
         date = LocalDate.of(YEAR, MONTH, 8);
-        timeReportDays.add(createTimeEntryPO(4, 1, 2, 8f, date));
+        timeReportDays.add(createTimeEntryPO(4, 1, 2, BigDecimal.valueOf(8), date));
 
         date = LocalDate.of(YEAR, MONTH, 10);
-        timeReportDays.add(createTimeEntryPO(5, 1, 2, 8f, date));
+        timeReportDays.add(createTimeEntryPO(5, 1, 2, BigDecimal.valueOf(8), date));
 
         date = LocalDate.of(YEAR, MONTH, 3);
-        timeReportDays.add(createTimeEntryPO(6, 1, 3, 8f, date));
+        timeReportDays.add(createTimeEntryPO(6, 1, 3, BigDecimal.valueOf(8), date));
 
         return timeReportDays;
     }
@@ -229,7 +230,7 @@ public class TimeReportConverterTest {
         return taskContributorPO;
     }
 
-    private TimeEntryPO createTimeEntryPO(long id, long userId, long taskId, float time, LocalDate date) {
+    private TimeEntryPO createTimeEntryPO(long id, long userId, long taskId, BigDecimal time, LocalDate date) {
         TimeEntryPO timeEntryPO = new TimeEntryPO();
         TaskContributorPO taskContributorPO = new TaskContributorPO(1);
         timeEntryPO.setId(id);

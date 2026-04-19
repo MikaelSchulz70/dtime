@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.Setter;
 import se.dtime.model.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -14,7 +15,7 @@ import java.util.List;
 public class TimeReport {
     private User user;
     private Day[] days;
-    private float totalTime;
+    private BigDecimal totalTime;
     private int workableHours;
     private List<TimeReportTask> timeReportTasks;
     private boolean isClosed;

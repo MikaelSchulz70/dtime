@@ -6,23 +6,13 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
         logicalFilePath="data.xml">
 
-
-    <property name="nowDateTime" value="now()" dbms="postgresql"/>
-
-    <changeSet id="addUsers" author="mikael">
-        <insert tableName="users">
-            <column name="id" value="1"/>
-            <column name="password" value="$2b$12$8UVIVfZgA/8.0EBAtAvp3eM5moNff3rq.BoUPohf6C.lQRUjDnB9e"/>
-            <column name="firstname" value="D"/>
-            <column name="lastname" value="Time"/>
-            <column name="email" value="admin@dtime.se"/>
-            <column name="status" value="ACTIVE"/>
-            <column name="userrole" value="ADMIN"/>
-            <column name="createdatetime" value="${nowDateTime}"/>
-            <column name="updatedatetime" value="${nowDateTime}"/>
-            <column name="createdby" value="1"/>
-            <column name="updatedby" value="1"/>
-        </insert>
+    <changeSet id="addUsers" author="mikael" runInTransaction="false">
+        <sql dbms="postgresql">
+            INSERT INTO dtime.users (id, password, firstname, lastname, email, status, userrole, createdatetime,
+            updatedatetime, createdby, updatedby)
+            VALUES (1, '$2b$12$8UVIVfZgA/8.0EBAtAvp3eM5moNff3rq.BoUPohf6C.lQRUjDnB9e', 'D', 'Time',
+            'admin@dtime.se','ACTIVE', 'ADMIN', NOW(), NOW(), 1, 1)
+        </sql>
     </changeSet>
 
 </databaseChangeLog>

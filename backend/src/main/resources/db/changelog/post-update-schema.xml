@@ -6,30 +6,4 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
         logicalFilePath="post-update-schema.xml">
 
-    <changeSet id="add-is-billable-to-task-table" author="mikael">
-        <addColumn tableName="task">
-            <column name="is_billable" type="${boolean.type}" defaultValue="${boolean.type.false}">
-                <constraints nullable="false"/>
-            </column>
-        </addColumn>
-    </changeSet>
-
-    <changeSet id="migrate-is-billable-to-boolean" author="mikael" dbms="postgresql">
-        <preConditions onFail="MARK_RAN">
-            <columnExists tableName="task" columnName="is_billable"/>
-        </preConditions>
-        <!-- Add a temporary column with boolean type -->
-        <addColumn tableName="task">
-            <column name="is_billable_temp" type="boolean"/>
-        </addColumn>
-        <!-- Migrate data from numeric column to boolean column -->
-        <sql>UPDATE dtime.task SET is_billable_temp = (is_billable::boolean);</sql>
-        <!-- Drop the old column -->
-        <dropColumn tableName="task" columnName="is_billable"/>
-        <!-- Rename the temporary column to the original name -->
-        <renameColumn tableName="task" oldColumnName="is_billable_temp" newColumnName="is_billable" columnDataType="boolean"/>
-        <!-- Add not null constraint -->
-        <addNotNullConstraint tableName="task" columnName="is_billable" columnDataType="boolean"/>
-    </changeSet>
-
 </databaseChangeLog>

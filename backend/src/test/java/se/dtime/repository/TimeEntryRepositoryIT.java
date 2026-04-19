@@ -10,6 +10,7 @@ import se.dtime.dbmodel.timereport.TimeEntryPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.UserRole;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
@@ -41,7 +42,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor = createAndSaveTaskContributor(user, task);
 
         LocalDate entryDate = LocalDate.of(2024, 12, 31);
-        float reportedTime = 8.5f;
+        BigDecimal reportedTime = BigDecimal.valueOf(7.5);
 
         TimeEntryPO timeEntry = createTimeEntry(contributor, entryDate, reportedTime);
 
@@ -62,7 +63,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor = createAndSaveTaskContributor(user, task);
 
         LocalDate entryDate = LocalDate.of(2024, 6, 30);
-        TimeEntryPO timeEntry = createTimeEntry(contributor, entryDate, 7.5f);
+        TimeEntryPO timeEntry = createTimeEntry(contributor, entryDate, BigDecimal.valueOf(7.5));
         timeEntryRepository.save(timeEntry);
 
         TimeEntryPO found = timeEntryRepository.findByTaskContributorAndDate(contributor.getId(), entryDate);
@@ -70,7 +71,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         assertThat(found).isNotNull();
         assertThat(found.getTaskContributor().getId()).isEqualTo(contributor.getId());
         assertThat(found.getDate()).isEqualTo(entryDate);
-        assertThat(found.getTime()).isEqualTo(7.5f);
+        assertThat(found.getTime()).isEqualTo(BigDecimal.valueOf(7.5));
     }
 
     @Test
@@ -95,8 +96,8 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user, task2);
 
         LocalDate entryDate = LocalDate.of(2024, 12, 31);
-        TimeEntryPO entry1 = createTimeEntry(contributor1, entryDate, 4.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor2, entryDate, 3.5f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, entryDate, BigDecimal.valueOf(4.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor2, entryDate, BigDecimal.valueOf(3.5));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -105,7 +106,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(entries).hasSize(2);
         assertThat(entries).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(4.0f, 3.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(4.0), BigDecimal.valueOf(3.5));
     }
 
     @Test
@@ -119,10 +120,10 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         LocalDate beforeRange = LocalDate.of(2024, 11, 30);
         LocalDate afterRange = LocalDate.of(2025, 1, 1);
 
-        TimeEntryPO entryInRange1 = createTimeEntry(contributor, LocalDate.of(2024, 12, 15), 8.0f);
-        TimeEntryPO entryInRange2 = createTimeEntry(contributor, LocalDate.of(2024, 12, 20), 7.5f);
-        TimeEntryPO entryBefore = createTimeEntry(contributor, beforeRange, 6.0f);
-        TimeEntryPO entryAfter = createTimeEntry(contributor, afterRange, 5.0f);
+        TimeEntryPO entryInRange1 = createTimeEntry(contributor, LocalDate.of(2024, 12, 15), BigDecimal.valueOf(8.0));
+        TimeEntryPO entryInRange2 = createTimeEntry(contributor, LocalDate.of(2024, 12, 20), BigDecimal.valueOf(7.5));
+        TimeEntryPO entryBefore = createTimeEntry(contributor, beforeRange, BigDecimal.valueOf(6.0));
+        TimeEntryPO entryAfter = createTimeEntry(contributor, afterRange, BigDecimal.valueOf(5.0));
 
         timeEntryRepository.save(entryInRange1);
         timeEntryRepository.save(entryInRange2);
@@ -133,7 +134,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(entriesInRange).hasSize(2);
         assertThat(entriesInRange).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(8.0f, 7.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(8.0), BigDecimal.valueOf(7.5));
     }
 
     @Test
@@ -144,9 +145,9 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor1 = createAndSaveTaskContributor(user1, task);
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user2, task);
 
-        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), 8.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), 7.5f);
-        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), 6.0f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), BigDecimal.valueOf(8.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), BigDecimal.valueOf(7.5));
+        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), BigDecimal.valueOf(6.0));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -167,10 +168,10 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor1 = createAndSaveTaskContributor(user, task1);
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user, task2);
 
-        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), 8.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), 7.5f);
-        TimeEntryPO entry3 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 3), 6.0f);
-        TimeEntryPO entry4 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 4), 5.0f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), BigDecimal.valueOf(8.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), BigDecimal.valueOf(7.5));
+        TimeEntryPO entry3 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 3), BigDecimal.valueOf(6.0));
+        TimeEntryPO entry4 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 4), BigDecimal.valueOf(5.0));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -193,9 +194,9 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         LocalDate startDate = LocalDate.of(2024, 12, 1);
         LocalDate endDate = LocalDate.of(2024, 12, 31);
 
-        TimeEntryPO entryInRange1 = createTimeEntry(contributor, LocalDate.of(2024, 12, 10), 8.0f);
-        TimeEntryPO entryInRange2 = createTimeEntry(contributor, LocalDate.of(2024, 12, 20), 7.5f);
-        TimeEntryPO entryOutOfRange = createTimeEntry(contributor, LocalDate.of(2025, 1, 5), 6.0f);
+        TimeEntryPO entryInRange1 = createTimeEntry(contributor, LocalDate.of(2024, 12, 10), BigDecimal.valueOf(8.0));
+        TimeEntryPO entryInRange2 = createTimeEntry(contributor, LocalDate.of(2024, 12, 20), BigDecimal.valueOf(7.5));
+        TimeEntryPO entryOutOfRange = createTimeEntry(contributor, LocalDate.of(2025, 1, 5), BigDecimal.valueOf(6.0));
 
         timeEntryRepository.save(entryInRange1);
         timeEntryRepository.save(entryInRange2);
@@ -205,7 +206,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(entriesInRange).hasSize(2);
         assertThat(entriesInRange).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(8.0f, 7.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(8.0), BigDecimal.valueOf(7.5));
     }
 
     @Test
@@ -214,7 +215,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskPO task = createAndSaveTask("Test Task", user);
         TaskContributorPO contributor = createAndSaveTaskContributor(user, task);
 
-        TimeEntryPO timeEntry = createTimeEntry(contributor, LocalDate.of(2024, 12, 31), 8.0f);
+        TimeEntryPO timeEntry = createTimeEntry(contributor, LocalDate.of(2024, 12, 31), BigDecimal.valueOf(8.0));
         TimeEntryPO saved = timeEntryRepository.save(timeEntry);
 
         timeEntryRepository.deleteById(saved.getId());
@@ -231,9 +232,9 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor1 = createAndSaveTaskContributor(user1, task);
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user2, task);
 
-        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), 8.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), 7.5f);
-        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), 6.0f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), BigDecimal.valueOf(8.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), BigDecimal.valueOf(7.5));
+        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), BigDecimal.valueOf(6.0));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -244,10 +245,10 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(user1Entries).hasSize(2);
         assertThat(user1Entries).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(8.0f, 7.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(8.0), BigDecimal.valueOf(7.5));
 
         assertThat(user2Entries).hasSize(1);
-        assertThat(user2Entries.get(0).getTime()).isEqualTo(6.0f);
+        assertThat(user2Entries.get(0).getTime()).isEqualTo(BigDecimal.valueOf(6.0));
     }
 
     @Test
@@ -258,9 +259,9 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor1 = createAndSaveTaskContributor(user, task1);
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user, task2);
 
-        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), 8.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), 7.5f);
-        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), 6.0f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), BigDecimal.valueOf(8.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), BigDecimal.valueOf(7.5));
+        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), BigDecimal.valueOf(6.0));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -271,10 +272,10 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(task1Entries).hasSize(2);
         assertThat(task1Entries).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(8.0f, 7.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(8.0), BigDecimal.valueOf(7.5));
 
         assertThat(task2Entries).hasSize(1);
-        assertThat(task2Entries.get(0).getTime()).isEqualTo(6.0f);
+        assertThat(task2Entries.get(0).getTime()).isEqualTo(BigDecimal.valueOf(6.0));
     }
 
     @Test
@@ -287,9 +288,9 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskContributorPO contributor1 = createAndSaveTaskContributor(user, task1);
         TaskContributorPO contributor2 = createAndSaveTaskContributor(user, task2);
 
-        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), 8.0f);
-        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), 7.5f);
-        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), 6.0f);
+        TimeEntryPO entry1 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 1), BigDecimal.valueOf(8.0));
+        TimeEntryPO entry2 = createTimeEntry(contributor1, LocalDate.of(2024, 12, 2), BigDecimal.valueOf(7.5));
+        TimeEntryPO entry3 = createTimeEntry(contributor2, LocalDate.of(2024, 12, 3), BigDecimal.valueOf(6.0));
 
         timeEntryRepository.save(entry1);
         timeEntryRepository.save(entry2);
@@ -300,10 +301,10 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
 
         assertThat(account1Entries).hasSize(2);
         assertThat(account1Entries).extracting(TimeEntryPO::getTime)
-                .containsExactlyInAnyOrder(8.0f, 7.5f);
+                .containsExactlyInAnyOrder(BigDecimal.valueOf(8.0), BigDecimal.valueOf(7.5));
 
         assertThat(account2Entries).hasSize(1);
-        assertThat(account2Entries.get(0).getTime()).isEqualTo(6.0f);
+        assertThat(account2Entries.get(0).getTime()).isEqualTo(BigDecimal.valueOf(6.0));
     }
 
     @Test
@@ -312,17 +313,17 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskPO task = createAndSaveTask("Test Task", user);
         TaskContributorPO contributor = createAndSaveTaskContributor(user, task);
 
-        TimeEntryPO timeEntry = createTimeEntry(contributor, LocalDate.of(2024, 12, 31), 8.0f);
+        TimeEntryPO timeEntry = createTimeEntry(contributor, LocalDate.of(2024, 12, 31), BigDecimal.valueOf(8.0));
         TimeEntryPO saved = timeEntryRepository.save(timeEntry);
 
-        saved.setTime(9.5f);
+        saved.setTime(BigDecimal.valueOf(9.5));
         saved.setUpdatedBy(2L);
         saved.setUpdatedDateTime(LocalDateTime.now());
 
         TimeEntryPO updated = timeEntryRepository.save(saved);
 
         assertThat(updated.getId()).isEqualTo(saved.getId());
-        assertThat(updated.getTime()).isEqualTo(9.5f);
+        assertThat(updated.getTime()).isEqualTo(BigDecimal.valueOf(9.5));
         assertThat(updated.getUpdatedBy()).isEqualTo(2L);
         assertThat(updated.getDate()).isEqualTo(LocalDate.of(2024, 12, 31)); // Date should remain unchanged (updatable = false)
     }
@@ -333,14 +334,14 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         TaskPO task = createAndSaveTask("Test Task", user);
         TaskContributorPO contributor = createAndSaveTaskContributor(user, task);
 
-        float preciseTime = 7.25f;
+        BigDecimal preciseTime = BigDecimal.valueOf(7.25);
         TimeEntryPO timeEntry = createTimeEntry(contributor, LocalDate.of(2024, 12, 31), preciseTime);
         TimeEntryPO saved = timeEntryRepository.save(timeEntry);
 
         assertThat(saved.getTime()).isEqualTo(preciseTime);
     }
 
-    private TimeEntryPO createTimeEntry(TaskContributorPO contributor, LocalDate date, float time) {
+    private TimeEntryPO createTimeEntry(TaskContributorPO contributor, LocalDate date, BigDecimal time) {
         TimeEntryPO timeEntry = new TimeEntryPO();
         timeEntry.setTaskContributor(contributor);
         timeEntry.setDate(date);

@@ -10,6 +10,7 @@ import se.dtime.service.BaseConverter;
 import se.dtime.service.task.TaskConverter;
 import se.dtime.service.user.UserConverter;
 
+import java.math.BigDecimal;
 import java.util.*;
 import java.util.stream.Collectors;
 
@@ -36,8 +37,8 @@ public class TimeReportConverter extends BaseConverter {
 
         timeReport.setTimeReportTasks(convertToTimeReportTask(days, taskContributorPOMap, timeEntryPOS, taskPOS));
 
-        double totalTime = timeReport.getTimeReportTasks().stream().mapToDouble(TimeReportTask::getTotalTime).sum();
-        timeReport.setTotalTime((float) totalTime);
+        BigDecimal totalTime = timeReport.getTimeReportTasks().stream().map(TimeReportTask::getTotalTime).reduce(BigDecimal.ZERO, BigDecimal::add);
+        timeReport.setTotalTime(totalTime);
 
         return timeReport;
     }
@@ -51,7 +52,7 @@ public class TimeReportConverter extends BaseConverter {
             TimeReportTask timeReportTask = TimeReportTask.builder().
                     task(taskConverter.toModel(taskPO)).
                     timeEntries(new ArrayList<>()).
-                    totalTime(0.0f).
+                    totalTime(BigDecimal.ZERO).
                     build();
 
             timeReportTasks.add(timeReportTask);
@@ -62,7 +63,7 @@ public class TimeReportConverter extends BaseConverter {
                         findFirst().map(te -> convertToTimeReportDay(day, te)).
                         orElse(convertToTimeReportDay(day, taskContributorMap.get(taskPO.getId())));
 
-                timeReportTask.setTotalTime(timeReportTask.getTotalTime() + (timeEntry.getTime() != null ? timeEntry.getTime() : 0f));
+                timeReportTask.setTotalTime(timeReportTask.getTotalTime().add(timeEntry.getTime() != null ? timeEntry.getTime() : BigDecimal.ZERO));
                 timeReportTask.getTimeEntries().add(timeEntry);
             }
         }
@@ -93,7 +94,7 @@ public class TimeReportConverter extends BaseConverter {
 
     public TimeEntryPO toPO(TimeEntry timeReport) {
         TimeEntryPO timeEntryPO = new TimeEntryPO();
-        timeEntryPO.setTime(timeReport.getTime() == null ? 0f : timeReport.getTime());
+        timeEntryPO.setTime(timeReport.getTime() == null ? java.math.BigDecimal.ZERO : timeReport.getTime());
         timeEntryPO.setDate(timeReport.getDay().getDate());
         TaskContributorPO taskContributorPO = new TaskContributorPO();
         taskContributorPO.setId(timeReport.getTaskContributorId());

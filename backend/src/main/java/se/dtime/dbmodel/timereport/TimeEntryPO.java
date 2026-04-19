@@ -1,9 +1,11 @@
 package se.dtime.dbmodel.timereport;
 
 import jakarta.persistence.*;
+import lombok.Setter;
 import se.dtime.dbmodel.BasePO;
 import se.dtime.dbmodel.TaskContributorPO;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @Entity(name = "TimeEntry")
@@ -24,9 +26,11 @@ import java.time.LocalDate;
 })
 public class TimeEntryPO extends BasePO {
     private long id;
+    @Setter
     private TaskContributorPO taskContributor;
+    @Setter
     private LocalDate date;
-    private float time;
+    private BigDecimal time;
 
     @Id
     @Column(name = "id", unique = true, nullable = false)
@@ -46,25 +50,17 @@ public class TimeEntryPO extends BasePO {
         return taskContributor;
     }
 
-    public void setTaskContributor(TaskContributorPO taskContributor) {
-        this.taskContributor = taskContributor;
-    }
-
     @Column(name = "date", unique = false, nullable = false, updatable = false)
     public LocalDate getDate() {
         return date;
     }
 
-    public void setDate(LocalDate date) {
-        this.date = date;
-    }
-
-    @Column(name = "reportedtime", unique = false, nullable = false, updatable = true)
-    public float getTime() {
+    @Column(name = "reportedtime", unique = false, nullable = false, updatable = true, precision = 4, scale = 2)
+    public BigDecimal getTime() {
         return time;
     }
 
-    public void setTime(float time) {
+    public void setTime(BigDecimal time) {
         this.time = time;
     }
 }

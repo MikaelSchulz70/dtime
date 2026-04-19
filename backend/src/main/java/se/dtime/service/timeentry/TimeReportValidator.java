@@ -57,10 +57,10 @@ public class TimeReportValidator extends ValidatorBase<TimeEntry> {
         check(taskContributorPO.getActivationStatus() == ActivationStatus.ACTIVE, "time.report.assignment.not.active");
 
         if (timeEntry.getTime() != null) {
-            checkInvalidInput(timeEntry.getTime() >= MIN_TIME, "time.report.invalid.time.min");
-            checkInvalidInput(timeEntry.getTime() <= MAX_TIME, "time.report.invalid.time.max");
+            checkInvalidInput(timeEntry.getTime().compareTo(java.math.BigDecimal.valueOf(MIN_TIME)) >= 0, "time.report.invalid.time.min");
+            checkInvalidInput(timeEntry.getTime().compareTo(java.math.BigDecimal.valueOf(MAX_TIME)) <= 0, "time.report.invalid.time.max");
 
-            String timeStr = Float.toString(timeEntry.getTime());
+            String timeStr = timeEntry.getTime().toPlainString();
             int integerPlaces = timeStr.indexOf('.');
             if (integerPlaces != -1) {
                 int decimalPlaces = timeStr.length() - integerPlaces - 1;

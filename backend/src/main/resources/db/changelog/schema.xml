@@ -7,7 +7,7 @@
         logicalFilePath="schema.xml">
 
     <changeSet id="create-user-table" author="mikael">
-        <createTable tableName="users">
+        <createTable schemaName="dtime" tableName="users">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -45,13 +45,13 @@
     </changeSet>
 
     <changeSet author="mikael" id="create-email-index">
-        <createIndex indexName="idx_user_email" tableName="users" unique="true">
+        <createIndex schemaName="dtime" indexName="idx_user_email" tableName="users" unique="true">
             <column name="email"/>
         </createIndex>
     </changeSet>
 
     <changeSet id="create-account-table" author="mikael">
-        <createTable tableName="account">
+        <createTable schemaName="dtime" tableName="account">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -77,11 +77,12 @@
     </changeSet>
 
     <changeSet id="addUC-account-table" author="mikael">
-        <addUniqueConstraint columnNames="name" constraintName="uc_account_name" tableName="account"/>
+        <addUniqueConstraint schemaName="dtime" columnNames="name" constraintName="uc_account_name"
+                             tableName="account"/>
     </changeSet>
 
     <changeSet id="create-task-table" author="mikael">
-        <createTable tableName="task">
+        <createTable schemaName="dtime" tableName="task">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -95,6 +96,9 @@
                 <constraints nullable="false"/>
             </column>
             <column name="task_type" type="varchar(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="is_billable" type="boolean" defaultValue="false">
                 <constraints nullable="false"/>
             </column>
             <column name="createdatetime" type="${timestamp.type}">
@@ -113,11 +117,12 @@
     </changeSet>
 
     <changeSet id="addUC-task-table" author="mikael">
-        <addUniqueConstraint columnNames="name, id_account" constraintName="uc_task_name" tableName="task"/>
+        <addUniqueConstraint schemaName="dtime" columnNames="name, id_account" constraintName="uc_task_name"
+                             tableName="task"/>
     </changeSet>
 
     <changeSet id="addFK-task-table" author="mikael">
-        <addForeignKeyConstraint baseColumnNames="id_account"
+        <addForeignKeyConstraint schemaName="dtime" baseColumnNames="id_account"
                                  baseTableName="task"
                                  constraintName="fk_task_account"
                                  referencedColumnNames="id"
@@ -125,7 +130,7 @@
     </changeSet>
 
     <changeSet id="create-task-contributor-table" author="mikael">
-        <createTable tableName="task_contributor">
+        <createTable schemaName="dtime" tableName="task_contributor">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -154,12 +159,12 @@
     </changeSet>
 
     <changeSet id="addFK-task-contributor-table" author="mikael">
-        <addForeignKeyConstraint baseColumnNames="id_task"
+        <addForeignKeyConstraint schemaName="dtime" baseColumnNames="id_task"
                                  baseTableName="task_contributor"
                                  constraintName="fk_task_contributor_task"
                                  referencedColumnNames="id"
                                  referencedTableName="task"/>
-        <addForeignKeyConstraint baseColumnNames="id_user"
+        <addForeignKeyConstraint schemaName="dtime" baseColumnNames="id_user"
                                  baseTableName="task_contributor"
                                  constraintName="fk_task_contributor_user"
                                  referencedColumnNames="id"
@@ -167,14 +172,15 @@
     </changeSet>
 
     <changeSet author="mikael" id="create-task-contributor-user-task-index">
-        <createIndex indexName="idx_task_contributor_user" tableName="task_contributor" unique="true">
+        <createIndex schemaName="dtime" indexName="idx_task_contributor_user" tableName="task_contributor"
+                     unique="true">
             <column name="id_user"/>
             <column name="id_task"/>
         </createIndex>
     </changeSet>
 
     <changeSet id="create-time-table" author="mikael">
-        <createTable tableName="time_report">
+        <createTable schemaName="dtime" tableName="time_report">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -184,7 +190,7 @@
             <column name="date" type="date">
                 <constraints nullable="false"/>
             </column>
-            <column name="reportedtime" type="DECIMAL(13,2)">
+            <column name="reportedtime" type="${hour.type}">
                 <constraints nullable="false"/>
             </column>
             <column name="createdatetime" type="${timestamp.type}">
@@ -203,7 +209,7 @@
     </changeSet>
 
     <changeSet id="addFK-timereport-table" author="mikael">
-        <addForeignKeyConstraint baseColumnNames="id_task_contributor"
+        <addForeignKeyConstraint schemaName="dtime" baseColumnNames="id_task_contributor"
                                  baseTableName="time_report"
                                  constraintName="fk_time_task_contributor"
                                  referencedColumnNames="id"
@@ -211,12 +217,13 @@
     </changeSet>
 
     <changeSet id="addUniqueConstraint-timereport-table" author="mikael">
-        <addUniqueConstraint columnNames="id_task_contributor, date" constraintName="uc_task_contributor_date"
+        <addUniqueConstraint schemaName="dtime" columnNames="id_task_contributor, date"
+                             constraintName="uc_task_contributor_date"
                              tableName="time_report"/>
     </changeSet>
 
     <changeSet id="create-special-day-table" author="mikael">
-        <createTable tableName="special_day">
+        <createTable schemaName="dtime" tableName="special_day">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -245,7 +252,7 @@
     </changeSet>
 
     <changeSet id="create-systemproperty-table" author="mikael">
-        <createTable tableName="systemproperty">
+        <createTable schemaName="dtime" tableName="systemproperty">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -271,11 +278,12 @@
     </changeSet>
 
     <changeSet id="addUniqueConstraint-systemproperty-table" author="mikael">
-        <addUniqueConstraint columnNames="name" constraintName="uc_systemproperty_name" tableName="systemproperty"/>
+        <addUniqueConstraint schemaName="dtime" columnNames="name" constraintName="uc_systemproperty_name"
+                             tableName="systemproperty"/>
     </changeSet>
 
     <changeSet id="create-time-close-table" author="mikael">
-        <createTable tableName="closedate">
+        <createTable schemaName="dtime" tableName="closedate">
             <column name="id" type="${identifier.type}">
                 <constraints primaryKey="true" nullable="false"/>
             </column>
@@ -301,7 +309,7 @@
     </changeSet>
 
     <changeSet id="addFK-closedate-table" author="mikael">
-        <addForeignKeyConstraint baseColumnNames="id_user"
+        <addForeignKeyConstraint schemaName="dtime" baseColumnNames="id_user"
                                  baseTableName="closedate"
                                  constraintName="fk_closedate_user"
                                  referencedColumnNames="id"
@@ -309,21 +317,21 @@
     </changeSet>
 
     <changeSet author="mikael" id="create-closedate-index">
-        <createIndex indexName="idx_closedate" tableName="closedate" unique="true">
+        <createIndex schemaName="dtime" indexName="idx_closedate" tableName="closedate" unique="true">
             <column name="id_user"/>
             <column name="date"/>
         </createIndex>
     </changeSet>
 
     <changeSet author="mikael" id="create-timereport-index">
-        <createIndex indexName="idx_timereport" tableName="time_report" unique="true">
+        <createIndex schemaName="dtime" indexName="idx_timereport" tableName="time_report" unique="true">
             <column name="id_task_contributor"/>
             <column name="date"/>
         </createIndex>
     </changeSet>
 
     <changeSet author="mikael" id="create-timereport-date-index">
-        <createIndex indexName="idx_timereport_date" tableName="time_report" unique="false">
+        <createIndex schemaName="dtime" indexName="idx_timereport_date" tableName="time_report" unique="false">
             <column name="date"/>
         </createIndex>
     </changeSet>
