@@ -34,25 +34,19 @@ const BillableTaskTypeReportTable = ({ report }) => {
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
     const [viewMode, setViewMode] = useState('table');
-    
+
     const { sortedData: sortedReportData, requestSort, getSortIcon } = useTableSort(
-        reportData, 
+        reportData,
         'totalHours'
     );
-
-    useEffect(() => {
-        if (report && report.fromDate && report.toDate) {
-            loadReportData();
-        }
-    }, [report, loadReportData]);
 
     const loadReportData = useCallback(async () => {
         setLoading(true);
         try {
             const response = await axios.get('/api/report/billable-task-type', {
-                params: { 
-                    fromDate: report.fromDate, 
-                    toDate: report.toDate 
+                params: {
+                    fromDate: report.fromDate,
+                    toDate: report.toDate
                 }
             });
             setReportData(response.data);
@@ -63,6 +57,12 @@ const BillableTaskTypeReportTable = ({ report }) => {
             setLoading(false);
         }
     }, [report.fromDate, report.toDate, showError]);
+
+    useEffect(() => {
+        if (report && report.fromDate && report.toDate) {
+            loadReportData();
+        }
+    }, [report, loadReportData]);
 
     const getTaskTypeLabel = (taskType) => {
         const labels = {
@@ -95,10 +95,10 @@ const BillableTaskTypeReportTable = ({ report }) => {
                 {
                     label: 'Hours',
                     data,
-                    backgroundColor: sortedReportData.map(item => 
+                    backgroundColor: sortedReportData.map(item =>
                         item.isBillable ? 'rgba(40, 167, 69, 0.8)' : 'rgba(108, 117, 125, 0.8)'
                     ),
-                    borderColor: sortedReportData.map(item => 
+                    borderColor: sortedReportData.map(item =>
                         item.isBillable ? 'rgba(40, 167, 69, 1)' : 'rgba(108, 117, 125, 1)'
                     ),
                     borderWidth: 1,
@@ -142,7 +142,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
             y: {
                 beginAtZero: true,
                 ticks: {
-                    callback: function(value) {
+                    callback: function (value) {
                         return value + 'h';
                     }
                 }
@@ -162,7 +162,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
             },
             tooltip: {
                 callbacks: {
-                    label: function(context) {
+                    label: function (context) {
                         return context.label + ': ' + context.parsed + 'h';
                     }
                 }
@@ -235,49 +235,49 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                 <Table striped bordered hover responsive>
                                     <thead className="bg-success text-white">
                                         <tr>
-                                            <SortableTableHeader 
-                                                field="taskType" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="taskType"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >
                                                 Task Type
                                             </SortableTableHeader>
-                                            <SortableTableHeader 
-                                                field="isBillable" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="isBillable"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >
                                                 Billable Status
                                             </SortableTableHeader>
-                                            <SortableTableHeader 
-                                                field="totalHours" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="totalHours"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
                                             >
                                                 Total Hours
                                             </SortableTableHeader>
-                                            <SortableTableHeader 
-                                                field="taskCount" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="taskCount"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
                                             >
                                                 Number of Tasks
                                             </SortableTableHeader>
-                                            <SortableTableHeader 
-                                                field="percentage" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="percentage"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
                                             >
                                                 % of Total
                                             </SortableTableHeader>
-                                            <SortableTableHeader 
-                                                field="description" 
-                                                onSort={requestSort} 
+                                            <SortableTableHeader
+                                                field="description"
+                                                onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >

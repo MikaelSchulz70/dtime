@@ -16,28 +16,6 @@ function AdminReports() {
     const { showError } = useToast();
     const { t } = useTranslation();
 
-    useEffect(() => {
-        loadFromServer(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
-    }, [loadFromServer]);
-
-    const viewChange = useCallback((event) => {
-        // Preserve the current date range when changing view type
-        if (report && report.fromDate) {
-            loadReportForDate(event.target.value, reportType, report.fromDate);
-        } else {
-            loadFromServer(event.target.value, reportType);
-        }
-    }, [report, reportType, loadFromServer, loadReportForDate]);
-
-    const typeChange = useCallback((event) => {
-        // Preserve the current date range when changing report type
-        if (report && report.fromDate) {
-            loadReportForDate(reportView, event.target.value, report.fromDate);
-        } else {
-            loadFromServer(reportView, event.target.value);
-        }
-    }, [report, reportView, loadFromServer, loadReportForDate]);
-
     const loadFromServer = useCallback((view, type) => {
         var service = new ReportService();
         service.getCurrentReport(view, type)
@@ -83,6 +61,28 @@ function AdminReports() {
                     });
             });
     }, [loadFromServer]);
+
+    useEffect(() => {
+        loadFromServer(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
+    }, [loadFromServer]);
+
+    const viewChange = useCallback((event) => {
+        // Preserve the current date range when changing view type
+        if (report && report.fromDate) {
+            loadReportForDate(event.target.value, reportType, report.fromDate);
+        } else {
+            loadFromServer(event.target.value, reportType);
+        }
+    }, [report, reportType, loadFromServer, loadReportForDate]);
+
+    const typeChange = useCallback((event) => {
+        // Preserve the current date range when changing report type
+        if (report && report.fromDate) {
+            loadReportForDate(reportView, event.target.value, report.fromDate);
+        } else {
+            loadFromServer(reportView, event.target.value);
+        }
+    }, [report, reportView, loadFromServer, loadReportForDate]);
 
     const handlePreviousReport = useCallback((event) => {
         const date = event.target.name;
