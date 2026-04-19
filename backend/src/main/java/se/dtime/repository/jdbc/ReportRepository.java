@@ -145,8 +145,10 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            Number isBillableNum = (Number) row.get("isBillable");
-            taskReport.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
+            Object isBillableObj = row.get("isBillable");
+            boolean isBillable = isBillableObj instanceof Boolean ? (Boolean) isBillableObj : 
+                                 isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
+            taskReport.setIsBillable(isBillable);
             taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
             taskReports.add(taskReport);
         }
@@ -164,8 +166,10 @@ public class ReportRepository {
             String taskTypeStr = (String) row.get("taskType");
             report.setTaskType(taskTypeStr != null ? TaskType.valueOf(taskTypeStr) : TaskType.NORMAL);
             
-            Number isBillableNum = (Number) row.get("isBillable");
-            report.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
+            Object isBillableObj = row.get("isBillable");
+            boolean isBillable = isBillableObj instanceof Boolean ? (Boolean) isBillableObj : 
+                                 isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
+            report.setIsBillable(isBillable);
             
             report.setTotalHours(((Number) row.get("totalTime")).doubleValue());
             report.setTaskCount(((Number) row.get("taskCount")).longValue());
@@ -206,8 +210,10 @@ public class ReportRepository {
             taskReport.setAccountName((String) row.get("accountName"));
             taskReport.setTaskId((Long) row.get("taskId"));
             taskReport.setTaskName((String) row.get("taskName"));
-            Number isBillableNum = (Number) row.get("isBillable");
-            taskReport.setIsBillable(isBillableNum != null && isBillableNum.intValue() == 1);
+            Object isBillableObj = row.get("isBillable");
+            boolean isBillable = isBillableObj instanceof Boolean ? (Boolean) isBillableObj : 
+                                 isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
+            taskReport.setIsBillable(isBillable);
             double totalHoursTask = ((Number) row.get("totalTime")).floatValue();
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);

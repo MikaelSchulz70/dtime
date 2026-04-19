@@ -19,10 +19,12 @@ public class TaskPO extends BasePO {
     private String name;
     private ActivationStatus activationStatus;
     private TaskType taskType;
-    private Boolean isBillable;
+    private boolean isBillable;
     private AccountPO account;
 
     public TaskPO() {
+        this.taskType = TaskType.NORMAL;
+        this.isBillable = false;
     }
 
     public TaskPO(Long id) {
@@ -71,12 +73,11 @@ public class TaskPO extends BasePO {
     }
 
     @Column(name = "is_billable", nullable = false)
-    @Convert(converter = BooleanToNumericConverter.class)
-    public Boolean getIsBillable() {
-        return isBillable != null ? isBillable : false;
+    public boolean getIsBillable() {
+        return isBillable;
     }
 
-    public void setIsBillable(Boolean isBillable) {
+    public void setIsBillable(boolean isBillable) {
         this.isBillable = isBillable;
     }
 

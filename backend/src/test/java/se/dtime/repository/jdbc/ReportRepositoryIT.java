@@ -5,9 +5,9 @@ import jakarta.persistence.PersistenceContext;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.context.annotation.Import;
-import se.dtime.repository.BaseRepositoryIT;
-import org.springframework.transaction.annotation.Transactional;
+import org.springframework.test.annotation.Commit;
+import org.springframework.test.context.ContextConfiguration;
+import se.dtime.config.TestReportRepositoryConfig;
 import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
@@ -26,15 +26,14 @@ import java.util.List;
 
 import static org.assertj.core.api.Assertions.assertThat;
 
-@Import(TestReportRepository.class)
-@Transactional
+@ContextConfiguration(classes = {TestReportRepositoryConfig.class})
 class ReportRepositoryIT extends BaseRepositoryIT {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     @Autowired
-    private TestReportRepository reportRepository;
+    private ReportRepository reportRepository;
 
     @Autowired
     private UserRepository userRepository;
@@ -195,6 +194,7 @@ class ReportRepositoryIT extends BaseRepositoryIT {
     }
 
     @Test
+    @Commit
     void shouldGetTaskReports() {
         List<TaskReport> reports = reportRepository.getTaskReports(fromDate, toDate);
 
