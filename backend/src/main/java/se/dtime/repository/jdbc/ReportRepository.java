@@ -9,6 +9,7 @@ import se.dtime.model.report.TaskReport;
 import se.dtime.model.report.UserReport;
 import se.dtime.model.TaskType;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -125,7 +126,7 @@ public class ReportRepository {
                 userReport.setToDate(toDate);
             }
 
-            double totalTime = ((Number) row.get("totalTime")).floatValue();
+            BigDecimal totalTime = new BigDecimal(((Number) row.get("totalTime")).toString());
             userReport.setTotalTime(totalTime);
         }
 
@@ -149,7 +150,7 @@ public class ReportRepository {
             boolean isBillable = isBillableObj instanceof Boolean ? (Boolean) isBillableObj : 
                                  isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
             taskReport.setIsBillable(isBillable);
-            taskReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
+            taskReport.setTotalHours(new BigDecimal(((Number) row.get("totalTime")).toString()));
             taskReports.add(taskReport);
         }
 
@@ -171,7 +172,7 @@ public class ReportRepository {
                                  isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
             report.setIsBillable(isBillable);
             
-            report.setTotalHours(((Number) row.get("totalTime")).doubleValue());
+            report.setTotalHours(new BigDecimal(((Number) row.get("totalTime")).toString()));
             report.setTaskCount(((Number) row.get("taskCount")).longValue());
             
             // Create description based on task type and billable status
@@ -214,10 +215,10 @@ public class ReportRepository {
             boolean isBillable = isBillableObj instanceof Boolean ? (Boolean) isBillableObj : 
                                  isBillableObj instanceof Number ? ((Number) isBillableObj).intValue() == 1 : false;
             taskReport.setIsBillable(isBillable);
-            double totalHoursTask = ((Number) row.get("totalTime")).floatValue();
+            BigDecimal totalHoursTask = new BigDecimal(((Number) row.get("totalTime")).toString());
             taskReport.setTotalHours(totalHoursTask);
             userReport.getTaskReports().add(taskReport);
-            userReport.setTotalTime(userReport.getTotalTime() + totalHoursTask);
+            userReport.setTotalTime(userReport.getTotalTime().add(totalHoursTask));
         }
 
         return userReports;
@@ -249,7 +250,7 @@ public class ReportRepository {
             AccountReport accountReport = new AccountReport();
             accountReport.setAccountId((Long) row.get("accountId"));
             accountReport.setAccountName((String) row.get("accountName"));
-            accountReport.setTotalHours(((Number) row.get("totalTime")).floatValue());
+            accountReport.setTotalHours(new BigDecimal(((Number) row.get("totalTime")).toString()));
             accountReports.add(accountReport);
         }
 

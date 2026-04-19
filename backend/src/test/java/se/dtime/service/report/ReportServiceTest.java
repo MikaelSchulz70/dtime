@@ -4,12 +4,11 @@ package se.dtime.service.report;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.core.env.Environment;
 import se.dtime.model.report.Report;
 import se.dtime.model.report.UserReport;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
@@ -21,18 +20,16 @@ public class ReportServiceTest {
 
     @InjectMocks
     private ReportService reportService;
-    @Mock
-    private Environment environment;
 
     @Test
     public void calcStatisticsTest() {
         Report report = new Report(LocalDate.now(), LocalDate.now(), 200);
         List<UserReport> userReports = new ArrayList<>();
         UserReport userReport1 = new UserReport();
-        userReport1.setTotalTime(10);
+        userReport1.setTotalTime(BigDecimal.valueOf(10));
 
         UserReport userReport2 = new UserReport();
-        userReport2.setTotalTime(15);
+        userReport2.setTotalTime(BigDecimal.valueOf(15));
 
         userReports.add(userReport1);
         userReports.add(userReport2);

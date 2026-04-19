@@ -3,6 +3,7 @@ package se.dtime.model.report;
 import lombok.*;
 import se.dtime.utils.NumberUtil;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -16,13 +17,13 @@ public class TaskUserReport {
     private String accountName;
     private Long taskId;
     private String taskName;
-    private double totalHours;
-    private double totalDays;
+    private BigDecimal totalHours;
+    private BigDecimal totalDays;
     private LocalDate fromDate;
     private LocalDate toDate;
     private List<TaskUserUserReport> taskUserUserReports;
 
-    public double getTotalDaysScaled() {
-        return NumberUtil.scale(totalHours / 8);
+    public BigDecimal getTotalDaysScaled() {
+        return NumberUtil.scaleBigDecimal(totalHours.divide(BigDecimal.valueOf(8)));
     }
 }

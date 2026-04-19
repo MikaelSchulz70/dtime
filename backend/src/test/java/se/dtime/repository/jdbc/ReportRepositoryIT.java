@@ -110,10 +110,10 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(aliceReport).isNotNull();
-        assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
-        assertThat(aliceReport.getTotalTime()).isEqualTo(21.5); // 8.0 + 7.5 + 6.0
-        assertThat(aliceReport.getTaskReports()).hasSize(2);
+         assertThat(aliceReport).isNotNull();
+         assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
+         assertThat(aliceReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(21.5)); // 8.0 + 7.5 + 6.0
+         assertThat(aliceReport.getTaskReports()).hasSize(2);
         assertThat(aliceReport.getFromDate()).isEqualTo(fromDate);
         assertThat(aliceReport.getToDate()).isEqualTo(toDate);
 
@@ -123,9 +123,9 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(bobReport).isNotNull();
-        assertThat(bobReport.getUserId()).isEqualTo(user2.getId());
-        assertThat(bobReport.getTotalTime()).isEqualTo(13.5); // 8.5 + 5.0
+         assertThat(bobReport).isNotNull();
+         assertThat(bobReport.getUserId()).isEqualTo(user2.getId());
+         assertThat(bobReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(13.5)); // 8.5 + 5.0
 
         // Check user without time reports (Charlie)
         UserReport charlieReport = reports.stream()
@@ -135,7 +135,7 @@ class ReportRepositoryIT extends BaseRepositoryIT {
 
         assertThat(charlieReport).isNotNull();
         assertThat(charlieReport.getUserId()).isEqualTo(user3.getId());
-        assertThat(charlieReport.getTotalTime()).isEqualTo(0.0);
+        assertThat(charlieReport.getTotalTime()).isEqualTo(BigDecimal.ZERO);
         assertThat(charlieReport.getTaskReports()).isEmpty();
     }
 
@@ -145,11 +145,11 @@ class ReportRepositoryIT extends BaseRepositoryIT {
 
         assertThat(reports).hasSize(1);
 
-        UserReport aliceReport = reports.get(0);
-        assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
-        assertThat(aliceReport.getFullName()).isEqualTo("Alice Smith");
-        assertThat(aliceReport.getTotalTime()).isEqualTo(21.5);
-        assertThat(aliceReport.getTaskReports()).hasSize(2);
+         UserReport aliceReport = reports.get(0);
+         assertThat(aliceReport.getUserId()).isEqualTo(user1.getId());
+         assertThat(aliceReport.getFullName()).isEqualTo("Alice Smith");
+         assertThat(aliceReport.getTotalTime()).isEqualByComparingTo(new BigDecimal("21.5"));
+         assertThat(aliceReport.getTaskReports()).hasSize(2);
 
         // Check task reports
         TaskReport taskAReport = aliceReport.getTaskReports().stream()
@@ -157,19 +157,19 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(taskAReport).isNotNull();
-        assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
-        assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
-        assertThat(taskAReport.getTaskId()).isEqualTo(task1.getId());
-        assertThat(taskAReport.getTotalHours()).isEqualTo(15.5);
+         assertThat(taskAReport).isNotNull();
+         assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
+         assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
+         assertThat(taskAReport.getTaskId()).isEqualTo(task1.getId());
+         assertThat(taskAReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(15.5));
 
         TaskReport taskBReport = aliceReport.getTaskReports().stream()
                 .filter(tr -> "Task B".equals(tr.getTaskName()))
                 .findFirst()
                 .orElse(null);
 
-        assertThat(taskBReport).isNotNull();
-        assertThat(taskBReport.getTotalHours()).isEqualTo(6.0);
+         assertThat(taskBReport).isNotNull();
+         assertThat(taskBReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(6.0));
     }
 
     @Test
@@ -180,17 +180,17 @@ class ReportRepositoryIT extends BaseRepositoryIT {
 
         // Check reports are ordered by total time desc for users with time
         UserReport firstReport = reports.stream()
-                .filter(r -> r.getTotalTime() > 0)
+                .filter(r -> r.getTotalTime().compareTo(BigDecimal.ZERO) > 0)
                 .findFirst()
                 .orElse(null);
 
-        assertThat(firstReport).isNotNull();
-        assertThat(firstReport.getFullName()).isEqualTo("Alice Smith");
-        assertThat(firstReport.getTotalTime()).isEqualTo(21.5);
+         assertThat(firstReport).isNotNull();
+         assertThat(firstReport.getFullName()).isEqualTo("Alice Smith");
+         assertThat(firstReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(21.5));
 
         // Check user without time is included
         boolean charlieIncluded = reports.stream()
-                .anyMatch(r -> "Charlie Brown".equals(r.getFullName()) && r.getTotalTime() == 0.0);
+                .anyMatch(r -> "Charlie Brown".equals(r.getFullName()) && r.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
         assertThat(charlieIncluded).isTrue();
     }
 
@@ -207,11 +207,11 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(taskAReport).isNotNull();
-        assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
-        assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
-        assertThat(taskAReport.getTaskId()).isEqualTo(task1.getId());
-        assertThat(taskAReport.getTotalHours()).isEqualTo(24.0f); // Alice: 15.5 + Bob: 8.5
+         assertThat(taskAReport).isNotNull();
+         assertThat(taskAReport.getAccountId()).isEqualTo(account1.getId());
+         assertThat(taskAReport.getAccountName()).isEqualTo("Account Alpha");
+         assertThat(taskAReport.getTaskId()).isEqualTo(task1.getId());
+         assertThat(taskAReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(24.0)); // Alice: 15.5 + Bob: 8.5
 
         // Check Task B report
         TaskReport taskBReport = reports.stream()
@@ -219,19 +219,19 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(taskBReport).isNotNull();
-        assertThat(taskBReport.getTotalHours()).isEqualTo(6.0f);
+         assertThat(taskBReport).isNotNull();
+         assertThat(taskBReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(6.0));
 
-        // Check Task C report
-        TaskReport taskCReport = reports.stream()
-                .filter(tr -> "Task C".equals(tr.getTaskName()))
-                .findFirst()
-                .orElse(null);
+         // Check Task C report
+         TaskReport taskCReport = reports.stream()
+                 .filter(tr -> "Task C".equals(tr.getTaskName()))
+                 .findFirst()
+                 .orElse(null);
 
-        assertThat(taskCReport).isNotNull();
-        assertThat(taskCReport.getAccountId()).isEqualTo(account2.getId());
-        assertThat(taskCReport.getAccountName()).isEqualTo("Account Beta");
-        assertThat(taskCReport.getTotalHours()).isEqualTo(5.0f);
+         assertThat(taskCReport).isNotNull();
+         assertThat(taskCReport.getAccountId()).isEqualTo(account2.getId());
+         assertThat(taskCReport.getAccountName()).isEqualTo("Account Beta");
+         assertThat(taskCReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(5.0));
     }
 
     @Test
@@ -246,9 +246,9 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(account1Report).isNotNull();
-        assertThat(account1Report.getAccountId()).isEqualTo(account1.getId());
-        assertThat(account1Report.getTotalHours()).isEqualTo(30.0f); // Task A: 24.0 + Task B: 6.0
+         assertThat(account1Report).isNotNull();
+         assertThat(account1Report.getAccountId()).isEqualTo(account1.getId());
+         assertThat(account1Report.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(30.0)); // Task A: 24.0 + Task B: 6.0
 
         // Check Account Beta report
         AccountReport account2Report = reports.stream()
@@ -256,9 +256,9 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(account2Report).isNotNull();
-        assertThat(account2Report.getAccountId()).isEqualTo(account2.getId());
-        assertThat(account2Report.getTotalHours()).isEqualTo(5.0f);
+         assertThat(account2Report).isNotNull();
+         assertThat(account2Report.getAccountId()).isEqualTo(account2.getId());
+         assertThat(account2Report.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(5.0));
     }
 
     @Test
@@ -273,10 +273,10 @@ class ReportRepositoryIT extends BaseRepositoryIT {
 
         // Should only include users with no reported time
         assertThat(userTaskReports).hasSize(3); // All users have no time in this range
-        assertThat(userTaskReports).allMatch(ur -> ur.getTotalTime() == 0.0);
+        assertThat(userTaskReports).allMatch(ur -> ur.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
 
         assertThat(userReports).hasSize(3); // All users have no time in this range
-        assertThat(userReports).allMatch(ur -> ur.getTotalTime() == 0.0);
+        assertThat(userReports).allMatch(ur -> ur.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
 
         assertThat(taskReports).isEmpty();
         assertThat(accountReports).isEmpty();
@@ -298,8 +298,8 @@ class ReportRepositoryIT extends BaseRepositoryIT {
                 .findFirst()
                 .orElse(null);
 
-        assertThat(taskAReport).isNotNull();
-        assertThat(taskAReport.getTotalHours()).isEqualTo(24.0f); // Alice: 8.0 + 7.5 + Bob: 8.5
+         assertThat(taskAReport).isNotNull();
+         assertThat(taskAReport.getTotalHours()).isEqualByComparingTo(BigDecimal.valueOf(24.0)); // Alice: 8.0 + 7.5 + Bob: 8.5
     }
 
     private UserPO createAndSaveUser(String email, String firstName, String lastName) {

@@ -20,4 +20,8 @@ public class NumberUtil {
         return new BigDecimal(value).setScale(2, RoundingMode.HALF_UP).doubleValue();
     }
 
+    public static BigDecimal scaleBigDecimal(BigDecimal value) {
+        return value.setScale(2, RoundingMode.HALF_UP);
+    }
+
 }

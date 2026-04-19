@@ -3,6 +3,7 @@ package se.dtime.model.report;
 import lombok.Getter;
 import lombok.Setter;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class Report {
     private List<AccountReport> accountReports;
     private final int workableHours;
     private int totalWorkableHours;
-    private double totalHoursWorked;
+    private BigDecimal totalHoursWorked;
 
     public Report(LocalDate fromDate, LocalDate toDate, int workableHours) {
         this.fromDate = fromDate;

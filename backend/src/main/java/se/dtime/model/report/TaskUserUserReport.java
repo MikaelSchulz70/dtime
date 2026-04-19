@@ -2,6 +2,7 @@ package se.dtime.model.report;
 
 import lombok.*;
 import se.dtime.utils.NumberUtil;
+import java.math.BigDecimal;
 
 @Getter
 @Setter
@@ -11,10 +12,10 @@ import se.dtime.utils.NumberUtil;
 public class TaskUserUserReport {
     private long userId;
     private String fullName;
-    private double totalHours = 0;
-    private double totalDays;
+    private BigDecimal totalHours = BigDecimal.ZERO;
+    private BigDecimal totalDays;
 
-    public double getTotalDaysScaled() {
-        return NumberUtil.scale(totalHours / 8);
+    public BigDecimal getTotalDaysScaled() {
+        return NumberUtil.scaleBigDecimal(totalHours.divide(BigDecimal.valueOf(8)));
     }
 }

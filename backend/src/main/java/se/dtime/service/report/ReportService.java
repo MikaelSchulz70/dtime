@@ -16,6 +16,7 @@ import se.dtime.repository.jdbc.ReportRepository;
 import se.dtime.service.calendar.CalendarService;
 import se.dtime.service.user.UserValidator;
 
+import java.math.BigDecimal;
 import java.time.LocalDate;
 import java.util.List;
 
@@ -135,7 +136,7 @@ public class ReportService {
         } else if (reportType == ReportType.TASK) {
             List<TaskReport> taskReports = reportRepository.getTaskReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setTaskReports(taskReports);
-            taskReports.sort((a, b) -> Double.compare(b.getTotalHours(), a.getTotalHours()));
+            taskReports.sort((a, b) -> b.getTotalHours().compareTo(a.getTotalHours()));
         } else if (reportType == ReportType.USER) {
             List<UserReport> userReports = reportRepository.getUserReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setUserReports(userReports);
@@ -154,7 +155,9 @@ public class ReportService {
         int totalWorkableHours = report.getWorkableHours() * userReports.size();
         report.setTotalWorkableHours(totalWorkableHours);
 
-        double totalHoursWorked = userReports.stream().mapToDouble(UserReport::getTotalTime).sum();
+        BigDecimal totalHoursWorked = userReports.stream()
+                .map(UserReport::getTotalTime)
+                .reduce(BigDecimal.ZERO, BigDecimal::add);
         report.setTotalHoursWorked(totalHoursWorked);
     }
 

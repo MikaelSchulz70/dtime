@@ -3,6 +3,7 @@ package se.dtime.model.report;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -17,7 +18,7 @@ public class UserReport {
     private String email;
     private LocalDate fromDate;
     private LocalDate toDate;
-    private double totalTime = 0;
+    private BigDecimal totalTime = BigDecimal.ZERO;
     private boolean isClosed;
     private List<TaskReport> taskReports = new ArrayList<>();
 }
