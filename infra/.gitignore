@@ -1,0 +1,7 @@
+.env
+authentik/media/*
+!authentik/media/.gitkeep
+authentik/certs/*
+!authentik/certs/.gitkeep
+authentik/custom-templates/*
+!authentik/custom-templates/.gitkeep
