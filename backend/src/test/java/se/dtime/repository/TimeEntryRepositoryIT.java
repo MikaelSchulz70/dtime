@@ -358,7 +358,7 @@ class TimeEntryRepositoryIT extends BaseRepositoryIT {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setPassword("password123");
+        user.setExternalId("ext-" + email);
         user.setUserRole(UserRole.USER);
         user.setActivationStatus(ActivationStatus.ACTIVE);
         user.setCreatedBy(1L);

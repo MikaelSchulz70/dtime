@@ -111,19 +111,53 @@ const Footer = () => (
 
 
 const AppContent = () => {
+  const LAST_OIDC_USER_KEY = 'dtime.lastOidcUser';
   const [session, setSession] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
+  const sanitizeDisplayName = (value) => (value || '').replace(/\s*-\s*$/, '').trim();
 
   React.useEffect(() => {
     const checkSession = async () => {
+      const urlParams = new URLSearchParams(window.location.search);
+      const loginSuccess = urlParams.get('loginSuccess');
+      const loginUser = urlParams.get('user');
+      if (loginUser) {
+        window.localStorage.setItem(LAST_OIDC_USER_KEY, sanitizeDisplayName(loginUser));
+      }
+      if (loginSuccess) {
+        window.history.replaceState({}, '', window.location.pathname);
+      }
+
+      const maxAttempts = loginSuccess ? 5 : 1;
       try {
         console.log('Checking session...');
-        const response = await fetch('/api/session');
-        if (response.ok) {
-          const data = await response.json();
-          setSession(data);
-        } else {
-          setSession(null);
+        for (let attempt = 1; attempt <= maxAttempts; attempt += 1) {
+          const response = await fetch('/api/session', { credentials: 'include' });
+          if (response.ok) {
+            const data = await response.json();
+            const user = data?.loggedInUser;
+            if (user) {
+              const displayName =
+                user.name ||
+                [user.firstName, user.lastName].filter(Boolean).join(' ').trim() ||
+                user.email ||
+                '';
+              const cleanedDisplayName = sanitizeDisplayName(displayName);
+              if (cleanedDisplayName) {
+                window.localStorage.setItem(LAST_OIDC_USER_KEY, cleanedDisplayName);
+              }
+            }
+            setSession(data);
+            return;
+          }
+
+          if (!loginSuccess || attempt === maxAttempts) {
+            setSession(null);
+            return;
+          }
+
+          // OIDC callback + redirects can race with session propagation in dev; retry briefly.
+          await new Promise((resolve) => setTimeout(resolve, 300));
         }
       } catch (error) {
         console.log('Session check error:', error);

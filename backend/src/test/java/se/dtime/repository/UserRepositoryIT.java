@@ -157,7 +157,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setPassword("password123");
+        user.setExternalId("ext-" + email);
         user.setUserRole(userRole);
         user.setActivationStatus(status);
         user.setCreatedBy(1L);

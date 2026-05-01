@@ -4,9 +4,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import se.dtime.common.CommonData;
 import se.dtime.dbmodel.TaskContributorPO;
@@ -22,7 +19,6 @@ import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
-import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,16 +28,14 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserConverter userConverter;
     private final UserValidator userValidator;
-    private final BCryptPasswordEncoder passwordEncoder;
     private final TimeEntryRepository timeEntryRepository;
     private final TaskContributorRepository taskContributorRepository;
     private final CloseDateRepository closeDateRepository;
 
-    public UserService(UserRepository userRepository, UserConverter userConverter, UserValidator userValidator, BCryptPasswordEncoder passwordEncoder, TimeEntryRepository timeEntryRepository, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+    public UserService(UserRepository userRepository, UserConverter userConverter, UserValidator userValidator, TimeEntryRepository timeEntryRepository, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
         this.userRepository = userRepository;
         this.userConverter = userConverter;
         this.userValidator = userValidator;
-        this.passwordEncoder = passwordEncoder;
         this.timeEntryRepository = timeEntryRepository;
         this.taskContributorRepository = taskContributorRepository;
         this.closeDateRepository = closeDateRepository;
@@ -136,22 +130,10 @@ public class UserService {
     }
 
     public void changePwd(UserPwd userPwd) {
-        userValidator.validateLoggedIn();
-        UserDetails userDetails = (UserDetails) SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        UserPO user = userRepository.findByEmail(userDetails.getUsername());
-        boolean pwdMatches = passwordEncoder.matches(userPwd.getCurrentPassword(), user.getPassword());
-        if (!pwdMatches) {
-            throw new ValidationException("currentPassword", "user.invalid.current.pwd");
-        }
-
         if (!StringUtils.equals(userPwd.getNewPassword1(), userPwd.getNewPassword2())) {
             throw new ValidationException("newPassword1", "user.new.pwd.do.not.match");
         }
-
-        user.setPassword(passwordEncoder.encode(userPwd.getNewPassword1()));
-        user.setUpdatedDateTime(LocalDateTime.now());
-        userRepository.save(user);
+        throw new ValidationException("currentPassword", "user.password.change.not.supported.with.oidc");
     }
 
 }

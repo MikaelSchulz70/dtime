@@ -1,6 +1,14 @@
 spring:
   devtools:
     add-properties: true
+  datasource:
+    url: jdbc:postgresql://localhost:5432/dtime
+    username: postgres
+    password: change_me
+  liquibase:
+    url: jdbc:postgresql://localhost:5432/dtime
+    user: postgres
+    password: change_me
   jpa:
     hibernate:
       ddl-auto: validate
@@ -25,17 +33,33 @@ server:
     key-store: classpath:keystore/dtime_new.p12
     key-store-password: ${SSL_KEYSTORE_PASSWORD:dt2020}
     key-alias: dtime
+  servlet:
+    session:
+      cookie:
+        domain: localhost
+        path: /
 
 # Security Configuration (disabled for development)
 security:
   enable-csrf: false
+
+# Local Authentik OIDC defaults for development
+oauth:
+  authentik:
+    enabled: true
+    client-id: sPiKspX0VVag2RIrtYh1p9WecpIhLrFv9IfxGY9I
+    client-secret: ${OAUTH_AUTHENTIK_CLIENT_SECRET:}
+    authorization-uri: http://localhost:9000/application/o/authorize/
+    token-uri: http://localhost:9000/application/o/token/
+    user-info-uri: http://localhost:9000/application/o/userinfo/
+    jwk-set-uri: http://localhost:9000/application/o/dtime/jwks/
 
 # Frontend Development Server Configuration
 app:
   frontend:
     dev-server:
       enabled: true
-      url: https://localhost:9000
+      url: https://localhost:3000
 
 # Email Configuration (disabled for development)
 mail:

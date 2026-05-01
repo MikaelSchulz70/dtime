@@ -11,7 +11,7 @@ import se.dtime.model.UserRole;
 })
 public class UserPO extends BasePO {
     private Long id;
-    private String password;
+    private String externalId;
     private String firstName;
     private String lastName;
     private String email;
@@ -38,13 +38,13 @@ public class UserPO extends BasePO {
     }
 
 
-    @Column(name = "password", unique = false, nullable = false, updatable = true, length = 80)
-    public String getPassword() {
-        return password;
+    @Column(name = "external_id", unique = true, nullable = false, updatable = true, length = 120)
+    public String getExternalId() {
+        return externalId;
     }
 
-    public void setPassword(String password) {
-        this.password = password;
+    public void setExternalId(String externalId) {
+        this.externalId = externalId;
     }
 
     @Column(name = "firstname", unique = false, nullable = false, length = 30)

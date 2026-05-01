@@ -6,13 +6,4 @@
         xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog http://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-3.6.xsd"
         logicalFilePath="data.xml">
 
-    <changeSet id="addUsers" author="mikael" runInTransaction="false">
-        <sql dbms="postgresql">
-            INSERT INTO dtime.users (id, password, firstname, lastname, email, status, userrole, createdatetime,
-            updatedatetime, createdby, updatedby)
-            VALUES (1, '$2b$12$8UVIVfZgA/8.0EBAtAvp3eM5moNff3rq.BoUPohf6C.lQRUjDnB9e', 'D', 'Time',
-            'admin@dtime.se','ACTIVE', 'ADMIN', NOW(), NOW(), 1, 1)
-        </sql>
-    </changeSet>
-
 </databaseChangeLog>

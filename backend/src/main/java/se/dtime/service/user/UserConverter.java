@@ -1,23 +1,20 @@
 package se.dtime.service.user;
 
 import org.apache.commons.lang3.StringUtils;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.User;
 import se.dtime.service.BaseConverter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Service
 public class UserConverter extends BaseConverter {
 
     private static final String DUMMY_PWD = "dummy1234";
 
-    private final BCryptPasswordEncoder passwordEncoder;
-
-    public UserConverter(BCryptPasswordEncoder passwordEncoder) {
-        this.passwordEncoder = passwordEncoder;
+    public UserConverter() {
     }
 
     public User toModel(UserPO userPO) {
@@ -44,7 +41,10 @@ public class UserConverter extends BaseConverter {
         userPO.setFirstName(user.getFirstName());
         userPO.setLastName(user.getLastName());
         userPO.setEmail(user.getEmail());
-        userPO.setPassword(!StringUtils.isEmpty(user.getPassword()) ? passwordEncoder.encode(user.getPassword()) : null);
+        String externalId = StringUtils.isNotBlank(user.getPassword())
+                ? user.getPassword()
+                : "manual-" + UUID.randomUUID();
+        userPO.setExternalId(externalId);
         userPO.setActivationStatus(user.getActivationStatus());
         userPO.setUserRole(user.getUserRole());
         updateBaseData(userPO);
@@ -65,12 +65,7 @@ public class UserConverter extends BaseConverter {
         updatedUserPO.setActivationStatus(user.getActivationStatus());
         updatedUserPO.setUserRole(user.getUserRole());
         updateBaseData(updatedUserPO);
-
-        if (!DUMMY_PWD.equals(user.getPassword())) {
-            updatedUserPO.setPassword(passwordEncoder.encode(user.getPassword()));
-        } else {
-            updatedUserPO.setPassword(currentUserPO.getPassword());
-        }
+        updatedUserPO.setExternalId(currentUserPO.getExternalId());
 
         return updatedUserPO;
     }

@@ -62,10 +62,14 @@ security:
 
 # OAuth Configuration
 oauth:
-  google:
-    enabled: ${OAUTH_GOOGLE_ENABLED:false}
-    client-id: ${OAUTH_GOOGLE_CLIENT_ID:}
-    client-secret: ${OAUTH_GOOGLE_CLIENT_SECRET:}
+  authentik:
+    enabled: ${OAUTH_AUTHENTIK_ENABLED:false}
+    client-id: ${OAUTH_AUTHENTIK_CLIENT_ID:}
+    client-secret: ${OAUTH_AUTHENTIK_CLIENT_SECRET:}
+    authorization-uri: ${OAUTH_AUTHENTIK_AUTHORIZATION_URI:}
+    token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:}
+    user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:}
+    jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:}
 
 # Email Configuration
 mail:

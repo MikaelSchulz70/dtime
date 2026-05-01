@@ -2,7 +2,6 @@ package se.dtime.config;
 
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
@@ -12,37 +11,50 @@ import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
 
 @Configuration
-@ConditionalOnProperty(name = "oauth.google.enabled", havingValue = "true")
+@ConditionalOnProperty(name = "oauth.authentik.enabled", havingValue = "true")
 public class OAuth2Config {
 
-    @Value("${oauth.google.client-id:}")
-    private String googleClientId;
+    @Value("${oauth.authentik.client-id:}")
+    private String authentikClientId;
 
-    @Value("${oauth.google.client-secret:}")
-    private String googleClientSecret;
+    @Value("${oauth.authentik.client-secret:}")
+    private String authentikClientSecret;
+
+    @Value("${oauth.authentik.authorization-uri:}")
+    private String authorizationUri;
+
+    @Value("${oauth.authentik.token-uri:}")
+    private String tokenUri;
+
+    @Value("${oauth.authentik.user-info-uri:}")
+    private String userInfoUri;
+
+    @Value("${oauth.authentik.jwk-set-uri:}")
+    private String jwkSetUri;
 
     @Bean
-    @ConditionalOnProperty(name = "oauth.google.enabled", havingValue = "true")
+    @ConditionalOnProperty(name = "oauth.authentik.enabled", havingValue = "true")
     public ClientRegistrationRepository clientRegistrationRepository() {
-        if (googleClientId == null || googleClientId.isEmpty() || 
-            googleClientSecret == null || googleClientSecret.isEmpty()) {
-            throw new IllegalStateException("Google OAuth is enabled but client-id or client-secret is not provided");
+        if (authentikClientId == null || authentikClientId.isEmpty()
+                || authentikClientSecret == null || authentikClientSecret.isEmpty()) {
+            throw new IllegalStateException("Authentik OAuth is enabled but client-id or client-secret is not provided");
         }
 
-        ClientRegistration googleClientRegistration = ClientRegistration.withRegistrationId("google")
-                .clientId(googleClientId)
-                .clientSecret(googleClientSecret)
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_BASIC)
+        ClientRegistration authentikClientRegistration = ClientRegistration.withRegistrationId("authentik")
+                .clientId(authentikClientId)
+                .clientSecret(authentikClientSecret)
+                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
                 .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
-                .scope("email", "profile")
-                .authorizationUri("https://accounts.google.com/o/oauth2/v2/auth")
-                .tokenUri("https://www.googleapis.com/oauth2/v4/token")
-                .userInfoUri("https://www.googleapis.com/oauth2/v3/userinfo")
+                .scope("openid", "email", "profile")
+                .authorizationUri(authorizationUri)
+                .tokenUri(tokenUri)
+                .jwkSetUri(jwkSetUri)
+                .userInfoUri(userInfoUri)
                 .userNameAttributeName("sub")
-                .clientName("Google")
+                .clientName("Authentik")
                 .build();
 
-        return new InMemoryClientRegistrationRepository(googleClientRegistration);
+        return new InMemoryClientRegistrationRepository(authentikClientRegistration);
     }
 }

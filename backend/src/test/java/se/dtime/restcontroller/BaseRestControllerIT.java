@@ -31,10 +31,12 @@ import static org.springframework.security.test.web.servlet.setup.SecurityMockMv
 @SpringBootTest
 @TestPropertySource(properties = {
         "spring.datasource.url=jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;MODE=PostgreSQL;DATABASE_TO_UPPER=false;CASE_INSENSITIVE_IDENTIFIERS=true;INIT=CREATE SCHEMA IF NOT EXISTS \"public\"",
+        "spring.datasource.driver-class-name=org.h2.Driver",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.jpa.properties.hibernate.globally_quoted_identifiers=true",
         "spring.jpa.properties.hibernate.default_schema=PUBLIC",
-        "security.enable-csrf=false"
+        "security.enable-csrf=false",
+        "oauth.authentik.enabled=false"
 })
 @Transactional
 @Import(TestSecurityConfig.class)
@@ -95,7 +97,7 @@ public abstract class BaseRestControllerIT {
         user.setEmail(email);
         user.setFirstName(firstName);
         user.setLastName(lastName);
-        user.setPassword("$2a$10$DzN7xtUaWr1H7HlNYT2yMOMPHpTIgvzLFIJaFMWrdEUwrHfRKrEYW"); // BCrypt for "oldpassword"
+        user.setExternalId("ext-" + email);
         user.setUserRole(role);
         user.setActivationStatus(ActivationStatus.ACTIVE);
         user.setCreatedBy(1L);

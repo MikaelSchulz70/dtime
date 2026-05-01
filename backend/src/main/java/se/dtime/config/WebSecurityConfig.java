@@ -5,27 +5,38 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
+import org.springframework.http.converter.FormHttpMessageConverter;
+import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
+import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
+import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
+import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
+import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
+import org.springframework.web.client.RestClient;
+import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import se.dtime.service.user.CustomOAuth2UserService;
-import se.dtime.service.user.UserLoginService;
+import se.dtime.service.user.CustomOidcUserService;
 
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
 public class WebSecurityConfig {
 
-    private final UserLoginService userLoginService;
     private final CustomAuthenticationSuccessHandler successHandler;
     private final CustomOAuth2UserService customOAuth2UserService;
+    private final CustomOidcUserService customOidcUserService;
 
     @Autowired(required = false)
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -33,15 +44,15 @@ public class WebSecurityConfig {
     @Value("${security.enable-csrf:true}")
     private boolean csrfEnabled;
 
-    @Value("${oauth.google.enabled:false}")
-    private boolean googleOAuthEnabled;
+    @Value("${oauth.authentik.enabled:false}")
+    private boolean authentikOAuthEnabled;
 
-    public WebSecurityConfig(UserLoginService userLoginService,
-                             CustomAuthenticationSuccessHandler successHandler,
-                             CustomOAuth2UserService customOAuth2UserService) {
-        this.userLoginService = userLoginService;
+    public WebSecurityConfig(CustomAuthenticationSuccessHandler successHandler,
+                             CustomOAuth2UserService customOAuth2UserService,
+                             CustomOidcUserService customOidcUserService) {
         this.successHandler = successHandler;
         this.customOAuth2UserService = customOAuth2UserService;
+        this.customOidcUserService = customOidcUserService;
     }
 
     @Bean
@@ -50,18 +61,10 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider auth = new DaoAuthenticationProvider(userLoginService);
-        auth.setPasswordEncoder(passwordEncoder());
-        return auth;
-    }
-
-    @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-                .authenticationProvider(authenticationProvider())
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/perform_login", "/error", "/api/auth/google/status", "/actuator/health").permitAll()
+                        .requestMatchers("/error", "/api/auth/oidc/status", "/api/auth/oidc/failure", "/api/auth/oidc/switch-user", "/actuator/health", "/oauth2/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -70,13 +73,6 @@ public class WebSecurityConfig {
                                 new HttpStatusEntryPoint(HttpStatus.UNAUTHORIZED),
                                 request -> request.getRequestURI().startsWith("/api/")
                         )
-                )
-                .formLogin(form -> form
-                        .loginProcessingUrl("/perform_login")
-                        .usernameParameter("username")
-                        .passwordParameter("password")
-                        .successHandler(successHandler)
-                        .permitAll()
                 )
                 .logout(logout -> logout
                         .logoutUrl("/logout")
@@ -89,19 +85,28 @@ public class WebSecurityConfig {
                         .tokenValiditySeconds(86400) // 24 hours
                 );
 
-        // Configure OAuth2 login if enabled and client registration is available
-        if (googleOAuthEnabled && clientRegistrationRepository != null) {
+        if (authentikOAuthEnabled && clientRegistrationRepository != null) {
             http.oauth2Login(oauth2 -> oauth2
-                    .loginPage("/login")
+                    .loginPage("/oauth2/authorization/authentik")
                     .successHandler(successHandler)
                     .failureHandler((request, response, exception) -> {
-                        response.sendRedirect("/login?error=oauth");
+                        String errorCode = resolveErrorCode(exception);
+                        response.sendRedirect("/api/auth/oidc/failure?reason=" + errorCode);
                     })
+                    .authorizationEndpoint(authorization -> authorization
+                            .authorizationRequestResolver(authorizationRequestResolver())
+                    )
+                    .tokenEndpoint(token -> token
+                            .accessTokenResponseClient(authorizationCodeTokenResponseClient())
+                    )
                     .userInfoEndpoint(userInfo -> userInfo
                             .userService(customOAuth2UserService)
+                            .oidcUserService(customOidcUserService)
                     )
                     .clientRegistrationRepository(clientRegistrationRepository)
             );
+        } else {
+            http.formLogin(form -> form.disable());
         }
 
         http.sessionManagement(session -> session
@@ -129,5 +134,46 @@ public class WebSecurityConfig {
         }
 
         return http.build();
+    }
+
+    @Bean
+    public OAuth2AccessTokenResponseClient<OAuth2AuthorizationCodeGrantRequest> authorizationCodeTokenResponseClient() {
+        RestClientAuthorizationCodeTokenResponseClient accessTokenResponseClient =
+                new RestClientAuthorizationCodeTokenResponseClient();
+        RestClient restClient = RestClient.builder()
+                .requestFactory(new SimpleClientHttpRequestFactory())
+                .messageConverters(converters -> {
+                    converters.clear();
+                    converters.add(new FormHttpMessageConverter());
+                    converters.add(new OAuth2AccessTokenResponseHttpMessageConverter());
+                    converters.add(new StringHttpMessageConverter());
+                })
+                .build();
+        accessTokenResponseClient.setRestClient(restClient);
+        return accessTokenResponseClient;
+    }
+
+    private OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
+        DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
+                clientRegistrationRepository,
+                OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
+        );
+        resolver.setAuthorizationRequestCustomizer(customizer ->
+                customizer.additionalParameters(params -> {
+                    params.put("prompt", "login");
+                    params.put("max_age", "0");
+                })
+        );
+        return resolver;
+    }
+
+    private String resolveErrorCode(AuthenticationException exception) {
+        if (exception instanceof org.springframework.security.oauth2.core.OAuth2AuthenticationException oauthEx) {
+            String code = oauthEx.getError() != null ? oauthEx.getError().getErrorCode() : null;
+            if (code != null && !code.isBlank()) {
+                return code;
+            }
+        }
+        return "oauth_failure";
     }
 }

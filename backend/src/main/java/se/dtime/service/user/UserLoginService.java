@@ -42,7 +42,7 @@ public class UserLoginService implements UserDetailsService {
                 authorities.add(new SimpleGrantedAuthority("ROLE_" + UserRole.USER.name()));
             }
 
-            return new UserExt(user.getEmail(), user.getPassword(), authorities, user.getId(), user.getFirstName(), user.getLastName());
+            return new UserExt(user.getEmail(), user.getExternalId(), authorities, user.getId(), user.getFirstName(), user.getLastName());
         } catch (Exception e) {
             throw new UsernameNotFoundException("invalid.username.or.password");
         }

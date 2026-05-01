@@ -72,7 +72,7 @@ module.exports = (env, argv) => {
         directory: './public',
         publicPath: '/',
       },
-      port: 9000,
+      port: Number(process.env.FRONTEND_PORT || 3000),
       hot: true,
       server: 'https',
       historyApiFallback: {
@@ -80,7 +80,7 @@ module.exports = (env, argv) => {
       },
       proxy: [
         {
-          context: ['/api', '/logout', '/perform_login', '/pub'],
+          context: ['/api', '/logout', '/perform_login', '/pub', '/oauth2', '/login/oauth2'],
           target: process.env.REACT_APP_BACKEND_URL || 'https://localhost:8443',
           secure: false,
           changeOrigin: true,

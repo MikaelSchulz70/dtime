@@ -6,10 +6,13 @@ import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.security.web.authentication.AuthenticationSuccessHandler;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 
 @Slf4j
 @Component
@@ -35,9 +38,9 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
 
         log.debug("Request headers - Referer: {}, Origin: {}, Accept: {}", referer, origin, accept);
 
-        // If development server is enabled and request comes from dev server
-        if (devServerEnabled && (isFromDevServer(referer) || isFromDevServer(origin))) {
-            log.info("Detected dev server request, redirecting to frontend");
+        // In local dev, always return user to frontend dev server after OIDC callback.
+        if (devServerEnabled) {
+            log.info("Development mode enabled, redirecting to frontend dev server");
 
             // For AJAX requests, return JSON success response
             if (accept != null && accept.contains("application/json")) {
@@ -45,13 +48,17 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 response.setContentType("application/json");
                 response.setCharacterEncoding("UTF-8");
                 response.getWriter().write("{\"success\": true, \"redirectUrl\": \"" +
-                        (frontendDevServerUrl.isEmpty() ? "https://localhost:9000" : frontendDevServerUrl) + "\"}");
+                        (frontendDevServerUrl.isEmpty() ? "https://localhost:3000" : frontendDevServerUrl) + "\"}");
                 return;
             }
 
             // For form submissions, redirect back to dev server with login success parameter
-            String baseUrl = frontendDevServerUrl.isEmpty() ? "https://localhost:9000" : frontendDevServerUrl;
+            String baseUrl = frontendDevServerUrl.isEmpty() ? "https://localhost:3000" : frontendDevServerUrl;
             String redirectUrl = baseUrl + "?loginSuccess=true";
+            String displayName = resolveDisplayName(authentication);
+            if (!displayName.isBlank()) {
+                redirectUrl += "&user=" + URLEncoder.encode(displayName, StandardCharsets.UTF_8);
+            }
             log.info("Redirecting to dev server: {}", redirectUrl);
             response.sendRedirect(redirectUrl);
             return;
@@ -62,7 +69,61 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         response.sendRedirect("/index");
     }
 
-    private boolean isFromDevServer(String url) {
-        return url != null && (url.contains("localhost:9000") || url.contains("127.0.0.1:9000"));
+    private String resolveDisplayName(Authentication authentication) {
+        if (authentication == null || authentication.getPrincipal() == null) {
+            return "";
+        }
+        Object principal = authentication.getPrincipal();
+        if (principal instanceof OAuth2User oauth2User) {
+            Object fullNameClaim = oauth2User.getAttribute("name");
+            if (fullNameClaim != null && !fullNameClaim.toString().isBlank()) {
+                return fullNameClaim.toString().trim();
+            }
+
+            Object givenNameClaim = oauth2User.getAttribute("given_name");
+            Object familyNameClaim = oauth2User.getAttribute("family_name");
+            String standardFullName = joinNameParts(givenNameClaim, familyNameClaim);
+            if (!standardFullName.isBlank()) {
+                return standardFullName;
+            }
+
+            Object localFirstName = oauth2User.getAttribute("local_first_name");
+            Object localLastName = oauth2User.getAttribute("local_last_name");
+            String fullName = joinNameParts(localFirstName, localLastName);
+            if (!fullName.isBlank()) {
+                return fullName;
+            }
+            Object localEmail = oauth2User.getAttribute("local_email");
+            if (localEmail != null && !localEmail.toString().isBlank()) {
+                return localEmail.toString();
+            }
+            Object preferredUsername = oauth2User.getAttribute("preferred_username");
+            if (preferredUsername != null && !preferredUsername.toString().isBlank()) {
+                return preferredUsername.toString();
+            }
+            Object email = oauth2User.getAttribute("email");
+            if (email != null && !email.toString().isBlank()) {
+                return email.toString();
+            }
+            if (oauth2User.getName() != null) {
+                return oauth2User.getName();
+            }
+        }
+        return authentication.getName() == null ? "" : authentication.getName();
     }
+
+    private String joinNameParts(Object firstName, Object lastName) {
+        String first = normalizeNamePart(firstName);
+        String last = normalizeNamePart(lastName);
+        return (first + " " + last).trim();
+    }
+
+    private String normalizeNamePart(Object value) {
+        if (value == null) {
+            return "";
+        }
+        String normalized = value.toString().trim();
+        return "-".equals(normalized) ? "" : normalized;
+    }
+
 }

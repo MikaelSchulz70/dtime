@@ -10,8 +10,6 @@ import org.springframework.data.domain.Sort;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import se.dtime.common.CommonData;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
@@ -50,8 +48,6 @@ class UserServiceTest {
     @Mock
     private UserValidator userValidator;
     @Mock
-    private BCryptPasswordEncoder passwordEncoder;
-    @Mock
     private TimeEntryRepository timeEntryRepository;
     @Mock
     private TaskContributorRepository taskContributorRepository;
@@ -61,8 +57,6 @@ class UserServiceTest {
     private SecurityContext securityContext;
     @Mock
     private Authentication authentication;
-    @Mock
-    private UserDetails userDetails;
 
     private User testUser;
     private UserPO testUserPO;
@@ -83,7 +77,7 @@ class UserServiceTest {
         testUserPO.setLastName("Doe");
         testUserPO.setEmail("john.doe@example.com");
         testUserPO.setActivationStatus(ActivationStatus.ACTIVE);
-        testUserPO.setPassword("encodedOldPassword");
+        testUserPO.setExternalId("external-john-doe");
     }
 
     @Test
@@ -268,7 +262,7 @@ class UserServiceTest {
     }
 
     @Test
-    void changePwd_ValidPasswordChange_ShouldUpdatePassword() {
+    void changePwd_ValidPasswordInput_ShouldThrowOidcNotSupportedException() {
         // Given
         UserPwd userPwd = UserPwd.builder()
                 .currentPassword("oldPassword")
@@ -276,28 +270,15 @@ class UserServiceTest {
                 .newPassword2("newPassword")
                 .build();
 
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("john.doe@example.com");
-
-        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(testUserPO);
-        when(passwordEncoder.matches("oldPassword", "encodedOldPassword")).thenReturn(true);
-        when(passwordEncoder.encode("newPassword")).thenReturn("encodedNewPassword");
-
-        // When
-        assertDoesNotThrow(() -> userService.changePwd(userPwd));
-
-        // Then
-        verify(userValidator).validateLoggedIn();
-        verify(passwordEncoder).matches("oldPassword", "encodedOldPassword");
-        verify(passwordEncoder).encode("newPassword");
-        verify(userRepository).save(testUserPO);
-        assertThat(testUserPO.getPassword()).isEqualTo("encodedNewPassword");
+        // When/Then
+        ValidationException exception = assertThrows(ValidationException.class,
+                () -> userService.changePwd(userPwd));
+        assertThat(exception.getFieldName()).isEqualTo("currentPassword");
+        assertThat(exception.getMessage()).isEqualTo("user.password.change.not.supported.with.oidc");
     }
 
     @Test
-    void changePwd_InvalidCurrentPassword_ShouldThrowValidationException() {
+    void changePwd_InvalidCurrentPassword_ShouldStillThrowOidcNotSupportedException() {
         // Given
         UserPwd userPwd = UserPwd.builder()
                 .currentPassword("wrongPassword")
@@ -305,20 +286,12 @@ class UserServiceTest {
                 .newPassword2("newPassword")
                 .build();
 
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("john.doe@example.com");
-
-        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(testUserPO);
-        when(passwordEncoder.matches("wrongPassword", "encodedOldPassword")).thenReturn(false);
-
         // When/Then
         ValidationException exception = assertThrows(ValidationException.class,
                 () -> userService.changePwd(userPwd));
 
         assertThat(exception.getFieldName()).isEqualTo("currentPassword");
-        assertThat(exception.getMessage()).isEqualTo("user.invalid.current.pwd");
+        assertThat(exception.getMessage()).isEqualTo("user.password.change.not.supported.with.oidc");
     }
 
     @Test
@@ -329,14 +302,6 @@ class UserServiceTest {
                 .newPassword1("newPassword1")
                 .newPassword2("newPassword2")
                 .build();
-
-        SecurityContextHolder.setContext(securityContext);
-        when(securityContext.getAuthentication()).thenReturn(authentication);
-        when(authentication.getPrincipal()).thenReturn(userDetails);
-        when(userDetails.getUsername()).thenReturn("john.doe@example.com");
-
-        when(userRepository.findByEmail("john.doe@example.com")).thenReturn(testUserPO);
-        when(passwordEncoder.matches("oldPassword", testUserPO.getPassword())).thenReturn(true);
 
         // When/Then
         ValidationException exception = assertThrows(ValidationException.class,

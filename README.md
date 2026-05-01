@@ -22,7 +22,7 @@ DTime is a full-featured time management solution designed for businesses and te
 - Project and task organization
 - User assignment to projects
 - Account and contributor management
-- OAuth2 integration (Google)
+- OAuth2/OpenID Connect integration (Authentik)
 
 **📊 Administration & Analytics**
 - Complete administrative control panel
@@ -177,6 +177,15 @@ POSTGRES_DB=dtime
 POSTGRES_USER=dtime
 POSTGRES_PASSWORD=your_secure_password
 
+# OIDC (Authentik)
+OAUTH_AUTHENTIK_ENABLED=true
+OAUTH_AUTHENTIK_CLIENT_ID=your_client_id
+OAUTH_AUTHENTIK_CLIENT_SECRET=your_client_secret
+OAUTH_AUTHENTIK_AUTHORIZATION_URI=http://localhost:9000/application/o/authorize/
+OAUTH_AUTHENTIK_TOKEN_URI=http://localhost:9000/application/o/token/
+OAUTH_AUTHENTIK_USER_INFO_URI=http://localhost:9000/application/o/userinfo/
+OAUTH_AUTHENTIK_JWK_SET_URI=http://localhost:9000/application/o/dtime/jwks/
+
 # Email Configuration
 MAIL_USERNAME=your-email@example.com
 MAIL_PASSWORD=your_email_app_password
@@ -184,6 +193,56 @@ MAIL_PASSWORD=your_email_app_password
 # Security
 SECURITY_CSRF_ENABLED=true
 ```
+
+## Authentik Setup (Local Development)
+
+Use this section if you want to start DTime with Authentik login on your local machine.
+
+### 1) Start infrastructure
+
+Start PostgreSQL and Authentik first (using this repo's compose setup), then backend and frontend.
+
+### 2) Create OAuth2 Provider/Application in Authentik
+
+In Authentik, configure the DTime OAuth2/OpenID Connect application with:
+
+- **Client type**: Confidential
+- **Grant type**: Authorization Code
+- **Redirect URI**: `https://localhost:8443/login/oauth2/code/authentik`
+- **Scopes**: include at least `openid`, `email`, `profile`
+
+Recommended:
+
+- Keep issuer/slug aligned with your JWKS URL (example slug `dtime` -> `.../application/o/dtime/jwks/`)
+- Make sure the provider returns `sub` and (preferably) `email`
+
+### 3) Configure backend env vars
+
+Set these when starting backend (or in your local env files):
+
+```bash
+OAUTH_AUTHENTIK_ENABLED=true
+OAUTH_AUTHENTIK_CLIENT_ID=<authentik-client-id>
+OAUTH_AUTHENTIK_CLIENT_SECRET=<authentik-client-secret>
+OAUTH_AUTHENTIK_AUTHORIZATION_URI=http://localhost:9000/application/o/authorize/
+OAUTH_AUTHENTIK_TOKEN_URI=http://localhost:9000/application/o/token/
+OAUTH_AUTHENTIK_USER_INFO_URI=http://localhost:9000/application/o/userinfo/
+OAUTH_AUTHENTIK_JWK_SET_URI=http://localhost:9000/application/o/dtime/jwks/
+SPRING_PROFILES_ACTIVE=dev
+```
+
+### 4) Start application
+
+- Backend: `https://localhost:8443`
+- Frontend dev server: `https://localhost:3000`
+
+Open frontend and click **Sign in with Authentik**.
+
+### 5) Expected behavior on first login
+
+- User is created or updated in `dtime.users`
+- Existing local user with same email is linked to the Authentik `sub` as `external_id`
+- Roles for API authorization are mapped to `ROLE_USER` / `ROLE_ADMIN`
 
 ### Frontend Environment Variables
 ```bash
