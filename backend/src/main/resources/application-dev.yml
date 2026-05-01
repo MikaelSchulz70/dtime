@@ -50,6 +50,7 @@ oauth:
     client-id: sPiKspX0VVag2RIrtYh1p9WecpIhLrFv9IfxGY9I
     client-secret: ${OAUTH_AUTHENTIK_CLIENT_SECRET:}
     authorization-uri: http://localhost:9000/application/o/authorize/
+    end-session-uri: http://localhost:9000/application/o/dtime/end-session/
     token-uri: http://localhost:9000/application/o/token/
     user-info-uri: http://localhost:9000/application/o/userinfo/
     jwk-set-uri: http://localhost:9000/application/o/dtime/jwks/

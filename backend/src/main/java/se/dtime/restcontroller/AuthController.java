@@ -5,6 +5,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
+import org.springframework.web.util.UriComponentsBuilder;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -13,8 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import java.io.IOException;
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,9 +23,6 @@ public class AuthController {
 
     @Value("${oauth.authentik.enabled:false}")
     private boolean authentikOAuthEnabled;
-
-    @Value("${oauth.authentik.authorization-uri:}")
-    private String authorizationUri;
 
     @Autowired(required = false)
     private ClientRegistrationRepository clientRegistrationRepository;
@@ -61,21 +57,12 @@ public class AuthController {
             response.sendRedirect(loginPath);
             return;
         }
-
-        String baseUrl = request.getScheme() + "://" + request.getServerName() +
-                ((request.getServerPort() == 80 || request.getServerPort() == 443) ? "" : ":" + request.getServerPort());
-        String postLogoutRedirect = baseUrl + loginPath;
-        String encodedRedirect = URLEncoder.encode(postLogoutRedirect, StandardCharsets.UTF_8);
-
-        String endSessionUri = authorizationUri != null && authorizationUri.contains("/authorize/")
-                ? authorizationUri.replace("/authorize/", "/end-session/")
-                : null;
-        if (endSessionUri == null || endSessionUri.isBlank()) {
-            response.sendRedirect(loginPath);
-            return;
-        }
-
-        String separator = endSessionUri.contains("?") ? "&" : "?";
-        response.sendRedirect(endSessionUri + separator + "post_logout_redirect_uri=" + encodedRedirect);
+        String forcePromptLoginPath = UriComponentsBuilder
+                .fromPath(loginPath)
+                .queryParam("prompt", "login")
+                .queryParam("max_age", "0")
+                .build()
+                .toUriString();
+        response.sendRedirect(forcePromptLoginPath);
     }
 }
