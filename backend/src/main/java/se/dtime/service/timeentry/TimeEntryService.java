@@ -2,6 +2,7 @@ package se.dtime.service.timeentry;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
@@ -114,21 +115,45 @@ public class TimeEntryService {
     }
 
     private TimeReport getTimeReportBetweenDates(ReportDates reportDates, TimeReportView timeReportView) {
+        UserPO userPO = resolveAuthenticatedUser();
+        return getTimeReportBetweenDatesForUser(reportDates, userPO, timeReportView);
+    }
+
+    UserPO resolveAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        UserPO userPO;
 
         if (principal instanceof UserExt userExt) {
-            userPO = userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
-        } else {
-            // For test scenarios with mock users, try to find by authentication name
-            String username = SecurityContextHolder.getContext().getAuthentication().getName();
-            userPO = userRepository.findByEmail(username);
-            if (userPO == null) {
-                userPO = userRepository.findById(1L).orElseThrow(() -> new NotFoundException("user.not.found"));
+            return userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
+        }
+
+        if (principal instanceof OAuth2User oauth2User) {
+            String sub = oauth2User.getAttribute("sub");
+            if (sub != null && !sub.isBlank()) {
+                UserPO userByExternalId = userRepository.findByExternalId(sub);
+                if (userByExternalId != null) {
+                    return userByExternalId;
+                }
+            }
+
+            String email = oauth2User.getAttribute("email");
+            if (email != null && !email.isBlank()) {
+                UserPO userByEmail = userRepository.findByEmail(email);
+                if (userByEmail != null) {
+                    return userByEmail;
+                }
             }
         }
 
-        return getTimeReportBetweenDatesForUser(reportDates, userPO, timeReportView);
+        // Fallback used by tests and non-OIDC auth paths
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (username != null && !username.isBlank()) {
+            UserPO userByUsername = userRepository.findByEmail(username);
+            if (userByUsername != null) {
+                return userByUsername;
+            }
+        }
+
+        return userRepository.findById(1L).orElseThrow(() -> new NotFoundException("user.not.found"));
     }
 
     private TimeReport getTimeReportBetweenDatesForUser(ReportDates reportDates, UserPO userPO, TimeReportView timeReportView) {

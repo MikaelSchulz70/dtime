@@ -11,6 +11,8 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.CloseDatePO;
 import se.dtime.model.ReportDates;
@@ -26,6 +28,10 @@ import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 @ExtendWith(MockitoExtension.class)
@@ -165,6 +171,43 @@ public class TimeReportServiceTest {
         assertFalse(timeReportTasks.get(2).getTimeEntries().get(1).isClosed());
     }
 
+    @Test
+    public void resolveAuthenticatedUser_withOauth2Sub_usesExternalIdLookup() {
+        OAuth2User oauth2User = new DefaultOAuth2User(
+                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                Map.of("sub", "oidc-sub-123", "email", ""),
+                "sub"
+        );
+        SecurityContextHolder.setContext(createSecurityContext(oauth2User, "oidc-sub-123"));
+
+        UserPO user = new UserPO(42L);
+        when(userRepository.findByExternalId("oidc-sub-123")).thenReturn(user);
+
+        UserPO resolved = timeReportService.resolveAuthenticatedUser();
+
+        assertEquals(42L, resolved.getId());
+        verify(userRepository).findByExternalId("oidc-sub-123");
+        verify(userRepository, never()).findById(anyLong());
+    }
+
+    @Test
+    public void resolveAuthenticatedUser_withOauth2NoSub_fallsBackToAuthNameEmail() {
+        OAuth2User oauth2User = new DefaultOAuth2User(
+                List.of(new SimpleGrantedAuthority("ROLE_USER")),
+                Map.of("email", ""),
+                "email"
+        );
+        SecurityContextHolder.setContext(createSecurityContext(oauth2User, "user@example.com"));
+
+        UserPO user = new UserPO(7L);
+        when(userRepository.findByEmail("user@example.com")).thenReturn(user);
+
+        UserPO resolved = timeReportService.resolveAuthenticatedUser();
+
+        assertEquals(7L, resolved.getId());
+        verify(userRepository).findByEmail(eq("user@example.com"));
+    }
+
     private Day[] createDays() {
         Day[] days = new Day[3];
         days[0] = Day.builder().date(LocalDate.of(2018, 11, 30)).year(2018).month(11).day(30).build();
@@ -174,6 +217,10 @@ public class TimeReportServiceTest {
     }
 
     private SecurityContext createSecurityContext(UserExt userExt) {
+        return createSecurityContext((Object) userExt, null);
+    }
+
+    private SecurityContext createSecurityContext(Object principal, String authName) {
         return new SecurityContext() {
             @Override
             public Authentication getAuthentication() {
@@ -195,7 +242,7 @@ public class TimeReportServiceTest {
 
                     @Override
                     public Object getPrincipal() {
-                        return userExt;
+                        return principal;
                     }
 
                     @Override
@@ -210,7 +257,7 @@ public class TimeReportServiceTest {
 
                     @Override
                     public String getName() {
-                        return null;
+                        return authName;
                     }
                 };
             }
