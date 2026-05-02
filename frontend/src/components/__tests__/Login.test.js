@@ -106,7 +106,7 @@ describe('Login (OIDC / Authentik)', () => {
     renderLoginAt('?error=oauth&reason=invalid_id_token');
 
     await waitFor(() => {
-      expect(screen.getByText(/OIDC login failed \(invalid_id_token\)/i)).toBeInTheDocument();
+      expect(screen.getByText('Failed to login.')).toBeInTheDocument();
     });
   });
 

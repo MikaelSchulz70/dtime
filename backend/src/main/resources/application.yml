@@ -69,6 +69,7 @@ oauth:
     authorization-uri: ${OAUTH_AUTHENTIK_AUTHORIZATION_URI:}
     end-session-uri: ${OAUTH_AUTHENTIK_END_SESSION_URI:}
     full-logout-flow-uri: ${OAUTH_AUTHENTIK_FULL_LOGOUT_FLOW_URI:}
+    require-app-role: ${OAUTH_AUTHENTIK_REQUIRE_APP_ROLE:true}
     switch-user-return-base-url: ${OAUTH_AUTHENTIK_SWITCH_USER_RETURN_BASE_URL:}
     token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:}
     user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:}

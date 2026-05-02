@@ -29,6 +29,9 @@ import org.springframework.http.client.SimpleClientHttpRequestFactory;
 import se.dtime.service.user.CustomOAuth2UserService;
 import se.dtime.service.user.CustomOidcUserService;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+
 @Configuration
 @EnableWebSecurity
 @EnableMethodSecurity(prePostEnabled = true)
@@ -46,6 +49,12 @@ public class WebSecurityConfig {
 
     @Value("${oauth.authentik.enabled:false}")
     private boolean authentikOAuthEnabled;
+
+    @Value("${app.frontend.dev-server.url:}")
+    private String frontendDevServerUrl;
+
+    @Value("${app.frontend.dev-server.enabled:false}")
+    private boolean devServerEnabled;
 
     public WebSecurityConfig(CustomAuthenticationSuccessHandler successHandler,
                              CustomOAuth2UserService customOAuth2UserService,
@@ -98,7 +107,15 @@ public class WebSecurityConfig {
                     .successHandler(successHandler)
                     .failureHandler((request, response, exception) -> {
                         String errorCode = resolveErrorCode(exception);
-                        response.sendRedirect("/api/auth/oidc/failure?reason=" + errorCode);
+                        String encodedReason = URLEncoder.encode(errorCode, StandardCharsets.UTF_8);
+                        String loginFailureUrl = "/?error=oauth&reason=" + encodedReason;
+                        if (devServerEnabled) {
+                            String baseUrl = frontendDevServerUrl == null || frontendDevServerUrl.isBlank()
+                                    ? "https://localhost:3000"
+                                    : frontendDevServerUrl;
+                            loginFailureUrl = baseUrl + loginFailureUrl;
+                        }
+                        response.sendRedirect(loginFailureUrl);
                     })
                     .authorizationEndpoint(authorization -> authorization
                             .authorizationRequestResolver(authorizationRequestResolver)

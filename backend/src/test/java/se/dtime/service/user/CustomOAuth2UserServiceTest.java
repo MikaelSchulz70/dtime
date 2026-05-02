@@ -21,7 +21,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldExtractAndStoreStandardClaims() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -55,7 +55,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldFallbackNameAndKeepUserRole() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -63,7 +63,7 @@ class CustomOAuth2UserServiceTest {
                         "sub", "authentik-user-2",
                         "email", "user2@example.com",
                         "name", "Bob Fullname",
-                        "groups", List.of("users")
+                        "groups", List.of("USER")
                 ),
                 "email"
         );
@@ -81,7 +81,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldTreatRealmAccessAdminAsAdmin() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -104,7 +104,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldTreatRolesClaimAdminAsAdmin() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -127,7 +127,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldTreatGroupPathEndingInAdminAsAdmin() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -150,7 +150,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldFailWhenSubMissing() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -169,7 +169,7 @@ class CustomOAuth2UserServiceTest {
     @Test
     void processAuthentikUserClaims_ShouldFailWhenEmailMissing() {
         TestRepositoryState state = new TestRepositoryState();
-        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state));
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
 
         OAuth2User oauth2User = new DefaultOAuth2User(
                 List.of(),
@@ -183,6 +183,30 @@ class CustomOAuth2UserServiceTest {
         );
 
         assertThat(exception.getError().getErrorCode()).isEqualTo("missing_email");
+    }
+
+    @Test
+    void processAuthentikUserClaims_ShouldFailWhenRequiredRoleMissing() {
+        TestRepositoryState state = new TestRepositoryState();
+        CustomOAuth2UserService service = new CustomOAuth2UserService(createRepository(state), true);
+
+        OAuth2User oauth2User = new DefaultOAuth2User(
+                List.of(),
+                Map.of(
+                        "sub", "authentik-default-admin",
+                        "email", "ak-admin@example.com",
+                        "given_name", "Authentik",
+                        "family_name", "Admin"
+                ),
+                "email"
+        );
+
+        OAuth2AuthenticationException exception = assertThrows(
+                OAuth2AuthenticationException.class,
+                () -> service.processAuthentikUserClaims(oauth2User)
+        );
+
+        assertThat(exception.getError().getErrorCode()).isEqualTo("missing_required_role");
     }
 
     private UserRepository createRepository(TestRepositoryState state) {

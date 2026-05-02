@@ -1,6 +1,7 @@
 package se.dtime.service.user;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.oauth2.client.userinfo.DefaultOAuth2UserService;
@@ -27,9 +28,12 @@ import java.util.Set;
 public class CustomOAuth2UserService extends DefaultOAuth2UserService {
 
     private final UserRepository userRepository;
+    private final boolean requireAppRole;
 
-    public CustomOAuth2UserService(UserRepository userRepository) {
+    public CustomOAuth2UserService(UserRepository userRepository,
+                                   @Value("${oauth.authentik.require-app-role:true}") boolean requireAppRole) {
         this.userRepository = userRepository;
+        this.requireAppRole = requireAppRole;
     }
 
     @Override
@@ -63,6 +67,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         if (email == null || email.isBlank()) {
             throw new OAuth2AuthenticationException(
                     new OAuth2Error("missing_email", "Email not provided by OIDC provider", null)
+            );
+        }
+        if (requireAppRole && !containsRequiredAppRole(oauth2User)) {
+            throw new OAuth2AuthenticationException(
+                    new OAuth2Error("missing_required_role",
+                            "User is missing required Authentik role/group (USER or ADMIN).",
+                            null)
             );
         }
 
@@ -159,6 +170,13 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return containsRole(oauth2User.getAttribute("roles"), "admin")
                 || containsRole(oauth2User.getAttribute("groups"), "admin")
                 || containsRealmRole(oauth2User.getAttribute("realm_access"), "admin");
+    }
+
+    private boolean containsRequiredAppRole(OAuth2User oauth2User) {
+        return containsAdminRole(oauth2User)
+                || containsRole(oauth2User.getAttribute("roles"), "user")
+                || containsRole(oauth2User.getAttribute("groups"), "user")
+                || containsRealmRole(oauth2User.getAttribute("realm_access"), "user");
     }
 
     private boolean containsRealmRole(Object realmAccess, String roleToFind) {

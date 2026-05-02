@@ -72,7 +72,7 @@ const Login = () => {
               {hasError && (
                 <Alert variant="danger" className="mb-3">
                   {hasError === 'oauth'
-                    ? `OIDC login failed${errorReason ? ` (${errorReason})` : ''}.`
+                    ? 'Failed to login.'
                     : t('auth.login.errors.invalidCredentials')}
                 </Alert>
               )}
