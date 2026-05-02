@@ -1,6 +1,7 @@
 package se.dtime.service.taskcontributor;
 
 import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
@@ -53,26 +54,64 @@ public class TaskContributorService {
     }
 
     public List<TaskContributor> getCurrentTaskContributors() {
+        return getTasksForUser(resolveAuthenticatedUser().getId());
+    }
+
+    public TaskContributor selfAssignTask(long taskId) {
+        UserPO currentUser = resolveAuthenticatedUser();
+        TaskContributor taskContributor = TaskContributor.builder()
+                .id(0L)
+                .user(se.dtime.model.User.builder().id(currentUser.getId()).build())
+                .task(se.dtime.model.Task.builder().id(taskId).build())
+                .activationStatus(ActivationStatus.ACTIVE)
+                .build();
+        return addOrUpdate(taskContributor);
+    }
+
+    public TaskContributor selfUnassignTask(long taskId) {
+        UserPO currentUser = resolveAuthenticatedUser();
+        TaskContributor taskContributor = TaskContributor.builder()
+                .id(0L)
+                .user(se.dtime.model.User.builder().id(currentUser.getId()).build())
+                .task(se.dtime.model.Task.builder().id(taskId).build())
+                .activationStatus(ActivationStatus.INACTIVE)
+                .build();
+        return addOrUpdate(taskContributor);
+    }
+
+    private UserPO resolveAuthenticatedUser() {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        long userId;
-
         if (principal instanceof UserExt userExt) {
-            userId = userExt.getId();
-        } else {
-            // For test scenarios with @WithMockUser, find the first user or return empty list
-            List<UserPO> users = userRepository.findAll();
-            if (users.isEmpty()) {
-                return new java.util.ArrayList<>(); // Return empty list if no users exist
-            }
-            userId = users.get(0).getId(); // Use the first user found
+            return userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
         }
 
-        try {
-            return getTasksForUser(userId);
-        } catch (NotFoundException e) {
-            // Return empty list if user not found (can happen during tests)
-            return new java.util.ArrayList<>();
+        if (principal instanceof OAuth2User oauth2User) {
+            String sub = oauth2User.getAttribute("sub");
+            if (sub != null && !sub.isBlank()) {
+                UserPO userByExternalId = userRepository.findByExternalId(sub);
+                if (userByExternalId != null) {
+                    return userByExternalId;
+                }
+            }
+
+            String email = oauth2User.getAttribute("email");
+            if (email != null && !email.isBlank()) {
+                UserPO userByEmail = userRepository.findByEmail(email);
+                if (userByEmail != null) {
+                    return userByEmail;
+                }
+            }
         }
+
+        String username = SecurityContextHolder.getContext().getAuthentication().getName();
+        if (username != null && !username.isBlank()) {
+            UserPO userByUsername = userRepository.findByEmail(username);
+            if (userByUsername != null) {
+                return userByUsername;
+            }
+        }
+
+        throw new NotFoundException("user.not.found");
     }
 
     public void delete(long id) {

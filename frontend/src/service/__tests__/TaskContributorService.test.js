@@ -367,6 +367,41 @@ describe('TaskContributorService', () => {
     });
   });
 
+  describe('self assignment endpoints', () => {
+    it('should fetch current user task contributors', async () => {
+      mockedAxios.get.mockResolvedValue({ data: [] });
+
+      await taskContributorService.getMyTaskContributors();
+
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/taskcontributor/self');
+    });
+
+    it('should assign current user to task', async () => {
+      mockedAxios.post.mockResolvedValue({ data: {} });
+
+      await taskContributorService.selfAssign(42);
+
+      expect(mockedAxios.post).toHaveBeenCalledWith(
+        '/api/taskcontributor/self/42',
+        null,
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      expect(Headers).toHaveBeenCalled();
+    });
+
+    it('should unassign current user from task', async () => {
+      mockedAxios.delete.mockResolvedValue({ data: {} });
+
+      await taskContributorService.selfUnassign(42);
+
+      expect(mockedAxios.delete).toHaveBeenCalledWith(
+        '/api/taskcontributor/self/42',
+        { headers: { 'Content-Type': 'application/json' } }
+      );
+      expect(Headers).toHaveBeenCalled();
+    });
+  });
+
   describe('Error response structure preservation', () => {
     it('should preserve detailed error response structure', async () => {
       const detailedError = {

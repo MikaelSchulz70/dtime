@@ -127,6 +127,7 @@ describe('NavigationMenu', () => {
       fireEvent.click(adminDropdown);
       
       expect(screen.getByRole('link', { name: 'Report' })).toBeInTheDocument();
+      expect(screen.getByRole('link', { name: 'My Tasks' })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'Change password' })).toBeInTheDocument();
     });
 
@@ -144,6 +145,14 @@ describe('NavigationMenu', () => {
       
       const changePwdLink = screen.getByRole('link', { name: 'Change password' });
       expect(changePwdLink).toHaveAttribute('href', '/changepwd');
+    });
+
+    it('should have correct routing for My Tasks link', () => {
+      const adminDropdown = screen.getByRole('button', { name: /admin/i });
+      fireEvent.click(adminDropdown);
+
+      const myTasksLink = screen.getByRole('link', { name: 'My Tasks' });
+      expect(myTasksLink).toHaveAttribute('href', '/mytasks');
     });
 
     it('should not show admin-only navigation links for non-admin users', () => {

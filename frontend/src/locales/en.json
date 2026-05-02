@@ -135,6 +135,7 @@
       "time": "Time",
       "admin": "Admin",
       "report": "Report",
+      "myTasks": "My Tasks",
       "changePassword": "Change password",
       "logout": "Logout",
       "user": "User",
@@ -343,6 +344,7 @@
   },
   "taskContributors": {
     "title": "Task Contributors",
+    "myTasksTitle": "My Task Assignments",
     "placeholders": {
       "searchUser": "Search for a user...",
       "filterByAccount": "Filter by account",

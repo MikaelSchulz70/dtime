@@ -1,381 +1,149 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
-import { BrowserRouter } from 'react-router';
+import { MemoryRouter, Route, Routes } from 'react-router';
 import axios from 'axios';
 import Login from '../Login';
 
-// Mock axios
 jest.mock('axios');
 const mockedAxios = axios;
 
-// Mock window.location
-const mockLocationAssign = jest.fn();
-Object.defineProperty(window, 'location', {
-  value: {
-    href: '',
-    search: '',
-    assign: mockLocationAssign,
-  },
-  writable: true,
-});
+jest.mock('react-i18next', () => ({
+  useTranslation: () => ({
+    t: (key) => key,
+  }),
+}));
 
-// Wrapper component with router
-const LoginWithRouter = ({ search = '' }) => {
-  // Mock useLocation hook
-  const _mockLocation = { search, pathname: '/login' };
-  
-  return (
-    <BrowserRouter>
-      <div>
-        {/* Mock the location search for testing */}
-        <div data-testid="mock-search">{search}</div>
-        <Login />
-      </div>
-    </BrowserRouter>
+const renderLoginAt = (search = '') => {
+  const path = search ? `/login${search}` : '/login';
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+      </Routes>
+    </MemoryRouter>
   );
 };
 
-describe('Login', () => {
+describe('Login (OIDC / Authentik)', () => {
   beforeEach(() => {
     jest.clearAllMocks();
-    // Reset location href
-    window.location.href = '';
-    // Mock axios.get for Google auth status check
+    window.localStorage.clear();
+    Object.defineProperty(window, 'location', {
+      value: { href: '' },
+      writable: true,
+      configurable: true,
+    });
     mockedAxios.get.mockResolvedValue({ data: { enabled: false } });
   });
 
-  it('should render login form with username and password fields', async () => {
-    render(<LoginWithRouter />);
-
-    expect(screen.getByPlaceholderText('Username')).toBeInTheDocument();
-    expect(screen.getByPlaceholderText('Password')).toBeInTheDocument();
-    expect(screen.getByRole('button', { name: /log in/i })).toBeInTheDocument();
-    expect(screen.getByText('Login')).toBeInTheDocument();
+  it('loads OIDC status from backend', async () => {
+    renderLoginAt();
+    await waitFor(() => {
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/auth/oidc/status');
+    });
   });
 
-  it('should display logo', async () => {
-    render(<LoginWithRouter />);
-
-    const logo = screen.getByAltText('D-Time');
-    expect(logo).toBeInTheDocument();
-    expect(logo).toHaveAttribute('src', '/logo.png');
-  });
-
-  it('should update form fields when user types', async () => {
-    const user = userEvent.setup();
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-
-    expect(usernameInput).toHaveValue('test@example.com');
-    expect(passwordInput).toHaveValue('password123');
-  });
-
-  it('should show loading state during form submission', async () => {
-    const user = userEvent.setup();
-    mockedAxios.post.mockImplementation(() => new Promise(() => {})); // Never resolves
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
-
-    expect(screen.getByRole('button', { name: /logging in.../i })).toBeInTheDocument();
-    expect(submitButton).toBeDisabled();
-  });
-
-  it('should handle successful login', async () => {
-    const user = userEvent.setup();
-    mockedAxios.post.mockResolvedValue({ data: {} });
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+  it('shows warning when OIDC is disabled', async () => {
+    mockedAxios.get.mockResolvedValue({ data: { enabled: false } });
+    renderLoginAt();
 
     await waitFor(() => {
-      expect(mockedAxios.post).toHaveBeenCalledWith(
-        '/perform_login',
-        expect.any(FormData),
-        {
-          headers: {
-            'Content-Type': 'application/x-www-form-urlencoded'
-          },
-          maxRedirects: 0
-        }
-      );
+      expect(screen.getByText(/OIDC login is not enabled/i)).toBeInTheDocument();
     });
-
-    // Should redirect to home page
-    expect(window.location.href).toBe('/');
+    expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Sign in as another user/i })).toBeDisabled();
   });
 
-  it('should handle login error with 401 status', async () => {
-    const user = userEvent.setup();
-    mockedAxios.post.mockRejectedValue({
-      response: { status: 401 }
-    });
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'wrongpassword');
-    await user.click(submitButton);
+  it('enables Authentik buttons when OIDC is enabled', async () => {
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt();
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid username or password.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).not.toBeDisabled();
     });
-
-    // Button should not be disabled after error
-    expect(submitButton).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /Sign in as another user/i })).not.toBeDisabled();
   });
 
-  it('should handle login error with 302 redirect containing error', async () => {
-    const user = userEvent.setup();
-    mockedAxios.post.mockRejectedValue({
-      response: { 
-        status: 302,
-        headers: { location: '/login?error=true' }
-      }
-    });
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'wrongpassword');
-    await user.click(submitButton);
+  it('shows Continue as when last user is cached in localStorage', async () => {
+    window.localStorage.setItem('dtime.lastOidcUser', 'Pat Paterson');
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt();
 
     await waitFor(() => {
-      expect(screen.getByText('Invalid username or password.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Continue as Pat Paterson/i })).toBeInTheDocument();
     });
   });
 
-  it('should handle login error with 302 redirect without error (success)', async () => {
+  it('redirects to OAuth authorization when primary button is clicked', async () => {
     const user = userEvent.setup();
-    mockedAxios.post.mockRejectedValue({
-      response: { 
-        status: 302,
-        headers: { location: '/dashboard' }
-      }
-    });
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt();
 
     await waitFor(() => {
-      expect(window.location.href).toBe('/');
+      expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).not.toBeDisabled();
     });
+    await user.click(screen.getByRole('button', { name: /Sign in with Authentik/i }));
+    expect(window.location.href).toBe('/oauth2/authorization/authentik');
   });
 
-  it('should handle generic network error', async () => {
+  it('clears cached user and redirects to switch-user endpoint', async () => {
     const user = userEvent.setup();
-    mockedAxios.post.mockRejectedValue(new Error('Network error'));
-
-    render(<LoginWithRouter />);
-
-    const usernameInput = screen.getByPlaceholderText('Username');
-    const passwordInput = screen.getByPlaceholderText('Password');
-    const submitButton = screen.getByRole('button', { name: /log in/i });
-
-    await user.type(usernameInput, 'test@example.com');
-    await user.type(passwordInput, 'password123');
-    await user.click(submitButton);
+    window.localStorage.setItem('dtime.lastOidcUser', 'Someone');
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt();
 
     await waitFor(() => {
-      expect(screen.getByText('Login failed. Please try again.')).toBeInTheDocument();
+      expect(screen.getByRole('button', { name: /Sign in as another user/i })).not.toBeDisabled();
+    });
+    await user.click(screen.getByRole('button', { name: /Sign in as another user/i }));
+    expect(window.localStorage.getItem('dtime.lastOidcUser')).toBeNull();
+    expect(window.location.href).toBe('/api/auth/oidc/switch-user');
+  });
+
+  it('shows OIDC failure message when error=oauth', async () => {
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt('?error=oauth&reason=invalid_id_token');
+
+    await waitFor(() => {
+      expect(screen.getByText(/OIDC login failed \(invalid_id_token\)/i)).toBeInTheDocument();
     });
   });
 
-  describe('Google OAuth', () => {
-    it('should show Google login button when OAuth is enabled', async () => {
-      mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+  it('shows translated invalid credentials for non-oauth error param', async () => {
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt('?error=true');
 
-      render(<LoginWithRouter />);
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
-      });
-
-      expect(screen.getByText('or')).toBeInTheDocument();
-    });
-
-    it('should not show Google login button when OAuth is disabled', async () => {
-      mockedAxios.get.mockResolvedValue({ data: { enabled: false } });
-
-      render(<LoginWithRouter />);
-
-      await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/auth/google/status');
-      });
-
-      expect(screen.queryByRole('button', { name: /sign in with google/i })).not.toBeInTheDocument();
-      expect(screen.queryByText('or')).not.toBeInTheDocument();
-    });
-
-    it('should handle Google auth status check error', async () => {
-      const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
-      mockedAxios.get.mockRejectedValue(new Error('API error'));
-
-      render(<LoginWithRouter />);
-
-      await waitFor(() => {
-        expect(mockedAxios.get).toHaveBeenCalledWith('/api/auth/google/status');
-      });
-
-      expect(screen.queryByRole('button', { name: /sign in with google/i })).not.toBeInTheDocument();
-      expect(consoleSpy).toHaveBeenCalledWith('Failed to check Google auth status:', expect.any(Error));
-
-      consoleSpy.mockRestore();
-    });
-
-    it('should redirect to Google OAuth when Google login button is clicked', async () => {
-      const user = userEvent.setup();
-      mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
-
-      render(<LoginWithRouter />);
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
-      });
-
-      const googleButton = screen.getByRole('button', { name: /sign in with google/i });
-      await user.click(googleButton);
-
-      expect(window.location.href).toBe('/oauth2/authorization/google');
-    });
-
-    it('should disable Google login button during form submission', async () => {
-      const user = userEvent.setup();
-      mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
-      mockedAxios.post.mockImplementation(() => new Promise(() => {})); // Never resolves
-
-      render(<LoginWithRouter />);
-
-      await waitFor(() => {
-        expect(screen.getByRole('button', { name: /sign in with google/i })).toBeInTheDocument();
-      });
-
-      const usernameInput = screen.getByPlaceholderText('Username');
-      const passwordInput = screen.getByPlaceholderText('Password');
-      const submitButton = screen.getByRole('button', { name: /log in/i });
-      const googleButton = screen.getByRole('button', { name: /sign in with google/i });
-
-      await user.type(usernameInput, 'test@example.com');
-      await user.type(passwordInput, 'password123');
-      await user.click(submitButton);
-
-      expect(googleButton).toBeDisabled();
+    await waitFor(() => {
+      expect(screen.getByText('auth.login.errors.invalidCredentials')).toBeInTheDocument();
     });
   });
 
-  describe('URL Parameters', () => {
-    it('should display error message when error parameter is present', () => {
-      // Mock useLocation to return search with error parameter
-      const mockUseLocation = jest.fn();
-      mockUseLocation.mockReturnValue({ search: '?error=true' });
-      
-      // We need to use a different approach since we can't easily mock useLocation in the component
-      // Instead, let's test by checking if the URLSearchParams logic works
-      const urlParams = new URLSearchParams('?error=true');
-      const hasError = urlParams.get('error');
-      
-      expect(hasError).toBe('true');
-    });
+  it('shows logout message when logout query is present', async () => {
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt('?logout=1');
 
-    it('should display OAuth error message when error=oauth parameter is present', () => {
-      const urlParams = new URLSearchParams('?error=oauth');
-      const hasError = urlParams.get('error');
-      
-      expect(hasError).toBe('oauth');
-    });
-
-    it('should display logout message when logout parameter is present', () => {
-      const urlParams = new URLSearchParams('?logout=true');
-      const hasLogout = urlParams.get('logout');
-      
-      expect(hasLogout).toBe('true');
+    await waitFor(() => {
+      expect(screen.getByText('auth.login.logoutMessage')).toBeInTheDocument();
     });
   });
 
-  describe('Form Validation', () => {
-    it('should have required attributes on form fields', () => {
-      render(<LoginWithRouter />);
+  it('treats OIDC as disabled when status request fails', async () => {
+    mockedAxios.get.mockRejectedValue(new Error('network'));
+    const consoleSpy = jest.spyOn(console, 'error').mockImplementation(() => {});
+    renderLoginAt();
 
-      const usernameInput = screen.getByPlaceholderText('Username');
-      const passwordInput = screen.getByPlaceholderText('Password');
-
-      expect(usernameInput).toHaveAttribute('required');
-      expect(passwordInput).toHaveAttribute('required');
-      expect(usernameInput).toHaveAttribute('type', 'email');
-      expect(passwordInput).toHaveAttribute('type', 'password');
+    await waitFor(() => {
+      expect(screen.getByText(/OIDC login is not enabled/i)).toBeInTheDocument();
     });
-
-    it('should have required attributes on form fields for validation', async () => {
-      render(<LoginWithRouter />);
-
-      const usernameInput = screen.getByPlaceholderText('Username');
-      const passwordInput = screen.getByPlaceholderText('Password');
-      
-      // Check that fields have required attributes (browser will handle validation)
-      expect(usernameInput).toHaveAttribute('required');
-      expect(passwordInput).toHaveAttribute('required');
-      
-      // Since we can't easily test browser validation in Jest, 
-      // we just verify the form structure is correct
-      expect(usernameInput).toHaveAttribute('type', 'email');
-      expect(passwordInput).toHaveAttribute('type', 'password');
-    });
+    consoleSpy.mockRestore();
   });
 
-  describe('Accessibility', () => {
-    it('should have proper form structure and labels', () => {
-      render(<LoginWithRouter />);
-
-      const usernameInput = screen.getByPlaceholderText('Username');
-      const passwordInput = screen.getByPlaceholderText('Password');
-      const submitButton = screen.getByRole('button', { name: /log in/i });
-
-      expect(usernameInput).toBeInTheDocument();
-      expect(passwordInput).toBeInTheDocument();
-      expect(submitButton).toBeInTheDocument();
-      expect(submitButton).toHaveAttribute('type', 'submit');
-    });
-
-    it('should have proper heading structure', () => {
-      render(<LoginWithRouter />);
-
-      const heading = screen.getByRole('heading', { name: /login/i });
-      expect(heading).toBeInTheDocument();
+  it('renders logo and title', async () => {
+    renderLoginAt();
+    expect(screen.getByAltText('D-Time')).toHaveAttribute('src', '/logo.png');
+    await waitFor(() => {
+      expect(screen.getByText('auth.login.title')).toBeInTheDocument();
     });
   });
 });

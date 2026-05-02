@@ -68,6 +68,8 @@ oauth:
     client-secret: ${OAUTH_AUTHENTIK_CLIENT_SECRET:}
     authorization-uri: ${OAUTH_AUTHENTIK_AUTHORIZATION_URI:}
     end-session-uri: ${OAUTH_AUTHENTIK_END_SESSION_URI:}
+    full-logout-flow-uri: ${OAUTH_AUTHENTIK_FULL_LOGOUT_FLOW_URI:}
+    switch-user-return-base-url: ${OAUTH_AUTHENTIK_SWITCH_USER_RETURN_BASE_URL:}
     token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:}
     user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:}
     jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:}

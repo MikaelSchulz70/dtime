@@ -28,6 +28,7 @@ const NavigationMenu = ({ session }) => {
             <Nav.Link as={Link} to="/time" eventKey={1} className="nav-link-professional">{t('navigation.menu.time')}</Nav.Link>
             <NavDropdown title={t('navigation.menu.admin')} id="basic-nav-dropdown" className="nav-dropdown-professional">
               <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/userreport" eventKey={2}>{t('navigation.menu.report')}</Nav.Link>
+              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/mytasks" eventKey={21}>{t('navigation.menu.myTasks')}</Nav.Link>
               <NavDropdown.Divider />
               <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={3}>{t('navigation.menu.changePassword')}</Nav.Link>
             </NavDropdown>

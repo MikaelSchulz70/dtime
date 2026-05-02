@@ -42,6 +42,7 @@ const Login = () => {
   };
 
   const handleSwitchUserLogin = () => {
+    window.localStorage.removeItem(LAST_OIDC_USER_KEY);
     window.location.href = '/api/auth/oidc/switch-user';
   };
 

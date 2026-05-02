@@ -23,6 +23,7 @@ import Task from './containers/task/Task';
 import TaskDetails from './containers/task/TaskDetails';
 import TasksModal from './containers/task/TasksModal';
 import TaskContributor from './containers/taskcontributor/TaskContributor';
+import MyTaskAssignments from './containers/taskcontributor/MyTaskAssignments';
 import AdminReports from './containers/report/AdminReports';
 import UserReports from './containers/report/UserReports';
 import Vacations from './containers/report/Vacations';
@@ -81,6 +82,7 @@ const Main = () => (
             <Route path='/task/:taskId' element={<TaskDetails />} />
             <Route path='/tasks/:taskId' element={<TaskDetails />} />
             <Route path='/taskcontributor' element={<TaskContributor />} />
+            <Route path='/mytasks' element={<MyTaskAssignments />} />
             <Route path='/reports' element={<AdminReports />} />
             <Route path='/userreport' element={<UserReports />} />
             <Route path='/vacations' element={<Vacations />} />

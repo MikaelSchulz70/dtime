@@ -3,15 +3,11 @@ package se.dtime.restcontroller;
 import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
-import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.Attribute;
 import se.dtime.model.Task;
 import se.dtime.model.TaskContributor;
 import se.dtime.model.User;
-import se.dtime.model.UserRole;
-
-import java.time.LocalDateTime;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -143,12 +139,8 @@ class TaskContributorRestControllerIT extends BaseRestControllerIT {
     }
 
     @Test
-    @WithMockUser(roles = "ADMIN")
+    @WithMockUser(username = "user@example.com", roles = "ADMIN")
     void shouldGetCurrentTaskContributorsSuccessfully() throws Exception {
-        // The service defaults to userId=1L when using @WithMockUser
-        // Just call the endpoint - it should return an empty array if no user with ID 1 exists
-        // and that's a valid response for this test case
-        
         mockMvc.perform(get("/api/taskcontributor/currentTaskContributors"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
@@ -199,6 +191,44 @@ class TaskContributorRestControllerIT extends BaseRestControllerIT {
     void shouldReturnForbiddenForDeleteWithUserRole() throws Exception {
         mockMvc.perform(delete("/api/taskcontributor/1"))
                 .andExpect(status().isForbidden());
+    }
+
+    @Test
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldGetSelfTaskContributorsForUserRole() throws Exception {
+        mockMvc.perform(get("/api/taskcontributor/self"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldSelfAssignTaskForUserRole() throws Exception {
+        mockMvc.perform(post("/api/taskcontributor/self/" + testTask.getId()))
+                .andExpect(status().isCreated());
+    }
+
+    @Test
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldSelfUnassignTaskForUserRole() throws Exception {
+        mockMvc.perform(post("/api/taskcontributor/self/" + testTask.getId()))
+                .andExpect(status().isCreated());
+
+        mockMvc.perform(delete("/api/taskcontributor/self/" + testTask.getId()))
+                .andExpect(status().isOk());
+    }
+
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldReturnForbiddenForAdminOnSelfAssignEndpoint() throws Exception {
+        mockMvc.perform(post("/api/taskcontributor/self/" + testTask.getId()))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForSelfAssignWithoutAuthentication() throws Exception {
+        mockMvc.perform(post("/api/taskcontributor/self/" + testTask.getId()))
+                .andExpect(status().isUnauthorized());
     }
 
     @Test

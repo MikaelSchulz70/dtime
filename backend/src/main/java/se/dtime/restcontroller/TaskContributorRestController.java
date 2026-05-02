@@ -57,4 +57,25 @@ public class TaskContributorRestController {
     public void delete(@PathVariable long id) {
         taskContributorService.delete(id);
     }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping(path = "/self")
+    public ResponseEntity<List<TaskContributor>> getCurrentUserTaskContributor() {
+        List<TaskContributor> taskContributors = taskContributorService.getCurrentTaskContributors();
+        return new ResponseEntity<>(taskContributors, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @PostMapping(path = "/self/{taskId}")
+    public ResponseEntity<Void> selfAssign(@PathVariable long taskId) {
+        taskContributorService.selfAssignTask(taskId);
+        return new ResponseEntity<>(HttpStatus.CREATED);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @DeleteMapping(path = "/self/{taskId}")
+    public ResponseEntity<Void> selfUnassign(@PathVariable long taskId) {
+        taskContributorService.selfUnassignTask(taskId);
+        return new ResponseEntity<>(HttpStatus.OK);
+    }
 }

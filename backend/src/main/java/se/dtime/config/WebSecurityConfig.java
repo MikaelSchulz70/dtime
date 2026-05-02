@@ -11,16 +11,16 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AccessTokenResponseClient;
 import org.springframework.security.oauth2.client.endpoint.OAuth2AuthorizationCodeGrantRequest;
 import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizationCodeTokenResponseClient;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
-import org.springframework.security.oauth2.client.web.DefaultOAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
-import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestRedirectFilter;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
 import org.springframework.security.web.csrf.CookieCsrfTokenRepository;
 import org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter;
@@ -61,7 +61,15 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
+    public TokenBasedRememberMeServices rememberMeServices(UserDetailsService userDetailsService) {
+        TokenBasedRememberMeServices rememberMeServices =
+                new TokenBasedRememberMeServices("dtime-remember-me-key", userDetailsService);
+        rememberMeServices.setTokenValiditySeconds(86400);
+        return rememberMeServices;
+    }
+
+    @Bean
+    public SecurityFilterChain securityFilterChain(HttpSecurity http, TokenBasedRememberMeServices rememberMeServices) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error", "/api/auth/oidc/status", "/api/auth/oidc/failure", "/api/auth/oidc/switch-user", "/actuator/health", "/oauth2/**").permitAll()
@@ -77,15 +85,14 @@ public class WebSecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .permitAll()
-                        .deleteCookies("JSESSIONID")
+                        .deleteCookies("JSESSIONID", "remember-me")
                         .invalidateHttpSession(true)
                 )
-                .rememberMe(rememberMe -> rememberMe
-                        .key("dtime-remember-me-key")
-                        .tokenValiditySeconds(86400) // 24 hours
-                );
+                .rememberMe(rememberMe -> rememberMe.rememberMeServices(rememberMeServices));
 
         if (authentikOAuthEnabled && clientRegistrationRepository != null) {
+            OAuth2AuthorizationRequestResolver authorizationRequestResolver =
+                    new SwitchUserOAuth2AuthorizationRequestResolver(clientRegistrationRepository);
             http.oauth2Login(oauth2 -> oauth2
                     .loginPage("/oauth2/authorization/authentik")
                     .successHandler(successHandler)
@@ -94,7 +101,7 @@ public class WebSecurityConfig {
                         response.sendRedirect("/api/auth/oidc/failure?reason=" + errorCode);
                     })
                     .authorizationEndpoint(authorization -> authorization
-                            .authorizationRequestResolver(authorizationRequestResolver())
+                            .authorizationRequestResolver(authorizationRequestResolver)
                     )
                     .tokenEndpoint(token -> token
                             .accessTokenResponseClient(authorizationCodeTokenResponseClient())
@@ -151,20 +158,6 @@ public class WebSecurityConfig {
                 .build();
         accessTokenResponseClient.setRestClient(restClient);
         return accessTokenResponseClient;
-    }
-
-    private OAuth2AuthorizationRequestResolver authorizationRequestResolver() {
-        DefaultOAuth2AuthorizationRequestResolver resolver = new DefaultOAuth2AuthorizationRequestResolver(
-                clientRegistrationRepository,
-                OAuth2AuthorizationRequestRedirectFilter.DEFAULT_AUTHORIZATION_REQUEST_BASE_URI
-        );
-        resolver.setAuthorizationRequestCustomizer(customizer ->
-                customizer.additionalParameters(params -> {
-                    params.put("prompt", "login");
-                    params.put("max_age", "0");
-                })
-        );
-        return resolver;
     }
 
     private String resolveErrorCode(AuthenticationException exception) {

@@ -15,4 +15,16 @@ export default class TaskContributorService {
             payLoad,
             Headers());
     }
+
+    getMyTaskContributors() {
+        return axios.get(BASE_URL + '/self');
+    }
+
+    selfAssign(taskId) {
+        return axios.post(BASE_URL + '/self/' + taskId, null, Headers());
+    }
+
+    selfUnassign(taskId) {
+        return axios.delete(BASE_URL + '/self/' + taskId, Headers());
+    }
 }
