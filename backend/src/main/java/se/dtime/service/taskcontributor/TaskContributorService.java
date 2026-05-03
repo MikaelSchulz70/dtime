@@ -1,18 +1,16 @@
 package se.dtime.service.taskcontributor;
 
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.TaskContributor;
-import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TaskRepository;
 import se.dtime.repository.UserRepository;
+import se.dtime.service.user.CurrentUserResolver;
 
 import java.util.List;
 
@@ -23,13 +21,15 @@ public class TaskContributorService {
     private final TaskContributorValidator taskContributorValidator;
     private final TaskRepository taskRepository;
     private final UserRepository userRepository;
+    private final CurrentUserResolver currentUserResolver;
 
-    public TaskContributorService(TaskContributorConverter taskContributorConverter, TaskContributorRepository taskContributorRepository, TaskContributorValidator taskContributorValidator, TaskRepository taskRepository, UserRepository userRepository) {
+    public TaskContributorService(TaskContributorConverter taskContributorConverter, TaskContributorRepository taskContributorRepository, TaskContributorValidator taskContributorValidator, TaskRepository taskRepository, UserRepository userRepository, CurrentUserResolver currentUserResolver) {
         this.taskContributorConverter = taskContributorConverter;
         this.taskContributorRepository = taskContributorRepository;
         this.taskContributorValidator = taskContributorValidator;
         this.taskRepository = taskRepository;
         this.userRepository = userRepository;
+        this.currentUserResolver = currentUserResolver;
     }
 
     public TaskContributor addOrUpdate(TaskContributor taskContributor) {
@@ -54,11 +54,11 @@ public class TaskContributorService {
     }
 
     public List<TaskContributor> getCurrentTaskContributors() {
-        return getTasksForUser(resolveAuthenticatedUser().getId());
+        return getTasksForUser(currentUserResolver.resolveCurrentUser().getId());
     }
 
     public TaskContributor selfAssignTask(long taskId) {
-        UserPO currentUser = resolveAuthenticatedUser();
+        UserPO currentUser = currentUserResolver.resolveCurrentUser();
         TaskContributor taskContributor = TaskContributor.builder()
                 .id(0L)
                 .user(se.dtime.model.User.builder().id(currentUser.getId()).build())
@@ -69,7 +69,7 @@ public class TaskContributorService {
     }
 
     public TaskContributor selfUnassignTask(long taskId) {
-        UserPO currentUser = resolveAuthenticatedUser();
+        UserPO currentUser = currentUserResolver.resolveCurrentUser();
         TaskContributor taskContributor = TaskContributor.builder()
                 .id(0L)
                 .user(se.dtime.model.User.builder().id(currentUser.getId()).build())
@@ -77,41 +77,6 @@ public class TaskContributorService {
                 .activationStatus(ActivationStatus.INACTIVE)
                 .build();
         return addOrUpdate(taskContributor);
-    }
-
-    private UserPO resolveAuthenticatedUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        if (principal instanceof UserExt userExt) {
-            return userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
-        }
-
-        if (principal instanceof OAuth2User oauth2User) {
-            String sub = oauth2User.getAttribute("sub");
-            if (sub != null && !sub.isBlank()) {
-                UserPO userByExternalId = userRepository.findByExternalId(sub);
-                if (userByExternalId != null) {
-                    return userByExternalId;
-                }
-            }
-
-            String email = oauth2User.getAttribute("email");
-            if (email != null && !email.isBlank()) {
-                UserPO userByEmail = userRepository.findByEmail(email);
-                if (userByEmail != null) {
-                    return userByEmail;
-                }
-            }
-        }
-
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (username != null && !username.isBlank()) {
-            UserPO userByUsername = userRepository.findByEmail(username);
-            if (userByUsername != null) {
-                return userByUsername;
-            }
-        }
-
-        throw new NotFoundException("user.not.found");
     }
 
     public void delete(long id) {

@@ -25,7 +25,7 @@ public class SystemOperationService {
     }
 
     public void sendMailReminder() {
-        List<UserPO> userPOList = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+        List<UserPO> userPOList = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
         userPOList.forEach(u -> emailSender.sendReminderEmail(u.getEmail()));
     }
 

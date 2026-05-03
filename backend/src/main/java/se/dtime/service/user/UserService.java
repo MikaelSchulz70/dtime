@@ -64,11 +64,11 @@ public class UserService {
     public User[] getAll(Boolean active) {
         List<UserPO> userPOS;
         if (active == null) {
-            userPOS = userRepository.findAll(Sort.by("firstName").ascending().and(Sort.by("lastName").ascending()));
+            userPOS = userRepository.findAll(Sort.by("displayName").ascending());
         } else if (active) {
-            userPOS = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+            userPOS = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
         } else {
-            userPOS = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE);
+            userPOS = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE);
         }
 
         userPOS = userPOS.stream()

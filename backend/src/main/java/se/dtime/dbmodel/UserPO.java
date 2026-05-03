@@ -7,13 +7,12 @@ import se.dtime.model.UserRole;
 @Entity(name = "User")
 @Table(name = "users")
 @NamedQueries({
-        @NamedQuery(name = "User.findByActivationStatusOrderByFirstNameAsc", query = "SELECT u FROM User u WHERE u.activationStatus=:acticationStatus ORDER BY u.firstName, u.lastName")
+        @NamedQuery(name = "User.findByActivationStatusOrderByDisplayNameAsc", query = "SELECT u FROM User u WHERE u.activationStatus=:acticationStatus ORDER BY u.displayName")
 })
 public class UserPO extends BasePO {
     private Long id;
     private String externalId;
-    private String firstName;
-    private String lastName;
+    private String displayName;
     private String email;
     private UserRole userRole;
     private ActivationStatus activationStatus;
@@ -47,22 +46,39 @@ public class UserPO extends BasePO {
         this.externalId = externalId;
     }
 
-    @Column(name = "firstname", unique = false, nullable = false, length = 30)
+    @Column(name = "displayname", unique = false, nullable = false, length = 80)
+    public String getDisplayName() {
+        return displayName;
+    }
+
+    public void setDisplayName(String displayName) {
+        this.displayName = normalizeDisplayName(displayName);
+    }
+
+    @Transient
     public String getFirstName() {
-        return firstName;
+        if (displayName == null || displayName.isBlank()) {
+            return "";
+        }
+        String[] parts = displayName.trim().split("\\s+", 2);
+        return parts[0];
     }
 
     public void setFirstName(String firstName) {
-        this.firstName = firstName;
+        setDisplayName(joinNameParts(firstName, getLastName()));
     }
 
-    @Column(name = "lastname", unique = false, nullable = false, length = 30)
+    @Transient
     public String getLastName() {
-        return lastName;
+        if (displayName == null || displayName.isBlank()) {
+            return "";
+        }
+        String[] parts = displayName.trim().split("\\s+", 2);
+        return parts.length > 1 ? parts[1] : "-";
     }
 
     public void setLastName(String lastName) {
-        this.lastName = lastName;
+        setDisplayName(joinNameParts(getFirstName(), lastName));
     }
 
     @Column(name = "email", unique = true, nullable = false, length = 60)
@@ -96,6 +112,23 @@ public class UserPO extends BasePO {
 
     @Transient
     public String getFullName() {
-        return firstName + " " + lastName;
+        return displayName;
+    }
+
+    private String normalizeDisplayName(String candidate) {
+        if (candidate == null || candidate.isBlank()) {
+            return "-";
+        }
+        return candidate.trim().replaceAll("\\s+", " ");
+    }
+
+    private String joinNameParts(String firstName, String lastName) {
+        String first = firstName == null ? "" : firstName.trim();
+        String last = lastName == null ? "" : lastName.trim();
+        if (last.isBlank()) {
+            last = "-";
+        }
+        String combined = (first + " " + last).trim();
+        return combined.isBlank() ? "-" : combined;
     }
 }

@@ -80,27 +80,6 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
                 return fullNameClaim.toString().trim();
             }
 
-            Object givenNameClaim = oauth2User.getAttribute("given_name");
-            Object familyNameClaim = oauth2User.getAttribute("family_name");
-            String standardFullName = joinNameParts(givenNameClaim, familyNameClaim);
-            if (!standardFullName.isBlank()) {
-                return standardFullName;
-            }
-
-            Object localFirstName = oauth2User.getAttribute("local_first_name");
-            Object localLastName = oauth2User.getAttribute("local_last_name");
-            String fullName = joinNameParts(localFirstName, localLastName);
-            if (!fullName.isBlank()) {
-                return fullName;
-            }
-            Object localEmail = oauth2User.getAttribute("local_email");
-            if (localEmail != null && !localEmail.toString().isBlank()) {
-                return localEmail.toString();
-            }
-            Object preferredUsername = oauth2User.getAttribute("preferred_username");
-            if (preferredUsername != null && !preferredUsername.toString().isBlank()) {
-                return preferredUsername.toString();
-            }
             Object email = oauth2User.getAttribute("email");
             if (email != null && !email.toString().isBlank()) {
                 return email.toString();
@@ -111,19 +90,4 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         }
         return authentication.getName() == null ? "" : authentication.getName();
     }
-
-    private String joinNameParts(Object firstName, Object lastName) {
-        String first = normalizeNamePart(firstName);
-        String last = normalizeNamePart(lastName);
-        return (first + " " + last).trim();
-    }
-
-    private String normalizeNamePart(Object value) {
-        if (value == null) {
-            return "";
-        }
-        String normalized = value.toString().trim();
-        return "-".equals(normalized) ? "" : normalized;
-    }
-
 }

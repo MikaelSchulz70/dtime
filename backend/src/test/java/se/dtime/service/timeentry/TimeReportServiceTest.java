@@ -11,8 +11,6 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.context.SecurityContext;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.user.DefaultOAuth2User;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.CloseDatePO;
 import se.dtime.model.ReportDates;
@@ -23,14 +21,13 @@ import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 import se.dtime.service.calendar.CalendarService;
+import se.dtime.service.user.CurrentUserResolver;
 
 import java.time.LocalDate;
 import java.util.*;
 
 import static org.junit.jupiter.api.Assertions.*;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.lenient;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
@@ -50,6 +47,10 @@ public class TimeReportServiceTest {
     private CalendarService calendarService;
     @Mock
     private CloseDateRepository closeDateRepository;
+    @Mock
+    private TimeReportValidator timeReportValidator;
+    @Mock
+    private CurrentUserResolver currentUserResolver;
 
     @BeforeEach
     public void setUp() {
@@ -58,6 +59,7 @@ public class TimeReportServiceTest {
         UserExt userExt = new UserExt("name", "pwd", authorities, 1, "", "");
 
         SecurityContextHolder.setContext(createSecurityContext(userExt));
+        lenient().when(currentUserResolver.resolveCurrentUser()).thenReturn(new UserPO(1L));
     }
 
     @Test
@@ -172,40 +174,12 @@ public class TimeReportServiceTest {
     }
 
     @Test
-    public void resolveAuthenticatedUser_withOauth2Sub_usesExternalIdLookup() {
-        OAuth2User oauth2User = new DefaultOAuth2User(
-                List.of(new SimpleGrantedAuthority("ROLE_USER")),
-                Map.of("sub", "oidc-sub-123", "email", ""),
-                "sub"
-        );
-        SecurityContextHolder.setContext(createSecurityContext(oauth2User, "oidc-sub-123"));
+    public void resolveAuthenticatedUser_delegatesToCurrentUserResolver() {
+        UserPO expected = new UserPO(99L);
+        when(currentUserResolver.resolveCurrentUser()).thenReturn(expected);
 
-        UserPO user = new UserPO(42L);
-        when(userRepository.findByExternalId("oidc-sub-123")).thenReturn(user);
-
-        UserPO resolved = timeReportService.resolveAuthenticatedUser();
-
-        assertEquals(42L, resolved.getId());
-        verify(userRepository).findByExternalId("oidc-sub-123");
-        verify(userRepository, never()).findById(anyLong());
-    }
-
-    @Test
-    public void resolveAuthenticatedUser_withOauth2NoSub_fallsBackToAuthNameEmail() {
-        OAuth2User oauth2User = new DefaultOAuth2User(
-                List.of(new SimpleGrantedAuthority("ROLE_USER")),
-                Map.of("email", ""),
-                "email"
-        );
-        SecurityContextHolder.setContext(createSecurityContext(oauth2User, "user@example.com"));
-
-        UserPO user = new UserPO(7L);
-        when(userRepository.findByEmail("user@example.com")).thenReturn(user);
-
-        UserPO resolved = timeReportService.resolveAuthenticatedUser();
-
-        assertEquals(7L, resolved.getId());
-        verify(userRepository).findByEmail(eq("user@example.com"));
+        assertEquals(99L, timeReportService.resolveAuthenticatedUser().getId());
+        verify(currentUserResolver).resolveCurrentUser();
     }
 
     private Day[] createDays() {

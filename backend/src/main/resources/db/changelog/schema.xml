@@ -14,10 +14,7 @@
             <column name="external_id" type="varchar(120)">
                 <constraints nullable="false"/>
             </column>
-            <column name="firstname" type="varchar(30)">
-                <constraints nullable="false"/>
-            </column>
-            <column name="lastname" type="varchar(30)">
+            <column name="displayname" type="varchar(80)">
                 <constraints nullable="false"/>
             </column>
             <column name="email" type="varchar(60)">

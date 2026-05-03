@@ -20,8 +20,8 @@ function UserReportRows({ userReport }) {
         rows.push(
             <tr key={key}>
                 <td className="fw-medium">{taskReport.accountName}</td>
-                <td className="fw-medium">{taskReport.taskName}</td>
-                <td className="text-end">{taskReport.totalHours} hrs</td>
+                <td className="fw-medium text-start">{taskReport.taskName}</td>
+                <td className="text-end">{taskReport.totalHours}</td>
             </tr>);
         i++;
     });
@@ -29,7 +29,7 @@ function UserReportRows({ userReport }) {
     var key = 'row-' + i;
     rows.push(<tr key={key} className="bg-success text-white border-top border-2">
         <td className="fw-bold fs-6" colSpan="2">📊 Total Time</td>
-        <td className="text-end fw-bold fs-6">{userReport.totalTime} hrs</td>
+        <td className="text-end fw-bold fs-6">{userReport.totalTime}</td>
     </tr>);
 
     return (
@@ -67,7 +67,7 @@ function UserReportTable({ report, viewMode, setViewMode }) {
                             <table className="table table-hover mb-0">
                                 <tr>
                                     <th className="fw-bold">🏢 Account</th>
-                                    <th className="fw-bold">📋 Task</th>
+                                    <th className="fw-bold text-start">📋 Task</th>
                                     <th className="fw-bold text-end">⏱️ Total Hours</th>
                                 </tr>
                                 {rows}
@@ -174,7 +174,7 @@ function UserReports(props) {
                         <div className="col-sm-3">
                             <label className="form-label fw-bold text-muted small">{t('common.labels.workableHours')}</label>
                             <div className="badge bg-info fs-6 py-2 px-3">
-                                🕰️ {report.workableHours} hours
+                                🕰️ {report.workableHours}
                             </div>
                         </div>
                         <div className="col-sm-5">

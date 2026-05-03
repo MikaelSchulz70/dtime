@@ -26,7 +26,7 @@ function AccountReportTable({ report }) {
         rows.push(
             <tr key={accountReport.accountId}>
                 <td className="fw-medium">{accountReport.accountName}</td>
-                <td className="text-end">{accountReport.totalHours} hrs</td>
+                <td className="text-start">{accountReport.totalHours}</td>
             </tr>);
     });
 
@@ -34,7 +34,7 @@ function AccountReportTable({ report }) {
     rows.push(
         <tr key="summary" className="bg-success text-white border-top border-2">
             <td className="fw-bold fs-6">📊 Total Time</td>
-            <td className="text-end fw-bold fs-6">{totalSum.toFixed(2)} hrs</td>
+            <td className="text-start fw-bold fs-6">{totalSum.toFixed(2)}</td>
         </tr>
     );
 
@@ -76,7 +76,7 @@ function AccountReportTable({ report }) {
                                             field="totalHours" 
                                             onSort={requestSort} 
                                             getSortIcon={getSortIcon}
-                                            className="fw-bold text-end"
+                                            className="fw-bold text-start"
                                         >
                                             ⏱️ Total Hours
                                         </SortableTableHeader>

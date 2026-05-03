@@ -181,7 +181,7 @@ class UserServiceTest {
         List<UserPO> activeUsers = Collections.singletonList(testUserPO);
         User[] expectedUsers = {testUser};
 
-        when(userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE))
+        when(userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE))
                 .thenReturn(activeUsers);
         when(userConverter.toModel(activeUsers)).thenReturn(expectedUsers);
 
@@ -191,7 +191,7 @@ class UserServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result[0]).isEqualTo(testUser);
-        verify(userRepository).findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+        verify(userRepository).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
     }
 
     @Test
@@ -200,7 +200,7 @@ class UserServiceTest {
         List<UserPO> inactiveUsers = Collections.singletonList(testUserPO);
         User[] expectedUsers = {testUser};
 
-        when(userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE))
+        when(userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE))
                 .thenReturn(inactiveUsers);
         when(userConverter.toModel(inactiveUsers)).thenReturn(expectedUsers);
 
@@ -210,7 +210,7 @@ class UserServiceTest {
         // Then
         assertThat(result).hasSize(1);
         assertThat(result[0]).isEqualTo(testUser);
-        verify(userRepository).findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE);
+        verify(userRepository).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE);
     }
 
     @Test

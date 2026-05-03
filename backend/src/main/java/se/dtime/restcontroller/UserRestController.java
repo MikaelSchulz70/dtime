@@ -59,10 +59,21 @@ public class UserRestController {
             @RequestParam(value = "lastName", required = false) String lastName) {
         
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        String sortProperty = mapSortProperty(sort);
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortProperty));
         
         PagedResponse<User> response = userService.getAllPaged(pageable, active, firstName, lastName);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private String mapSortProperty(String requestedSort) {
+        if (requestedSort == null || requestedSort.isBlank()) {
+            return "displayName";
+        }
+        return switch (requestedSort) {
+            case "firstName", "lastName" -> "displayName";
+            default -> requestedSort;
+        };
     }
 
     @PreAuthorize("hasRole('ADMIN')")

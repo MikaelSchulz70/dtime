@@ -28,7 +28,7 @@ function TaskReportTable({ report }) {
             <tr key={taskReport.taskId}>
                 <td className="fw-medium">{taskReport.accountName}</td>
                 <td className="fw-medium">{taskReport.taskName}</td>
-                <td className="text-end">{taskReport.totalHours} hrs</td>
+                <td className="text-start">{taskReport.totalHours}</td>
             </tr>);
     });
 
@@ -37,7 +37,7 @@ function TaskReportTable({ report }) {
         <tr key="summary" className="bg-success text-white border-top border-2">
             <td className="fw-bold fs-6">📊 Total Time</td>
             <td></td>
-            <td className="text-end fw-bold fs-6">{totalSum.toFixed(2)} hrs</td>
+            <td className="text-start fw-bold fs-6">{totalSum.toFixed(2)}</td>
         </tr>
     );
 
@@ -87,7 +87,7 @@ function TaskReportTable({ report }) {
                                             field="totalHours" 
                                             onSort={requestSort} 
                                             getSortIcon={getSortIcon}
-                                            className="fw-bold text-end"
+                                            className="fw-bold text-start"
                                         >
                                             ⏱️ Total Hours
                                         </SortableTableHeader>

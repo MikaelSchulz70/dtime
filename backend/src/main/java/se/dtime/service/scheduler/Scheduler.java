@@ -44,7 +44,7 @@ public class Scheduler {
 
         if (now.equals(lastWorkingDayOfMonth)) {
             log.info("Sending scheduled email reminders - today is the last working day of the month");
-            List<UserPO> userPOList = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+            List<UserPO> userPOList = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
             userPOList.forEach(u -> emailSender.sendReminderEmail(u.getEmail()));
         } else {
             log.info("Not sending email reminders - today is not the last working day of the month");

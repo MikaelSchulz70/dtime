@@ -40,13 +40,12 @@ class CustomOAuth2UserServiceTest {
 
         assertThat(saved.getExternalId()).isEqualTo("authentik-user-1");
         assertThat(saved.getEmail()).isEqualTo("user1@example.com");
-        assertThat(saved.getFirstName()).isEqualTo("Alice");
-        assertThat(saved.getLastName()).isEqualTo("Admin");
+        assertThat(saved.getDisplayName()).isEqualTo("user1@example.com");
         assertThat(saved.getUserRole()).isEqualTo(UserRole.ADMIN);
 
         assertThat(result.<Long>getAttribute("local_user_id")).isEqualTo(101L);
-        assertThat(result.<String>getAttribute("local_first_name")).isEqualTo("Alice");
-        assertThat(result.<String>getAttribute("local_last_name")).isEqualTo("Admin");
+        assertThat(result.<String>getAttribute("local_first_name")).isEqualTo("user1@example.com");
+        assertThat(result.<String>getAttribute("local_last_name")).isEqualTo("-");
         assertThat(result.<String>getAttribute("local_email")).isEqualTo("user1@example.com");
         assertThat(result.getAuthorities()).extracting("authority")
                 .contains("ROLE_USER", "ROLE_ADMIN");
@@ -71,8 +70,8 @@ class CustomOAuth2UserServiceTest {
         OAuth2User result = service.processAuthentikUserClaims(oauth2User);
         UserPO saved = state.lastSaved;
 
-        assertThat(saved.getFirstName()).isEqualTo("Bob Fullname");
-        assertThat(saved.getLastName()).isEqualTo("-");
+        assertThat(saved.getFirstName()).isEqualTo("Bob");
+        assertThat(saved.getLastName()).isEqualTo("Fullname");
         assertThat(saved.getUserRole()).isEqualTo(UserRole.USER);
         assertThat(result.getAuthorities()).extracting("authority")
                 .containsExactly("ROLE_USER");

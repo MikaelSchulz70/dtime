@@ -1,8 +1,6 @@
 package se.dtime.service.timeentry;
 
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.oauth2.core.user.OAuth2User;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
@@ -11,7 +9,6 @@ import se.dtime.dbmodel.timereport.TimeEntryPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.ReportDates;
 import se.dtime.model.TaskType;
-import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.timereport.*;
 import se.dtime.repository.CloseDateRepository;
@@ -19,6 +16,7 @@ import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 import se.dtime.service.calendar.CalendarService;
+import se.dtime.service.user.CurrentUserResolver;
 import se.dtime.service.user.UserValidator;
 
 import java.time.LocalDate;
@@ -30,6 +28,7 @@ import java.util.Set;
 @Service
 public class TimeEntryService {
     private final CalendarService calendarService;
+    private final CurrentUserResolver currentUserResolver;
     private final UserRepository userRepository;
     private final TimeEntryRepository timeEntiryRepository;
     private final TimeReportConverter timeReportConverter;
@@ -38,8 +37,9 @@ public class TimeEntryService {
     private final TaskContributorRepository taskContributorRepository;
     private final CloseDateRepository closeDateRepository;
 
-    public TimeEntryService(CalendarService calendarService, UserRepository userRepository, TimeEntryRepository timeEntiryRepository, TimeReportConverter timeReportConverter, UserValidator userValidator, TimeReportValidator timeReportValidator, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+    public TimeEntryService(CalendarService calendarService, CurrentUserResolver currentUserResolver, UserRepository userRepository, TimeEntryRepository timeEntiryRepository, TimeReportConverter timeReportConverter, UserValidator userValidator, TimeReportValidator timeReportValidator, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
         this.calendarService = calendarService;
+        this.currentUserResolver = currentUserResolver;
         this.userRepository = userRepository;
         this.timeEntiryRepository = timeEntiryRepository;
         this.timeReportConverter = timeReportConverter;
@@ -120,40 +120,7 @@ public class TimeEntryService {
     }
 
     UserPO resolveAuthenticatedUser() {
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-
-        if (principal instanceof UserExt userExt) {
-            return userRepository.findById(userExt.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
-        }
-
-        if (principal instanceof OAuth2User oauth2User) {
-            String sub = oauth2User.getAttribute("sub");
-            if (sub != null && !sub.isBlank()) {
-                UserPO userByExternalId = userRepository.findByExternalId(sub);
-                if (userByExternalId != null) {
-                    return userByExternalId;
-                }
-            }
-
-            String email = oauth2User.getAttribute("email");
-            if (email != null && !email.isBlank()) {
-                UserPO userByEmail = userRepository.findByEmail(email);
-                if (userByEmail != null) {
-                    return userByEmail;
-                }
-            }
-        }
-
-        // Fallback used by tests and non-OIDC auth paths
-        String username = SecurityContextHolder.getContext().getAuthentication().getName();
-        if (username != null && !username.isBlank()) {
-            UserPO userByUsername = userRepository.findByEmail(username);
-            if (userByUsername != null) {
-                return userByUsername;
-            }
-        }
-
-        return userRepository.findById(1L).orElseThrow(() -> new NotFoundException("user.not.found"));
+        return currentUserResolver.resolveCurrentUser();
     }
 
     private TimeReport getTimeReportBetweenDatesForUser(ReportDates reportDates, UserPO userPO, TimeReportView timeReportView) {

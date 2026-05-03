@@ -55,8 +55,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
     OAuth2User processAuthentikUserClaims(OAuth2User oauth2User) throws OAuth2AuthenticationException {
         String sub = oauth2User.getAttribute("sub");
         String email = readEmail(oauth2User);
-        String firstName = readFirstName(oauth2User);
-        String lastName = readLastName(oauth2User);
+        String displayName = resolveDisplayName(oauth2User);
 
         if (sub == null || sub.isBlank()) {
             throw new OAuth2AuthenticationException(
@@ -95,8 +94,7 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         }
 
         user.setEmail(email);
-        user.setFirstName(firstName);
-        user.setLastName(lastName);
+        user.setDisplayName(displayName);
         user.setUserRole(resolveUserRole(oauth2User));
         user.setUpdatedDateTime(now);
         user.setUpdatedBy(1L);
@@ -136,21 +134,23 @@ public class CustomOAuth2UserService extends DefaultOAuth2UserService {
         return email;
     }
 
-    private String readFirstName(OAuth2User oauth2User) {
-        String firstName = oauth2User.getAttribute("given_name");
-        if (firstName == null || firstName.isBlank()) {
-            String fullName = oauth2User.getAttribute("name");
-            if (fullName != null && !fullName.isBlank()) {
-                return fullName;
-            }
-            return "Unknown";
+    private String resolveDisplayName(OAuth2User oauth2User) {
+        String name = oauth2User.getAttribute("name");
+        if (name != null && !name.isBlank()) {
+            return name.trim();
         }
-        return firstName;
-    }
 
-    private String readLastName(OAuth2User oauth2User) {
-        String lastName = oauth2User.getAttribute("family_name");
-        return (lastName == null || lastName.isBlank()) ? "-" : lastName;
+        String preferredUsername = oauth2User.getAttribute("preferred_username");
+        if (preferredUsername != null && !preferredUsername.isBlank()) {
+            return preferredUsername.trim();
+        }
+
+        String email = oauth2User.getAttribute("email");
+        if (email != null && !email.isBlank()) {
+            return email.trim();
+        }
+
+        return "Unknown";
     }
 
     private UserRole resolveUserRole(OAuth2User oauth2User) {

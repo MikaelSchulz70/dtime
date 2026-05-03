@@ -141,7 +141,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
     rows.push(<tr key={keyHeader}>
         <th className="fw-bold">{userReport.fullName}</th>
         <th className="fw-bold">Account</th>
-        <th className="fw-bold">Task</th>
+        <th className="fw-bold text-start">Task</th>
         <th className="fw-bold">Hours</th>
         <th className="fw-bold">
             {reportView === Constants.MONTH_VIEW ? (
@@ -161,7 +161,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
             <tr key={key}>
                 <td></td>
                 <td className="text-nowrap" title={accountName}>{accountShortName}</td>
-                <td className="text-nowrap" title={taskName}>{taskShortName}</td>
+                <td className="text-nowrap text-start" title={taskName}>{taskShortName}</td>
                 <td>{taskReport.totalHours}</td>
                 <td></td>
             </tr>);
@@ -177,7 +177,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         <th className="text-muted"></th>
         <th className="fw-bold fs-6"></th>
         <th></th>
-        <th className={`fw-bold fs-6`}>{userReport.totalTime} hrs</th>
+        <th className={`fw-bold fs-6`}>{userReport.totalTime}</th>
         <th></th>
     </tr>);
     return (

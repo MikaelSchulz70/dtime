@@ -62,7 +62,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
         userRepository.save(activeUser2);
         userRepository.save(inactiveUser);
 
-        List<UserPO> activeUsers = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+        List<UserPO> activeUsers = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
 
         assertThat(activeUsers).hasSize(2);
         assertThat(activeUsers.get(0).getFirstName()).isEqualTo("Alice");
@@ -78,7 +78,7 @@ class UserRepositoryIT extends BaseRepositoryIT {
         userRepository.save(activeUser);
         userRepository.save(inactiveUser);
 
-        List<UserPO> inactiveUsers = userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.INACTIVE);
+        List<UserPO> inactiveUsers = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE);
 
         assertThat(inactiveUsers).hasSize(1);
         assertThat(inactiveUsers.get(0).getFirstName()).isEqualTo("Inactive");

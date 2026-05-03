@@ -256,6 +256,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
+                                                contentAlign="end"
                                             >
                                                 Total Hours
                                             </SortableTableHeader>
@@ -264,6 +265,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
+                                                contentAlign="end"
                                             >
                                                 Number of Tasks
                                             </SortableTableHeader>
@@ -272,6 +274,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
                                                 className="text-white text-end"
+                                                contentAlign="end"
                                             >
                                                 % of Total
                                             </SortableTableHeader>
@@ -294,7 +297,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                         {getBillableLabel(item.isBillable)}
                                                     </span>
                                                 </td>
-                                                <td className="text-end">{item.totalHours.toFixed(2)} hrs</td>
+                                                <td className="text-end">{item.totalHours.toFixed(2)}</td>
                                                 <td className="text-end">{item.taskCount}</td>
                                                 <td className="text-end">{totalHours > 0 ? ((item.totalHours / totalHours) * 100).toFixed(1) : 0}%</td>
                                                 <td>{item.description}</td>
@@ -304,7 +307,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                     <tfoot className="bg-light">
                                         <tr>
                                             <td colSpan={2}><strong>Total</strong></td>
-                                            <td className="text-end"><strong>{totalHours.toFixed(2)} hrs</strong></td>
+                                            <td className="text-end"><strong>{totalHours.toFixed(2)}</strong></td>
                                             <td className="text-end"><strong>{totalTasks}</strong></td>
                                             <td className="text-end"><strong>100%</strong></td>
                                             <td></td>

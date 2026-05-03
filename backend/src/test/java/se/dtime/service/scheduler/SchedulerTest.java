@@ -46,7 +46,7 @@ public class SchedulerTest {
         when(calendarService.getLastWorkingDayOfMonth(now)).thenReturn(now.minusDays(1));
 
         scheduler.emailReminder();
-        verify(userRepository, never()).findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+        verify(userRepository, never()).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
     }
 
     @Test
@@ -57,9 +57,9 @@ public class SchedulerTest {
         when(calendarService.getNowDate()).thenReturn(now);
         when(calendarService.getLastWorkingDayOfMonth(now)).thenReturn(now);
 
-        when(userRepository.findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE)).thenReturn(new ArrayList<>());
+        when(userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE)).thenReturn(new ArrayList<>());
 
         scheduler.emailReminder();
-        verify(userRepository, times(1)).findByActivationStatusOrderByFirstNameAsc(ActivationStatus.ACTIVE);
+        verify(userRepository, times(1)).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
     }
 }

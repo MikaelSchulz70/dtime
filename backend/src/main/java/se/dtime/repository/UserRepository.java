@@ -19,7 +19,7 @@ public interface UserRepository extends JpaRepository<UserPO, Long> {
     UserPO findByEmail(String email);
     UserPO findByExternalId(String externalId);
 
-    List<UserPO> findByActivationStatusOrderByFirstNameAsc(ActivationStatus activationStatus);
+    List<UserPO> findByActivationStatusOrderByDisplayNameAsc(ActivationStatus activationStatus);
 
     List<UserPO> findByUserRoleAndActivationStatus(UserRole userRole, ActivationStatus activationStatus);
 

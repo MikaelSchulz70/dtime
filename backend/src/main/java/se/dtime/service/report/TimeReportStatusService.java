@@ -72,7 +72,7 @@ public class TimeReportStatusService {
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
         int workableHours = calendarService.calcWorkableHours(days);
 
-        List<UserReport> allUserReports = reportRepository.getUserTaskReports(reportDates.getFromDate(), reportDates.getToDate());
+        List<UserReport> allUserReports = reportRepository.getUserTaskReportsForUnclosedUsers(reportDates.getFromDate(), reportDates.getToDate());
         allUserReports.forEach(userReport -> updateClosedReport(userReport, reportDates.getFromDate()));
 
         // Filter to show only unclosed users (users who haven't closed their reports)

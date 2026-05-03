@@ -135,9 +135,9 @@ describe('UnclosedUsersPage', () => {
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
         expect(screen.getByText('john@example.com')).toBeInTheDocument();
-        expect(screen.getByText('150 hrs')).toBeInTheDocument();
+        expect(screen.getByText('150')).toBeInTheDocument();
         // Check for workable hours in the table structure - there should be multiple instances
-        const workableHoursCells = screen.getAllByText('160 hrs');
+        const workableHoursCells = screen.getAllByText('160');
         expect(workableHoursCells.length).toBeGreaterThan(0);
       });
     });
@@ -146,7 +146,7 @@ describe('UnclosedUsersPage', () => {
       render(<UnclosedUsersPage />);
 
       await waitFor(() => {
-        const johnHours = screen.getByText('150 hrs');
+        const johnHours = screen.getByText('150');
         expect(johnHours).toHaveClass('text-danger');
       });
     });
@@ -155,7 +155,7 @@ describe('UnclosedUsersPage', () => {
       render(<UnclosedUsersPage />);
 
       await waitFor(() => {
-        const janeHours = screen.getByText('165 hrs');
+        const janeHours = screen.getByText('165');
         expect(janeHours).not.toHaveClass('text-danger');
       });
     });
@@ -213,7 +213,7 @@ describe('UnclosedUsersPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Unknown User')).toBeInTheDocument();
         expect(screen.getByText('No Email')).toBeInTheDocument();
-        expect(screen.getByText('0 hrs')).toBeInTheDocument();
+        expect(screen.getByText('0')).toBeInTheDocument();
       });
     });
   });
@@ -566,8 +566,8 @@ describe('UnclosedUsersPage', () => {
       render(<UnclosedUsersPage />);
 
       await waitFor(() => {
-        // When workableHours is undefined, it should default to 0 hrs in each row
-        const zeroHoursCells = screen.getAllByText('0 hrs');
+        // When workableHours is undefined, it should default to 0 in each row
+        const zeroHoursCells = screen.getAllByText('0');
         expect(zeroHoursCells.length).toBeGreaterThan(0);
       });
     });
@@ -610,7 +610,7 @@ describe('UnclosedUsersPage', () => {
       await waitFor(() => {
         expect(screen.getByText('Unknown User')).toBeInTheDocument();
         expect(screen.getByText('No Email')).toBeInTheDocument();
-        expect(screen.getByText('0 hrs')).toBeInTheDocument();
+        expect(screen.getByText('0')).toBeInTheDocument();
       });
     });
 

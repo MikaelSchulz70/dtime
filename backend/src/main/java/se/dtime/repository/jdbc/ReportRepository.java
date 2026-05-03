@@ -20,7 +20,7 @@ import java.util.Map;
 public class ReportRepository {
 
     private final String USERS_TASK_REPORTS =
-            "select u.id userId, u.firstname, u.lastname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, p.is_billable isBillable, sum(tr.reportedtime) totalTime " +
+            "select u.id userId, u.displayname, u.email, c.id accountId, c.name accountName, p.id taskId, p.name taskName, p.is_billable isBillable, sum(tr.reportedtime) totalTime " +
                     "from time_report tr " +
                     "join task_contributor a on a.id = tr.id_task_contributor " +
                     "join users u on u.id = a.id_user " +
@@ -28,12 +28,12 @@ public class ReportRepository {
                     "join account c on c.id = p.id_account " +
                     "where tr.date >= ? and tr.date <= ? " +
                     "{USER_CONDITION}" +
-                    "group by tr.id_task_contributor, u.id, u.firstname, u.lastname, u.email, c.id, c.name, p.id, p.name, p.is_billable " +
+                    "group by tr.id_task_contributor, u.id, u.displayname, u.email, c.id, c.name, p.id, p.name, p.is_billable " +
                     "having sum(tr.reportedtime) > 0 " +
-                    "order by u.firstname, u.lastname, c.name, p.name";
+                    "order by u.displayname, c.name, p.name";
 
     private final String USERS_REPORTS_NO_TIME =
-            "select u.id userId, u.firstname, u.lastname, u.email " +
+            "select u.id userId, u.displayname, u.email " +
                     "from users u " +
                     "where u.status = 'ACTIVE' and u.id not in (" +
                     "select id_user from task_contributor a where a.id in (" +
@@ -65,14 +65,14 @@ public class ReportRepository {
                     "order by c.name";
 
     private final String USER_REPORTS =
-            "select u.id userId, u.firstname, u.lastname, u.email, sum(tr.reportedtime) totalTime " +
+            "select u.id userId, u.displayname, u.email, sum(tr.reportedtime) totalTime " +
                     "from time_report tr " +
                     "join task_contributor a on a.id = tr.id_task_contributor " +
                     "join users u on u.id = a.id_user " +
                     "join task p on p.id = a.id_task " +
                     "join account c on c.id = p.id_account " +
                     "where tr.date >= ? and tr.date <= ? " +
-                    "group by u.id, u.firstname, u.lastname, u.email " +
+                    "group by u.id, u.displayname, u.email " +
                     "having sum(tr.reportedtime) > 0 " +
                     "order by sum(tr.reportedtime) desc";
 
@@ -92,13 +92,21 @@ public class ReportRepository {
         this.jdbcTemplate = jdbcTemplate;
     }
 
+    /**
+     * Users who logged time in the date range only (admin user-task report).
+     */
     public List<UserReport> getUserTaskReports(LocalDate fromDate, LocalDate toDate) {
         String sql = USERS_TASK_REPORTS.replace("{USER_CONDITION}", "");
-        List<UserReport> userReports = getUserTaskReports(sql, fromDate, toDate, new Object[]{fromDate, toDate});
+        return getUserTaskReports(sql, fromDate, toDate, new Object[]{fromDate, toDate});
+    }
 
-        List<UserReport> userReportsNoTime = getUsersReportsNoReportedTime(USERS_REPORTS_NO_TIME, fromDate, toDate, new Object[]{fromDate, toDate});
-        userReports.addAll(userReportsNoTime);
-
+    /**
+     * Same as {@link #getUserTaskReports(LocalDate, LocalDate)} plus active users with no time entries
+     * in the range (for unclosed time-report status).
+     */
+    public List<UserReport> getUserTaskReportsForUnclosedUsers(LocalDate fromDate, LocalDate toDate) {
+        List<UserReport> userReports = getUserTaskReports(fromDate, toDate);
+        userReports.addAll(getUsersReportsNoReportedTime(USERS_REPORTS_NO_TIME, fromDate, toDate, new Object[]{fromDate, toDate}));
         return userReports;
     }
 
@@ -107,6 +115,9 @@ public class ReportRepository {
         return getUserTaskReports(sql, fromDate, toDate, new Object[]{fromDate, toDate, userId});
     }
 
+    /**
+     * Per-user totals for the date range; only users with {@code sum(reportedtime) > 0} (admin user report).
+     */
     public List<UserReport> getUserReports(LocalDate fromDate, LocalDate toDate) {
         List<Map<String, Object>> rows = jdbcTemplate.queryForList(USER_REPORTS, fromDate, toDate);
 
@@ -118,7 +129,7 @@ public class ReportRepository {
             if (userReport == null) {
                 userReport = new UserReport();
                 userReport.setUserId(userId);
-                userReport.setFullName(row.get("firstname") + " " + row.get("lastname"));
+                userReport.setFullName((String) row.get("displayname"));
                 userReport.setEmail((String) row.get("email"));
                 userReportMap.put(userId, userReport);
                 userReports.add(userReport);
@@ -129,9 +140,6 @@ public class ReportRepository {
             BigDecimal totalTime = new BigDecimal(((Number) row.get("totalTime")).toString());
             userReport.setTotalTime(totalTime);
         }
-
-        List<UserReport> userReportsNoTime = getUsersReportsNoReportedTime(USERS_REPORTS_NO_TIME, fromDate, toDate, new Object[]{fromDate, toDate});
-        userReports.addAll(userReportsNoTime);
 
         return userReports;
     }
@@ -198,7 +206,7 @@ public class ReportRepository {
             if (userReport == null) {
                 userReport = new UserReport();
                 userReport.setUserId(userId);
-                userReport.setFullName(row.get("firstname") + " " + row.get("lastname"));
+                userReport.setFullName((String) row.get("displayname"));
                 userReport.setEmail((String) row.get("email"));
                 userReportMap.put(userId, userReport);
                 userReports.add(userReport);
@@ -232,7 +240,7 @@ public class ReportRepository {
             long userId = (Long) row.get("userId");
             UserReport userReport = new UserReport();
             userReport.setUserId(userId);
-            userReport.setFullName(row.get("firstname") + " " + row.get("lastname"));
+            userReport.setFullName((String) row.get("displayname"));
             userReport.setEmail((String) row.get("email"));
             userReport.setFromDate(fromDate);
             userReport.setToDate(toDate);

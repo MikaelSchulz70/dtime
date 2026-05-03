@@ -102,7 +102,7 @@ class ReportRepositoryIT extends BaseRepositoryIT {
     void shouldGetUserTaskReports() {
         List<UserReport> reports = reportRepository.getUserTaskReports(fromDate, toDate);
 
-        assertThat(reports).hasSize(3); // 2 users with time + 1 user without time
+        assertThat(reports).hasSize(2); // Only users with reported time in range
 
         // Check user with task reports (Alice)
         UserReport aliceReport = reports.stream()
@@ -127,14 +127,20 @@ class ReportRepositoryIT extends BaseRepositoryIT {
          assertThat(bobReport.getUserId()).isEqualTo(user2.getId());
          assertThat(bobReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(13.5)); // 8.5 + 5.0
 
-        // Check user without time reports (Charlie)
+        assertThat(reports.stream().noneMatch(r -> "Charlie Brown".equals(r.getFullName()))).isTrue();
+    }
+
+    @Test
+    void shouldGetUserTaskReportsForUnclosedUsersIncludesActiveUsersWithoutTime() {
+        List<UserReport> reports = reportRepository.getUserTaskReportsForUnclosedUsers(fromDate, toDate);
+
+        assertThat(reports).hasSize(3);
+
         UserReport charlieReport = reports.stream()
                 .filter(r -> "Charlie Brown".equals(r.getFullName()))
                 .findFirst()
                 .orElse(null);
-
         assertThat(charlieReport).isNotNull();
-        assertThat(charlieReport.getUserId()).isEqualTo(user3.getId());
         assertThat(charlieReport.getTotalTime()).isEqualTo(BigDecimal.ZERO);
         assertThat(charlieReport.getTaskReports()).isEmpty();
     }
@@ -176,22 +182,18 @@ class ReportRepositoryIT extends BaseRepositoryIT {
     void shouldGetUserReports() {
         List<UserReport> reports = reportRepository.getUserReports(fromDate, toDate);
 
-        assertThat(reports).hasSize(3); // 2 users with time + 1 user without time
+        assertThat(reports).hasSize(2);
 
-        // Check reports are ordered by total time desc for users with time
-        UserReport firstReport = reports.stream()
-                .filter(r -> r.getTotalTime().compareTo(BigDecimal.ZERO) > 0)
-                .findFirst()
-                .orElse(null);
-
+        UserReport firstReport = reports.get(0);
          assertThat(firstReport).isNotNull();
          assertThat(firstReport.getFullName()).isEqualTo("Alice Smith");
          assertThat(firstReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(21.5));
 
-        // Check user without time is included
-        boolean charlieIncluded = reports.stream()
-                .anyMatch(r -> "Charlie Brown".equals(r.getFullName()) && r.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
-        assertThat(charlieIncluded).isTrue();
+        UserReport secondReport = reports.get(1);
+        assertThat(secondReport.getFullName()).isEqualTo("Bob Johnson");
+        assertThat(secondReport.getTotalTime()).isEqualByComparingTo(BigDecimal.valueOf(13.5));
+
+        assertThat(reports.stream().noneMatch(r -> "Charlie Brown".equals(r.getFullName()))).isTrue();
     }
 
     @Test
@@ -271,12 +273,13 @@ class ReportRepositoryIT extends BaseRepositoryIT {
         List<TaskReport> taskReports = reportRepository.getTaskReports(futureFromDate, futureToDate);
         List<AccountReport> accountReports = reportRepository.getAccountReports(futureFromDate, futureToDate);
 
-        // Should only include users with no reported time
-        assertThat(userTaskReports).hasSize(3); // All users have no time in this range
-        assertThat(userTaskReports).allMatch(ur -> ur.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
+        assertThat(userTaskReports).isEmpty();
 
-        assertThat(userReports).hasSize(3); // All users have no time in this range
-        assertThat(userReports).allMatch(ur -> ur.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
+        List<UserReport> userTaskReportsUnclosed = reportRepository.getUserTaskReportsForUnclosedUsers(futureFromDate, futureToDate);
+        assertThat(userTaskReportsUnclosed).hasSize(3);
+        assertThat(userTaskReportsUnclosed).allMatch(ur -> ur.getTotalTime().compareTo(BigDecimal.ZERO) == 0);
+
+        assertThat(userReports).isEmpty();
 
         assertThat(taskReports).isEmpty();
         assertThat(accountReports).isEmpty();

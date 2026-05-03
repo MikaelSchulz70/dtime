@@ -6,7 +6,6 @@ import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.CloseDatePO;
 import se.dtime.model.ReportDates;
-import se.dtime.model.UserExt;
 import se.dtime.model.error.NotFoundException;
 import se.dtime.model.report.*;
 import se.dtime.model.timereport.CloseDate;
@@ -14,6 +13,7 @@ import se.dtime.model.timereport.Day;
 import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.jdbc.ReportRepository;
 import se.dtime.service.calendar.CalendarService;
+import se.dtime.service.user.CurrentUserResolver;
 import se.dtime.service.user.UserValidator;
 
 import java.math.BigDecimal;
@@ -25,14 +25,16 @@ import java.util.List;
 public class ReportService {
 
     private final UserValidator userValidator;
+    private final CurrentUserResolver currentUserResolver;
     private final CalendarService calendarService;
     private final ReportRepository reportRepository;
     private final CloseDateRepository closeDateRepository;
     private final ReportValidator reportValidator;
     private final ReportConverter reportConverter;
 
-    public ReportService(UserValidator userValidator, CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportValidator reportValidator, ReportConverter reportConverter) {
+    public ReportService(UserValidator userValidator, CurrentUserResolver currentUserResolver, CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportValidator reportValidator, ReportConverter reportConverter) {
         this.userValidator = userValidator;
+        this.currentUserResolver = currentUserResolver;
         this.calendarService = calendarService;
         this.reportRepository = reportRepository;
         this.closeDateRepository = closeDateRepository;
@@ -83,18 +85,9 @@ public class ReportService {
 
     private Report getUserReport(ReportView reportView, LocalDate date) {
         userValidator.validateLoggedIn();
-
-        Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        long userId;
-
-        if (principal instanceof UserExt userExt) {
-            userId = userExt.getId();
-        } else {
-            userId = 1L; // Default test user ID
-        }
-
+        long userId = currentUserResolver.resolveCurrentUser().getId();
         ReportDates reportDates = ReportUtil.getReportDates(reportView, date);
-        return getUserReportBetweenDates(userId, reportDates);
+        return buildUserTaskReport(reportDates, userId);
     }
 
     private Report getReport(ReportView reportView, ReportType reportType, LocalDate date) {
@@ -102,13 +95,15 @@ public class ReportService {
         return getReportBetweenDates(reportType, reportDates);
     }
 
-    private Report getUserReportBetweenDates(long userId, ReportDates reportDates) {
+    private Report buildUserTaskReport(ReportDates reportDates, Long scopedUserIdOrNull) {
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
         int workableHours = calendarService.calcWorkableHours(days);
 
         Report report = new Report(reportDates.getFromDate(), reportDates.getToDate(), workableHours);
 
-        List<UserReport> userReports = reportRepository.getUserTaskReports(userId, reportDates.getFromDate(), reportDates.getToDate());
+        List<UserReport> userReports = scopedUserIdOrNull == null
+                ? reportRepository.getUserTaskReports(reportDates.getFromDate(), reportDates.getToDate())
+                : reportRepository.getUserTaskReports(scopedUserIdOrNull, reportDates.getFromDate(), reportDates.getToDate());
         userReports.forEach(this::updateClosedReport);
         report.setUserReports(userReports);
         calcStatistics(report, userReports);
@@ -118,9 +113,12 @@ public class ReportService {
 
     private Report getReportBetweenDates(ReportType reportType, ReportDates reportDates) {
         Object principal = SecurityContextHolder.getContext().getAuthentication().getPrincipal();
-        // Just validate we have a principal (UserExt or test user)
         if (principal == null) {
             throw new NotFoundException("user.not.logged.in");
+        }
+
+        if (reportType == ReportType.USER_TASK) {
+            return buildUserTaskReport(reportDates, null);
         }
 
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
@@ -128,12 +126,7 @@ public class ReportService {
 
         Report report = new Report(reportDates.getFromDate(), reportDates.getToDate(), workableHours);
 
-        if (reportType == ReportType.USER_TASK) {
-            List<UserReport> userReports = reportRepository.getUserTaskReports(reportDates.getFromDate(), reportDates.getToDate());
-            userReports.forEach(this::updateClosedReport);
-            report.setUserReports(userReports);
-            calcStatistics(report, userReports);
-        } else if (reportType == ReportType.TASK) {
+        if (reportType == ReportType.TASK) {
             List<TaskReport> taskReports = reportRepository.getTaskReports(reportDates.getFromDate(), reportDates.getToDate());
             report.setTaskReports(taskReports);
             taskReports.sort((a, b) -> b.getTotalHours().compareTo(a.getTotalHours()));

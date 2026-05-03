@@ -1,5 +1,6 @@
 import React from 'react';
 
+/** contentAlign 'end': label + sort icon grouped right (use with text-end body cells). */
 const SortableTableHeader = ({ 
     field, 
     onSort, 
@@ -8,6 +9,7 @@ const SortableTableHeader = ({
     className = '',
     style = {},
     title = '',
+    contentAlign = 'between',
     ...props 
 }) => {
     const handleClick = () => {
@@ -27,9 +29,18 @@ const SortableTableHeader = ({
             title={title || `Click to sort by ${children}`}
             {...props}
         >
-            <div className="d-flex align-items-center justify-content-between">
+            <div
+                className={
+                    contentAlign === 'end'
+                        ? 'd-flex align-items-center justify-content-end gap-1'
+                        : 'd-flex align-items-center justify-content-between'
+                }
+            >
                 <span>{children}</span>
-                <span className="sort-icon ms-1" style={{ fontSize: '0.8rem', opacity: 0.7 }}>
+                <span
+                    className={contentAlign === 'end' ? 'sort-icon' : 'sort-icon ms-1'}
+                    style={{ fontSize: '0.8rem', opacity: 0.7 }}
+                >
                     {getSortIcon(field)}
                 </span>
             </div>

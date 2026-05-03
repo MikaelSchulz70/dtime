@@ -44,7 +44,7 @@ function TaskUserReportRow({ taskUserReport }) {
 
     rows.push(<tr className="bg-success text-white">
         <th className="w-25" title={columnName}>{columnNameShortName}</th>
-        <th className="w-25">{taskUserReport.totalHours} (hours)</th>
+        <th className="w-25">{taskUserReport.totalHours}</th>
         <th className="w-50">{taskUserReport.totalDaysScaled} (days)</th>
     </tr>);
 

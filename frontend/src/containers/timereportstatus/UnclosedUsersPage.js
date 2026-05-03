@@ -133,8 +133,8 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 <tr key={key}>
                     <td className="fw-medium">{user.fullName || t('common.labels.unknownUser')}</td>
                     <td className="text-muted">{user.email || t('common.labels.noEmail')}</td>
-                    <td className={`fw-bold ${textColor}`}>{totalTime} hrs</td>
-                    <td className="fw-bold text-primary">{workableHours} hrs</td>
+                    <td className={`fw-bold ${textColor}`}>{totalTime}</td>
+                    <td className="fw-bold text-primary">{workableHours}</td>
                     <td>
                         <span className={`badge ${user.closed ? 'bg-success' : 'bg-warning text-dark'} py-1 px-2`}>
                             {user.closed ? `✅ ${t('common.status.closed')}` : `⏳ ${t('common.status.open')}`}
