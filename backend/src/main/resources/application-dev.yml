@@ -25,6 +25,7 @@ spring:
             enable: false
 
 # Server Configuration for Development (HTTPS enabled)
+# Default local ports (avoid clashes): backend 8443 here; frontend dev https://localhost:3000; MCP http://localhost:8081 (SERVER_PORT).
 server:
   port: 8443
   address: 0.0.0.0

@@ -74,6 +74,9 @@ oauth:
     token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:}
     user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:}
     jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:}
+    machine-jwt:
+      # Accept Bearer JWTs from Authentik for machine clients (e.g. dtime-mcp) in addition to browser sessions.
+      enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:false}
 
 # Email Configuration
 mail:

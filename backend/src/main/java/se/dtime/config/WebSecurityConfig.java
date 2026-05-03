@@ -1,6 +1,7 @@
 package se.dtime.config;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -19,6 +20,8 @@ import org.springframework.security.oauth2.client.endpoint.RestClientAuthorizati
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.web.OAuth2AuthorizationRequestResolver;
 import org.springframework.security.oauth2.core.http.converter.OAuth2AccessTokenResponseHttpMessageConverter;
+import org.springframework.security.oauth2.jwt.JwtDecoder;
+import org.springframework.security.oauth2.server.resource.authentication.JwtAuthenticationConverter;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.rememberme.TokenBasedRememberMeServices;
 import org.springframework.security.web.authentication.HttpStatusEntryPoint;
@@ -78,7 +81,13 @@ public class WebSecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain securityFilterChain(HttpSecurity http, TokenBasedRememberMeServices rememberMeServices) throws Exception {
+    public SecurityFilterChain securityFilterChain(
+            HttpSecurity http,
+            TokenBasedRememberMeServices rememberMeServices,
+            @Autowired(required = false) @Qualifier("authentikMachineJwtDecoder") JwtDecoder authentikMachineJwtDecoder,
+            @Autowired(required = false)
+            @Qualifier("authentikMachineJwtAuthenticationConverter")
+            JwtAuthenticationConverter authentikMachineJwtAuthenticationConverter) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
                         .requestMatchers("/error", "/api/auth/oidc/status", "/api/auth/oidc/failure", "/api/auth/oidc/switch-user", "/actuator/health", "/oauth2/**").permitAll()
@@ -131,6 +140,12 @@ public class WebSecurityConfig {
             );
         } else {
             http.formLogin(form -> form.disable());
+        }
+
+        if (authentikMachineJwtDecoder != null && authentikMachineJwtAuthenticationConverter != null) {
+            http.oauth2ResourceServer(oauth2 -> oauth2.jwt(jwt ->
+                    jwt.decoder(authentikMachineJwtDecoder)
+                            .jwtAuthenticationConverter(authentikMachineJwtAuthenticationConverter)));
         }
 
         http.sessionManagement(session -> session
