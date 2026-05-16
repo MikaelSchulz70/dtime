@@ -1,0 +1,94 @@
+# Port layout (avoid clashes with backend / frontend — see docker-compose.yml header):
+#   dtime-backend: 8443 (HTTPS dev & docker); prod may also expose HTTP connector on 8080 internally
+#   dtime frontend dev: 3000 (HTTPS webpack devServer; FRONTEND_PORT)
+#   dtime-mcp: 8081 by default (override with SERVER_PORT / MCP_PORT in compose)
+
+spring:
+  application:
+    name: dtime-mcp
+  profiles:
+    active: dev
+  ai:
+    mcp:
+      server:
+        enabled: true
+        protocol: STREAMABLE
+        type: SYNC
+        name: dtime-mcp
+        version: 1.0.0
+        instructions: "Read-only access to dtime REST API (users, accounts, tasks, time reports)."
+        capabilities:
+          resource: false
+          prompt: false
+          completion: false
+        annotation-scanner:
+          enabled: false
+        streamable-http:
+          mcp-endpoint: /mcp
+
+server:
+  port: ${SERVER_PORT:8081}
+  servlet:
+    context-path: /
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+
+logging:
+  level:
+    root: INFO
+    se.dtime: DEBUG
+
+# Base MCP → backend OAuth; profile "dev" / "docker" fill token-uri defaults to match backend application-dev / Docker host reachability.
+mcp:
+  backend:
+    url: ${MCP_BACKEND_URL:https://localhost:8443}
+    token-uri: ${MCP_OAUTH_TOKEN_URI:}
+    client-id: ${MCP_OAUTH_CLIENT_ID:}
+    client-secret: ${MCP_OAUTH_CLIENT_SECRET:}
+    scope: ${MCP_OAUTH_SCOPE:}
+    validate-on-startup: ${MCP_VALIDATE_ON_STARTUP:true}
+    connect-timeout-ms: 5000
+    read-timeout-ms: 30000
+    # When true + HTTPS backend URL: trust any server cert (local dev / docker self-signed). Never in real prod.
+    trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:false}
+
+---
+# Mirrors backend/src/main/resources/application-dev.yml oauth.authentik.token-uri and server HTTPS port.
+spring:
+  config:
+    activate:
+      on-profile: dev
+
+mcp:
+  backend:
+    url: ${MCP_BACKEND_URL:https://localhost:8443}
+    token-uri: ${MCP_OAUTH_TOKEN_URI:http://localhost:9000/application/o/token/}
+    trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:true}
+
+---
+# docker-compose MCP service uses profile "docker"; backend listens on https://dtime-backend:8443 (see backend application-docker.yml).
+spring:
+  config:
+    activate:
+      on-profile: docker
+
+mcp:
+  backend:
+    url: ${MCP_BACKEND_URL:https://dtime-backend:8443}
+    token-uri: ${MCP_OAUTH_TOKEN_URI:http://host.docker.internal:9000/application/o/token/}
+    trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:true}
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+
+logging:
+  level:
+    root: WARN
+    se.dtime: INFO

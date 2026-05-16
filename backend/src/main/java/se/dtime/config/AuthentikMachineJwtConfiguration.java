@@ -15,10 +15,17 @@ import org.springframework.security.oauth2.server.resource.authentication.JwtAut
 public class AuthentikMachineJwtConfiguration {
 
     @Bean(name = "authentikMachineJwtDecoder")
-    JwtDecoder authentikMachineJwtDecoder(@Value("${oauth.authentik.jwk-set-uri:}") String jwkSetUri) {
+    JwtDecoder authentikMachineJwtDecoder(
+            AuthentikMachineJwtProperties machineJwtProperties,
+            @Value("${oauth.authentik.jwk-set-uri:}") String defaultJwkSetUri) {
+        String jwkSetUri = machineJwtProperties.getJwkSetUri();
+        if (jwkSetUri == null || jwkSetUri.isBlank()) {
+            jwkSetUri = defaultJwkSetUri;
+        }
         if (jwkSetUri == null || jwkSetUri.isBlank()) {
             throw new IllegalStateException(
-                    "oauth.authentik.machine-jwt.enabled is true but oauth.authentik.jwk-set-uri is empty");
+                    "oauth.authentik.machine-jwt.enabled is true but no JWKS URI is set "
+                            + "(configure oauth.authentik.machine-jwt.jwk-set-uri or oauth.authentik.jwk-set-uri)");
         }
         return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
     }

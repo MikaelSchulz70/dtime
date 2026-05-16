@@ -14,5 +14,6 @@ logs/
 **/*.logs
 **/*gz
 **/coverage
+.env
 .env.local
 .env.secrets.local

@@ -55,6 +55,13 @@ oauth:
     token-uri: http://localhost:9000/application/o/token/
     user-info-uri: http://localhost:9000/application/o/userinfo/
     jwk-set-uri: http://localhost:9000/application/o/dtime/jwks/
+    machine-jwt:
+      # Bearer JWT for dtime-mcp (Authentik provider slug dtmcp — separate from browser provider dtime).
+      enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:true}
+      jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:http://localhost:9000/application/o/dtmcp/jwks/}
+      # Overridden by OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS when set (see .env.example).
+      authorized-client-ids:
+        - ncFDhaBcHjh5jzwUdrmxzj08oDDuMSivl2Ai5Mvi
 
 # Frontend Development Server Configuration
 app:

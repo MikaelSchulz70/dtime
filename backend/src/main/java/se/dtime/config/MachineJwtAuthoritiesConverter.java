@@ -35,7 +35,10 @@ public class MachineJwtAuthoritiesConverter implements Converter<Jwt, Collection
         }
         String id = clientId.get();
         if (allowed.stream().noneMatch(cid -> cid.equals(id))) {
-            log.debug("Machine JWT client '{}' is not in authorized-client-ids", id);
+            log.warn(
+                    "Machine JWT client '{}' is not in oauth.authentik.machine-jwt.authorized-client-ids "
+                            + "(set OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS); no roles granted",
+                    id);
             return List.of();
         }
         return List.of(MCP_ADMIN_AUTHORITY, MCP_USER_AUTHORITY);

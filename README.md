@@ -73,62 +73,103 @@ dtime/
 ├── build-frontend-docker.sh # Frontend-only build
 ├── deploy.sh                # Deployment script
 ├── package.sh               # Distribution packaging
-├── docker-compose.yml       # Complete stack with profiles
+├── mcp/                     # MCP server (read-only API tools for AI clients)
+├── infra/                   # PostgreSQL + Authentik (see infra/README.md)
+├── docker-compose.yml       # App stack (profiles: full-stack, production, mcp)
+├── start-mcp.sh             # MCP prerequisites / run hints
 ├── .env.example             # Environment template
 └── README.md
 ```
 
-## Quick Start
+Module-specific details: [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mcp/README.md](mcp/README.md), [infra/README.md](infra/README.md).
 
-### 🐳 Docker Deployment (Recommended)
+## Running the stack
 
-**1. Setup Environment**
+Default **host ports** (see [docker-compose.yml](docker-compose.yml) header):
+
+| Service | URL | Notes |
+|---------|-----|--------|
+| Frontend (dev) | https://localhost:3000 | Webpack dev server |
+| Frontend (prod compose) | http://localhost:3000 | Nginx in container |
+| Backend API | https://localhost:8443 | HTTPS (dev keystore) |
+| MCP server | http://localhost:8081/mcp | Streamable HTTP MCP |
+| PostgreSQL | localhost:5432 | `dtime-db` or [infra](infra/README.md) |
+| Authentik | http://localhost:9000 | [infra/authentik](infra/README.md) |
+
+**1. Setup environment (once)**
+
 ```bash
 cp .env.example .env
-# Edit .env with your configuration
+# Edit .env — OAuth, database, MCP_* and OAUTH_AUTHENTIK_MACHINE_JWT_* for MCP
 ```
 
-**2. Build and Deploy**
+### Development
+
+**Option A — Docker (app + DB in root compose)**
+
 ```bash
-# Build all Docker images
+# Database only (if not using infra/)
+docker compose up -d dtime-db
+
+# Backend + frontend (dev webpack container)
+docker compose --profile full-stack up -d
+
+# Optional: add MCP (needs Authentik + machine JWT in .env)
+docker compose --profile full-stack --profile mcp up -d
+```
+
+Or use the deploy script:
+
+```bash
 ./build-docker.sh
-
-# Deploy development environment
 ./deploy.sh --env development
-
-# Deploy production environment  
-./deploy.sh --env production
 ```
 
-**3. Access Application**
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8080
-- Database: localhost:5432
+**Option B — Local processes (typical IDE workflow)**
 
-### 🔧 Development Mode
-
-**Option A: Docker Development Stack**
 ```bash
-# Start full development environment
-docker-compose --profile full-stack up -d
+# 1. Infrastructure: Postgres + Authentik
+cd infra && cp .env.example .env && docker compose up -d
+# See infra/README.md for Authentik first-time setup
 
-# View logs
-docker-compose logs -f
+# 2. Backend (profile dev → HTTPS :8443)
+cd backend && SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run
 
-# Stop services
-docker-compose down
-```
-
-**Option B: Local Development**
-```bash
-# 1. Start database only
-docker-compose up -d dtime-db
-
-# 2. Start backend
-cd backend && mvn spring-boot:run
-
-# 3. Start frontend
+# 3. Frontend
 cd frontend && npm install && npm start
+
+# 4. MCP (optional — see mcp/README.md and ./start-mcp.sh)
+cd mcp && mvn spring-boot:run
+```
+
+Sign in via Authentik: frontend https://localhost:3000 → backend https://localhost:8443 (see [Authentik setup](#authentik-setup-local-development) below).
+
+### Production
+
+**Docker (recommended)**
+
+```bash
+./build-docker.sh
+./deploy.sh --env production
+# Starts: dtime-db (if in compose), dtime-backend, dtime-frontend-prod (profile production)
+```
+
+```bash
+# Manual compose (production frontend image)
+docker compose --profile production up -d
+```
+
+Set `FRONTEND_BACKEND_URL` in `.env` to the **public HTTPS URL** of your backend (not `localhost` on a remote server).
+
+**MCP in production:** use profile `mcp` with backend healthy and `MCP_*` / machine JWT vars set — see [mcp/README.md](mcp/README.md#docker).
+
+**Option — distribution package:** `./package.sh --version v1.0.0` then deploy on the target host (see [Production Deployment](#production-deployment) below).
+
+### Stop services
+
+```bash
+docker compose --profile full-stack --profile mcp down
+docker compose --profile production down
 ```
 
 ## Build Scripts
@@ -201,7 +242,7 @@ Use this section if you want to start DTime with Authentik login on your local m
 
 ### 1) Start infrastructure
 
-Start PostgreSQL and Authentik first (using this repo's compose setup), then backend and frontend.
+Start PostgreSQL and Authentik first — see [infra/README.md](infra/README.md) (`cd infra && docker compose up -d`), then backend and frontend per [Running the stack](#running-the-stack).
 
 ### 2) Create OAuth2 Provider/Application in Authentik
 
@@ -248,8 +289,8 @@ Open frontend and click **Sign in with Authentik**.
 
 ### Frontend Environment Variables
 ```bash
-# Backend API URL
-REACT_APP_BACKEND_URL=http://localhost:8080
+# Backend API URL (browser → backend; use HTTPS :8443 for local dev with Authentik)
+REACT_APP_BACKEND_URL=https://localhost:8443
 
 # Environment
 NODE_ENV=production
@@ -307,12 +348,12 @@ After first deployment:
 
 **Option 1: Full Docker Stack**
 ```bash
-# Production deployment
+# Production deployment (backend + production frontend; add --profile mcp in compose if needed)
 ./deploy.sh --env production --backup-db
 
 # Monitor deployment
-docker-compose logs -f
-docker-compose ps
+docker compose logs -f
+docker compose ps
 ```
 
 **Option 2: Custom Registry**

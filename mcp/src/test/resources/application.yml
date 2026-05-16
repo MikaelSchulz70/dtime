@@ -1,0 +1,11 @@
+spring:
+  main:
+    web-application-type: servlet
+
+mcp:
+  backend:
+    url: https://localhost:8443
+    token-uri: https://example.test/token
+    client-id: test
+    client-secret: test
+    validate-on-startup: false

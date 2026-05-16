@@ -77,6 +77,8 @@ oauth:
     machine-jwt:
       # Accept Bearer JWTs from Authentik for machine clients (e.g. dtime-mcp) in addition to browser sessions.
       enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:false}
+      # Optional: JWKS for MCP tokens when signed by a different Authentik provider than the browser app.
+      jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:}
 
 # Email Configuration
 mail:
