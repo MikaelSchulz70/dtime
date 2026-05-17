@@ -25,9 +25,7 @@ describe('UserTaskReportPage', () => {
 
     beforeEach(() => {
         mockReportService = {
-            getCurrentUserReport: jest.fn(),
-            getPreviousUserReport: jest.fn(),
-            getNextUserReport: jest.fn(),
+            getUserReport: jest.fn(),
         };
         MockedReportService.mockImplementation(() => mockReportService);
     });
@@ -37,7 +35,7 @@ describe('UserTaskReportPage', () => {
     });
 
     it('loads the current user report and renders self variant table', async () => {
-        mockReportService.getCurrentUserReport.mockResolvedValue({
+        mockReportService.getUserReport.mockResolvedValue({
             data: {
                 fromDate: '2024-01-01',
                 toDate: '2024-01-31',
@@ -49,7 +47,7 @@ describe('UserTaskReportPage', () => {
         render(<UserTaskReportPage />);
 
         await waitFor(() => {
-            expect(mockReportService.getCurrentUserReport).toHaveBeenCalledWith(Constants.MONTH_VIEW);
+            expect(mockReportService.getUserReport).toHaveBeenCalledWith(Constants.MONTH_VIEW, undefined);
         });
 
         await waitFor(() => {

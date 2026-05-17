@@ -15,7 +15,7 @@ import java.time.LocalDate;
 @RestController
 @RequestMapping("/api/timereportstatus")
 public class TimeReportStatusRestController {
-    
+
     private final TimeReportStatusService timeReportStatusService;
 
     public TimeReportStatusRestController(TimeReportStatusService timeReportStatusService) {
@@ -24,24 +24,10 @@ public class TimeReportStatusRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "")
-    public ResponseEntity<UnclosedUserReport> getCurrentUnclosedUsers() {
-        UnclosedUserReport report = timeReportStatusService.getCurrentUnclosedUsers();
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/previous")
-    public ResponseEntity<UnclosedUserReport> getPreviousUnclosedUsers(@RequestParam(value = "date", required = true)
-                                                                       @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        UnclosedUserReport report = timeReportStatusService.getPreviousUnclosedUsers(date);
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/next")
-    public ResponseEntity<UnclosedUserReport> getNextUnclosedUsers(@RequestParam(value = "date", required = true)
-                                                                   @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        UnclosedUserReport report = timeReportStatusService.getNextUnclosedUsers(date);
+    public ResponseEntity<UnclosedUserReport> getUnclosedUsers(
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        UnclosedUserReport report = timeReportStatusService.getUnclosedUsers(date);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 

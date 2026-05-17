@@ -121,6 +121,20 @@ curl -s http://localhost:11434/api/tags | head
 curl -s http://localhost:8082/health
 ```
 
+## MCP tools and period-based `date`
+
+The bridge calls **dtime-mcp** read-only tools on each chat turn. Factual answers must come from tool JSON, not invented numbers.
+
+**Period rule:** pass `date` as any ISO day inside the target week/month (e.g. `2026-05-15` for May 2026). Omit `date` for the current period. There are no `/previous` or `/next` API paths.
+
+| Use case | MCP tool | Typical args |
+|----------|----------|--------------|
+| Org-wide monthly per-user hours | `getReport` | `view=MONTH`, `type=USER`, `date` in that month |
+| One user's time grid | `getUserTimeReport` | numeric `userId` from `getPagedUsers`, `view=WEEK` or `MONTH`, `date` in period |
+| Vacations / unclosed users | `getVacationReport`, `getUnclosedUsers` | optional `date` in target month |
+
+Default bridge `SYSTEM_PROMPT` in [`docker-compose.bridge.yml`](docker-compose.bridge.yml) encodes this. Full tool list and examples: [mcp/README.md](../mcp/README.md#tools).
+
 ## Environment variables
 
 See root [`.env.example`](../.env.example) (`OLLAMA_*`, `OLLAMA_BRIDGE_*`). Bridge image: `ghcr.io/jonigl/ollama-mcp-bridge:v0.11.2`.

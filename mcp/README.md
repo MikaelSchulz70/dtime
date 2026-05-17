@@ -141,9 +141,9 @@ export OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI=http://localhost:9000/application
 | Client | MCP URL | Notes |
 |--------|---------|--------|
 | **Cursor** | `http://localhost:8081/mcp` | Streamable HTTP; no MCP endpoint auth in v1 |
-| **ollama-mcp-bridge** (admin Chat) | `http://dtime-mcp:8081/mcp` | Inside Docker Compose; see [ollama/README.md](../ollama/README.md) |
+| **ollama-mcp-bridge** (admin Chat) | `http://dtime-mcp:8081/mcp` | Inside Docker Compose; see [ollama/README.md](../ollama/README.md). Default `SYSTEM_PROMPT` documents period-based `date` usage. |
 
-No MCP Java changes are required for v1 when the bridge points at the existing streamable HTTP endpoint. The bridge uses the same read-only tools as Cursor; backend access is still the **machine** OAuth client (admin API scope), not the signed-in browser user.
+No MCP Java changes are required for v1 when the bridge points at the existing streamable HTTP endpoint. The bridge uses the same read-only tools as Cursor; backend access is still the **machine** OAuth client (admin API scope), not the signed-in browser user. For report/time-period questions, see [Examples](#examples-mcp-tool-calls) above.
 
 ### Troubleshooting `API unauthorized (401)`
 
@@ -190,7 +190,23 @@ docker build -t dtime-mcp:latest mcp/
 
 ## Tools
 
-All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. Implementations live under [`mcp/src/main/java/se/dtime/mcp/service/`](src/main/java/se/dtime/mcp/service/) (one `@Service` per API area). After a rebuild, the Ollama bridge health check reports **`tools`: 29** (`curl -s http://127.0.0.1:8082/health`).
+All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. Implementations live under [`mcp/src/main/java/se/dtime/mcp/service/`](src/main/java/se/dtime/mcp/service/) (one `@Service` per API area). After a rebuild, the Ollama bridge health check reports **`tools`: 22** (`curl -s http://127.0.0.1:8082/health`).
+
+**Period-based reads:** for `GET /api/report`, `GET /api/timereport/user`, `GET /api/timereport/vacations`, and `GET /api/timereportstatus`, pass `date` as any ISO day inside the target month (or week for per-user time grids); omit `date` for the current period. The GUI prev/next buttons shift `date` client-side and call the same URL — there are no `/previous` or `/next` backend routes.
+
+**Removed tools** (replaced by period `date`): `getCurrentReports`, `getPreviousReport`, `getNextReport`, `getMonthlyUserReportSummary` → use **`getReport`** with `view`, `type`, and optional `date`.
+
+### Examples (MCP tool calls)
+
+| Question | Tool | Arguments |
+|----------|------|-------------|
+| Org-wide hours per user in May 2026 | `getReport` | `view=MONTH`, `type=USER`, `date=2026-05-15` |
+| Current month (default period) | `getReport` | `view=MONTH`, `type=USER` — omit `date` |
+| One user's May 2026 time grid | `getUserTimeReport` | `userId` from `getPagedUsers`, `view=MONTH`, `date=2026-05-01` |
+| Vacation balances for March 2026 | `getVacationReport` | `date=2026-03-15` |
+| Unclosed reports for last month | `getUnclosedUsers` | `date` any day in that month |
+
+Do **not** use `getUserTimeReport` with a missing `userId` for org-wide totals — use `getReport` with `type=USER`.
 
 ### Users (`/api/users`)
 
@@ -234,29 +250,24 @@ All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. 
 
 ### Time reports (`/api/timereport`)
 
+Only **`/user`** (admin, requires `userId`) and **`/vacations`** are exposed. The logged-in-user sheet `GET /api/timereport` is not available via MCP (see [Not exposed](#not-exposed-by-design)).
+
 | Tool | Backend |
 |------|---------|
-| `getUserTimeReport` | `GET /api/timereport/user` — `view`: `WEEK` or `MONTH`; `date`: ISO `YYYY-MM-DD` |
-| `getVacationReport` | `GET /api/timereport/vacations` |
-| `getPreviousVacationReport` | `GET /api/timereport/vacations/previous` |
-| `getNextVacationReport` | `GET /api/timereport/vacations/next` |
+| `getUserTimeReport` | `GET /api/timereport/user` — one user; `view`: `WEEK` or `MONTH`; optional `date` in that week/month |
+| `getVacationReport` | `GET /api/timereport/vacations` — optional `date` in month (omit = current month) |
 
 ### Time report status (`/api/timereportstatus`)
 
 | Tool | Backend |
 |------|---------|
-| `getCurrentUnclosedUsers` | `GET /api/timereportstatus` |
-| `getPreviousUnclosedUsers` | `GET /api/timereportstatus/previous` |
-| `getNextUnclosedUsers` | `GET /api/timereportstatus/next` |
+| `getUnclosedUsers` | `GET /api/timereportstatus` — optional `date` in month |
 
 ### Reports (`/api/report`) — admin aggregates
 
 | Tool | Backend |
 |------|---------|
-| `getMonthlyUserReportSummary` | `GET /api/report/previous` — **preferred** for “users who reported in month X”; pass any `dateInMonth` in that month |
-| `getCurrentReports` | `GET /api/report` — optional `view` (`MONTH`, `YEAR`), `type` (`USER_TASK`, `TASK`, `USER`, `ACCOUNT`, `BILLABLE_TASK_TYPE`) |
-| `getPreviousReport` | `GET /api/report/previous` — requires `date` |
-| `getNextReport` | `GET /api/report/next` — requires `date` |
+| `getReport` | `GET /api/report` — `view` (`MONTH` or `YEAR`), `type`, optional `date` in period (e.g. `type=USER` for monthly per-user hours) |
 | `getBillableTaskTypeReport` | `GET /api/report/billable-task-type` — `fromDate`, `toDate` |
 
 ### System (`/api/system`)
@@ -274,8 +285,8 @@ Bulk list tools (`getAllUsers`, `getAllAccounts`, `getAllTasks`) may return larg
 |----------|--------|
 | `/api/auth/**` | OIDC redirect flows, not data APIs |
 | `/api/session` | Requires interactive browser user principal |
-| `/api/timereport`, `/previous`, `/next` (no `userId`) | “Current user” scope; machine JWT has no real end-user |
-| `/api/report/user`, `/user/next`, `/user/previous` | Same current-user scope — use `getUserTimeReport` or admin `getCurrentReports` with `type` |
+| `GET /api/timereport` (no `userId`) | Logged-in user's sheet; machine JWT has no real end-user |
+| `GET /api/report/user` | Same — interactive user scope; use admin `getReport` with `type=USER` for org-wide data |
 
 ## License
 

@@ -1,23 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
+import { shiftPeriodDate } from '../../util/periodNavigation';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 import UserTaskReportTable from './UserTaskReport';
 
-/**
- * Standalone User Task report page for the logged-in user (USER role).
- * Admins use AdminReports with report type USER_TASK and the same table component.
- */
 function UserTaskReportPage() {
     const [report, setReport] = useState(null);
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const { showError } = useToast();
     const { t } = useTranslation();
 
-    const loadFromServer = useCallback((view) => {
+    const loadUserReport = useCallback((view, date) => {
         const service = new ReportService();
-        service.getCurrentUserReport(view)
+        service.getUserReport(view, date)
             .then(response => {
                 setReport(response.data);
                 setReportView(view);
@@ -28,36 +25,33 @@ function UserTaskReportPage() {
     }, [showError, t]);
 
     useEffect(() => {
-        loadFromServer(Constants.MONTH_VIEW);
-    }, [loadFromServer]);
+        loadUserReport(Constants.MONTH_VIEW);
+    }, [loadUserReport]);
 
     const viewChange = useCallback((event) => {
-        loadFromServer(event.target.value);
-    }, [loadFromServer]);
+        const view = event.target.value;
+        if (report?.fromDate) {
+            loadUserReport(view, report.fromDate);
+        } else {
+            loadUserReport(view);
+        }
+    }, [report, loadUserReport]);
 
-    const handlePreviousReport = useCallback((event) => {
-        const date = event.target.name;
-        const service = new ReportService();
-        service.getPreviousUserReport(reportView, date)
-            .then(response => {
-                setReport(response.data);
-            })
-            .catch(error => {
-                showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
-            });
-    }, [reportView, showError, t]);
+    const handlePreviousReport = useCallback(() => {
+        if (!report?.fromDate) {
+            return;
+        }
+        const date = shiftPeriodDate(report.fromDate, reportView, -1);
+        loadUserReport(reportView, date);
+    }, [report, reportView, loadUserReport]);
 
-    const handleNextReport = useCallback((event) => {
-        const date = event.target.name;
-        const service = new ReportService();
-        service.getNextUserReport(reportView, date)
-            .then(response => {
-                setReport(response.data);
-            })
-            .catch(error => {
-                showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
-            });
-    }, [reportView, showError, t]);
+    const handleNextReport = useCallback(() => {
+        if (!report?.fromDate) {
+            return;
+        }
+        const date = shiftPeriodDate(report.fromDate, reportView, 1);
+        loadUserReport(reportView, date);
+    }, [report, reportView, loadUserReport]);
 
     if (report == null) {
         return null;
@@ -71,34 +65,17 @@ function UserTaskReportPage() {
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">
                             <div className="d-flex gap-2" role="group" aria-label={t('accessibility.navigation')}>
-                                <button
-                                    type="button"
-                                    className="btn btn-success btn-sm"
-                                    name={report.fromDate}
-                                    onClick={handlePreviousReport}
-                                    title={t('reports.previousPeriod')}
-                                >
+                                <button type="button" className="btn btn-success btn-sm" onClick={handlePreviousReport} title={t('reports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>
-                                <button
-                                    type="button"
-                                    className="btn btn-success btn-sm"
-                                    name={report.toDate}
-                                    onClick={handleNextReport}
-                                    title={t('reports.nextPeriod')}
-                                >
+                                <button type="button" className="btn btn-success btn-sm" onClick={handleNextReport} title={t('reports.nextPeriod')}>
                                     &gt;&gt;
                                 </button>
                             </div>
                         </div>
                         <div className="col-sm-2">
                             <label className="form-label fw-bold text-muted small">{t('reports.periodType')}</label>
-                            <select
-                                className="form-select form-select-sm"
-                                value={reportView}
-                                name="reportView"
-                                onChange={viewChange}
-                            >
+                            <select className="form-select form-select-sm" value={reportView} name="reportView" onChange={viewChange}>
                                 <option value={Constants.MONTH_VIEW}>📅 {t('reports.monthly')}</option>
                                 <option value={Constants.YEAR_VIEW}>📆 {t('reports.yearly')}</option>
                             </select>
@@ -120,12 +97,7 @@ function UserTaskReportPage() {
                 </div>
             </div>
             <div className="row">
-                <UserTaskReportTable
-                    report={report}
-                    reportView={reportView}
-                    fromDate={report.fromDate}
-                    variant="self"
-                />
+                <UserTaskReportTable report={report} reportView={reportView} fromDate={report.fromDate} variant="self" />
             </div>
         </div>
     );

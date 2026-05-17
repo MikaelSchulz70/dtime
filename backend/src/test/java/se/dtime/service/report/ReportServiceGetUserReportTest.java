@@ -45,8 +45,7 @@ class ReportServiceGetUserReportTest {
 
     @Test
     void getUserReport_passesResolvedUserIdToRepository() {
-        LocalDate now = LocalDate.of(2024, 6, 15);
-        when(calendarService.getNowDate()).thenReturn(now);
+        LocalDate anchor = LocalDate.of(2024, 6, 15);
 
         UserPO resolved = new UserPO(42L);
         when(currentUserResolver.resolveCurrentUser()).thenReturn(resolved);
@@ -60,7 +59,7 @@ class ReportServiceGetUserReportTest {
         when(calendarService.calcWorkableHours(days)).thenReturn(160);
         when(reportRepository.getUserTaskReports(42L, from, to)).thenReturn(Collections.emptyList());
 
-        var report = reportService.getUserReport(ReportView.MONTH);
+        var report = reportService.getUserReport(ReportView.MONTH, anchor);
 
         assertNotNull(report);
         verify(reportRepository).getUserTaskReports(eq(42L), eq(from), eq(to));

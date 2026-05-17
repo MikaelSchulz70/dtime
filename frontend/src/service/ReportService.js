@@ -3,30 +3,31 @@ import { Headers } from './ServiceUtil';
 
 const BASE_URL = "/api/report";
 
+function buildQuery(params) {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            search.append(key, value);
+        }
+    });
+    const qs = search.toString();
+    return qs ? `?${qs}` : '';
+}
+
 export default class ReportService {
 
-    getCurrentReport(view, type) {
-        return axios.get(BASE_URL + '?view=' + view + '&type=' + type);
+    /**
+     * Admin report for the period containing date (omit date for current period).
+     */
+    getReport(view, type, date) {
+        return axios.get(BASE_URL + buildQuery({ view, type, date }));
     }
 
-    getPreviousReport(view, type, date) {
-        return axios.get(BASE_URL + '/previous?view=' + view + '&type=' + type + '&date=' + date);
-    }
-
-    getNextReport(view, type, date) {
-        return axios.get(BASE_URL + '/next?view=' + view + '&type=' + type + '&date=' + date);
-    }
-
-    getCurrentUserReport(view) {
-        return axios.get(BASE_URL + '/user?view=' + view);
-    }
-
-    getPreviousUserReport(view, date) {
-        return axios.get(BASE_URL + '/user/previous?view=' + view + '&date=' + date);
-    }
-
-    getNextUserReport(view, date) {
-        return axios.get(BASE_URL + '/user/next?view=' + view + '&date=' + date);
+    /**
+     * Logged-in user's report for the period containing date (omit date for current period).
+     */
+    getUserReport(view, date) {
+        return axios.get(BASE_URL + '/user' + buildQuery({ view, date }));
     }
 
     updateOpenCloseReport(payLoad, path) {
@@ -35,4 +36,4 @@ export default class ReportService {
             Headers());
     }
 
-} 
+}

@@ -42,33 +42,23 @@ public class ReportService {
         this.reportConverter = reportConverter;
     }
 
-    public Report getCurrentReports(ReportView reportView, ReportType reportType) {
-        return getReport(reportView, reportType, calendarService.getNowDate());
+    /**
+     * Admin report for the week/month/year period that contains {@code date}.
+     * When {@code date} is null, uses the server's current date.
+     */
+    public Report getReport(ReportView reportView, ReportType reportType, LocalDate date) {
+        LocalDate anchor = date != null ? date : calendarService.getNowDate();
+        ReportDates reportDates = ReportUtil.getReportDates(reportView, anchor);
+        return getReportBetweenDates(reportType, reportDates);
     }
 
-    public Report getPreviousReport(ReportView reportView, ReportType reportType, LocalDate date) {
-        LocalDate reportDate = ReportUtil.getPreviousDate(reportView, date);
-        return getReport(reportView, reportType, reportDate);
-    }
-
-    public Report getNextReport(ReportView reportView, ReportType reportType, LocalDate date) {
-        LocalDate reportDate = ReportUtil.getNextDate(reportView, date);
-        return getReport(reportView, reportType, reportDate);
-    }
-
-    public Report getUserReport(ReportView reportView) {
-        LocalDate date = calendarService.getNowDate();
-        return getUserReport(reportView, date);
-    }
-
-    public Report getNextUserReport(ReportView reportView, LocalDate date) {
-        LocalDate reportDate = ReportUtil.getNextDate(reportView, date);
-        return getUserReport(reportView, reportDate);
-    }
-
-    public Report getPreviousUserReport(ReportView reportView, LocalDate date) {
-        LocalDate reportDate = ReportUtil.getPreviousDate(reportView, date);
-        return getUserReport(reportView, reportDate);
+    /**
+     * Logged-in user's task report for the period that contains {@code date}.
+     * When {@code date} is null, uses the server's current date.
+     */
+    public Report getUserReport(ReportView reportView, LocalDate date) {
+        LocalDate anchor = date != null ? date : calendarService.getNowDate();
+        return getUserReportForPeriod(reportView, anchor);
     }
 
     public void closeTimeReport(CloseDate closeDate) {
@@ -83,16 +73,11 @@ public class ReportService {
         closeDateRepository.deleteByUserAndDate(closeDatePO.getUser(), closeDatePO.getDate());
     }
 
-    private Report getUserReport(ReportView reportView, LocalDate date) {
+    private Report getUserReportForPeriod(ReportView reportView, LocalDate date) {
         userValidator.validateLoggedIn();
         long userId = currentUserResolver.resolveCurrentUser().getId();
         ReportDates reportDates = ReportUtil.getReportDates(reportView, date);
         return buildUserTaskReport(reportDates, userId);
-    }
-
-    private Report getReport(ReportView reportView, ReportType reportType, LocalDate date) {
-        ReportDates reportDates = ReportUtil.getReportDates(reportView, date);
-        return getReportBetweenDates(reportType, reportDates);
     }
 
     private Report buildUserTaskReport(ReportDates reportDates, Long scopedUserIdOrNull) {

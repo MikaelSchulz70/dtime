@@ -58,10 +58,10 @@ class TimeReportStatusRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldGetPreviousUnclosedUsersSuccessfully() throws Exception {
+    void shouldGetUnclosedUsersForSpecificDateSuccessfully() throws Exception {
         LocalDate testDate = LocalDate.now().minusMonths(1);
-        
-        mockMvc.perform(get("/api/timereportstatus/previous")
+
+        mockMvc.perform(get("/api/timereportstatus")
                         .param("date", testDate.toString()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON))
@@ -73,67 +73,10 @@ class TimeReportStatusRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForPreviousUnclosedUsersWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/timereportstatus/previous")
+    void shouldReturnBadRequestForUnclosedUsersWithInvalidDate() throws Exception {
+        mockMvc.perform(get("/api/timereportstatus")
                         .param("date", "invalid-date"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForPreviousUnclosedUsersWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/timereportstatus/previous"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForPreviousUnclosedUsersWithUserRole() throws Exception {
-        LocalDate testDate = LocalDate.now().minusMonths(1);
-        
-        mockMvc.perform(get("/api/timereportstatus/previous")
-                        .param("date", testDate.toString()))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldGetNextUnclosedUsersSuccessfully() throws Exception {
-        LocalDate testDate = LocalDate.now().plusMonths(1);
-        
-        mockMvc.perform(get("/api/timereportstatus/next")
-                        .param("date", testDate.toString()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON))
-                .andExpect(jsonPath("$.fromDate").exists())
-                .andExpect(jsonPath("$.toDate").exists())
-                .andExpect(jsonPath("$.unclosedUsers").exists())
-                .andExpect(jsonPath("$.workableHours").exists());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForNextUnclosedUsersWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/timereportstatus/next")
-                        .param("date", "invalid-date"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForNextUnclosedUsersWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/timereportstatus/next"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForNextUnclosedUsersWithUserRole() throws Exception {
-        LocalDate testDate = LocalDate.now().plusMonths(1);
-        
-        mockMvc.perform(get("/api/timereportstatus/next")
-                        .param("date", testDate.toString()))
-                .andExpect(status().isForbidden());
     }
 
     @Test

@@ -63,7 +63,7 @@ describe('UnclosedUsersPage', () => {
     SystemService.mockImplementation(() => mockSystemService);
     
     // Default mocks
-    TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(mockReport);
+    TimeReportStatusService.getUnclosedUsers.mockResolvedValue(mockReport);
     mockSystemService.isMailEnabled.mockResolvedValue({ data: true });
     mockConfirm.mockResolvedValue(true);
   });
@@ -74,7 +74,7 @@ describe('UnclosedUsersPage', () => {
 
   describe('Component Loading', () => {
     it('should show loading spinner initially', () => {
-      TimeReportStatusService.getCurrentUnclosedUsers.mockImplementation(() => new Promise(() => {})); // Never resolves
+      TimeReportStatusService.getUnclosedUsers.mockImplementation(() => new Promise(() => {})); // Never resolves
       
       render(<UnclosedUsersPage />);
       
@@ -86,7 +86,7 @@ describe('UnclosedUsersPage', () => {
       render(<UnclosedUsersPage />);
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getCurrentUnclosedUsers).toHaveBeenCalled();
+        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalled();
       });
 
       expect(screen.getByText('Unclosed Time Reports')).toBeInTheDocument();
@@ -103,7 +103,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle error when loading current report', async () => {
       const error = new Error('Failed to load report');
-      TimeReportStatusService.getCurrentUnclosedUsers.mockRejectedValue(error);
+      TimeReportStatusService.getUnclosedUsers.mockRejectedValue(error);
 
       render(<UnclosedUsersPage />);
 
@@ -170,7 +170,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should render empty state when no unclosed users', async () => {
       const emptyReport = { ...mockReport, unclosedUsers: [] };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(emptyReport);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(emptyReport);
 
       render(<UnclosedUsersPage />);
 
@@ -184,7 +184,7 @@ describe('UnclosedUsersPage', () => {
         ...mockReport,
         unclosedUsers: [mockReport.unclosedUsers[0], null, mockReport.unclosedUsers[1]]
       };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithNullUsers);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithNullUsers);
 
       render(<UnclosedUsersPage />);
 
@@ -204,7 +204,7 @@ describe('UnclosedUsersPage', () => {
           }
         ]
       };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithIncompleteUsers);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithIncompleteUsers);
 
       render(<UnclosedUsersPage />);
 
@@ -250,7 +250,7 @@ describe('UnclosedUsersPage', () => {
           { ...mockReport.unclosedUsers[1], closed: true } // Jane (closed)
         ]
       };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValueOnce(reportWithClosedUser);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValueOnce(reportWithClosedUser);
       TimeReportStatusService.openUserTimeReport.mockResolvedValue({ success: true });
       
       render(<UnclosedUsersPage />);
@@ -331,7 +331,9 @@ describe('UnclosedUsersPage', () => {
   describe('Navigation', () => {
     it('should load previous report when previous button is clicked', async () => {
       const previousReport = { ...mockReport, fromDate: '2022-12-01', toDate: '2022-12-31' };
-      TimeReportStatusService.getPreviousUnclosedUsers.mockResolvedValue(previousReport);
+      TimeReportStatusService.getUnclosedUsers
+        .mockResolvedValueOnce(mockReport)
+        .mockResolvedValueOnce(previousReport);
 
       render(<UnclosedUsersPage />);
 
@@ -343,13 +345,16 @@ describe('UnclosedUsersPage', () => {
       fireEvent.click(previousButton);
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getPreviousUnclosedUsers).toHaveBeenCalledWith('2023-01-01');
+        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalledWith('2022-12-01');
+        expect(screen.getByText('📅 2022-12-01 - 2022-12-31')).toBeInTheDocument();
       });
     });
 
     it('should load next report when next button is clicked', async () => {
       const nextReport = { ...mockReport, fromDate: '2023-02-01', toDate: '2023-02-28' };
-      TimeReportStatusService.getNextUnclosedUsers.mockResolvedValue(nextReport);
+      TimeReportStatusService.getUnclosedUsers
+        .mockResolvedValueOnce(mockReport)
+        .mockResolvedValueOnce(nextReport);
 
       render(<UnclosedUsersPage />);
 
@@ -361,13 +366,16 @@ describe('UnclosedUsersPage', () => {
       fireEvent.click(nextButton);
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getNextUnclosedUsers).toHaveBeenCalledWith('2023-01-31');
+        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalledWith('2023-02-01');
+        expect(screen.getByText('📅 2023-02-01 - 2023-02-28')).toBeInTheDocument();
       });
     });
 
     it('should handle error when loading previous report', async () => {
       const error = new Error('Failed to load previous report');
-      TimeReportStatusService.getPreviousUnclosedUsers.mockRejectedValue(error);
+      TimeReportStatusService.getUnclosedUsers
+        .mockResolvedValueOnce(mockReport)
+        .mockRejectedValueOnce(error);
 
       render(<UnclosedUsersPage />);
 
@@ -385,7 +393,9 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle error when loading next report', async () => {
       const error = new Error('Failed to load next report');
-      TimeReportStatusService.getNextUnclosedUsers.mockRejectedValue(error);
+      TimeReportStatusService.getUnclosedUsers
+        .mockResolvedValueOnce(mockReport)
+        .mockRejectedValueOnce(error);
 
       render(<UnclosedUsersPage />);
 
@@ -459,7 +469,7 @@ describe('UnclosedUsersPage', () => {
         ...mockReport,
         unclosedUsers: [mockReport.unclosedUsers[0]]
       };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(singleUserReport);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(singleUserReport);
       mockSystemService.sendEmailReminderToUnclosedUsers.mockResolvedValue({ success: true });
 
       render(<UnclosedUsersPage />);
@@ -482,7 +492,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should show warning when no unclosed users for email reminder', async () => {
       const noUsersReport = { ...mockReport, unclosedUsers: [] };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(noUsersReport);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(noUsersReport);
 
       render(<UnclosedUsersPage />);
 
@@ -556,7 +566,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle report with missing fromDate and toDate', async () => {
       const reportWithMissingDates = { ...mockReport, fromDate: undefined, toDate: undefined };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithMissingDates);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMissingDates);
 
       render(<UnclosedUsersPage />);
 
@@ -569,7 +579,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle report with missing workableHours', async () => {
       const reportWithMissingHours = { ...mockReport, workableHours: undefined };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithMissingHours);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMissingHours);
 
       render(<UnclosedUsersPage />);
 
@@ -583,7 +593,7 @@ describe('UnclosedUsersPage', () => {
 
   describe('Edge Cases', () => {
     it('should handle loading state with null report', () => {
-      TimeReportStatusService.getCurrentUnclosedUsers.mockImplementation(() => new Promise(() => {}));
+      TimeReportStatusService.getUnclosedUsers.mockImplementation(() => new Promise(() => {}));
       
       render(<UnclosedUsersPage />);
       
@@ -592,7 +602,7 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle report with undefined unclosedUsers', async () => {
       const reportWithUndefinedUsers = { ...mockReport, unclosedUsers: undefined };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithUndefinedUsers);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithUndefinedUsers);
 
       render(<UnclosedUsersPage />);
 
@@ -611,7 +621,7 @@ describe('UnclosedUsersPage', () => {
           }
         ]
       };
-      TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(reportWithMinimalUserData);
+      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMinimalUserData);
 
       render(<UnclosedUsersPage />);
 

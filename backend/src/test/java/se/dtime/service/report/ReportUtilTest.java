@@ -12,20 +12,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 public class ReportUtilTest {
 
     @Test
-    public void getNextDateTest() {
-        LocalDate date = LocalDate.of(2018, 12, 15);
-        assertEquals(LocalDate.of(2019, 1, 15), ReportUtil.getNextDate(ReportView.MONTH, date));
-        assertEquals(LocalDate.of(2019, 12, 15), ReportUtil.getNextDate(ReportView.YEAR, date));
-    }
-
-    @Test
-    public void getPreviousDateTest() {
-        LocalDate date = LocalDate.of(2018, 12, 15);
-        assertEquals(LocalDate.of(2018, 11, 15), ReportUtil.getPreviousDate(ReportView.MONTH, date));
-        assertEquals(LocalDate.of(2017, 12, 15), ReportUtil.getPreviousDate(ReportView.YEAR, date));
-    }
-
-    @Test
     public void getToFromDate() {
         LocalDate date = LocalDate.of(2018, 1, 7);
 

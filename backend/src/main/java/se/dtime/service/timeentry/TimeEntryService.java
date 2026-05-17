@@ -81,29 +81,13 @@ public class TimeEntryService {
         return timeReportDayPO.getId();
     }
 
-    public TimeReport getCurrentTimeReport(TimeReportView timeReportView) {
-        if (timeReportView == null) {
-            timeReportView = TimeReportView.WEEK;
-        }
-
-        return getTimeReport(calendarService.getNowDate(), timeReportView);
-    }
-
-
-    public TimeReport getNextTimeReport(TimeReportView timeReportView, LocalDate date) {
-        if (timeReportView == null) {
-            timeReportView = TimeReportView.WEEK;
-        }
-        LocalDate reportDate = getNextDate(timeReportView, date);
-        return getTimeReport(reportDate, timeReportView);
-    }
-
-    public TimeReport getPreviousTimeReport(TimeReportView timeReportView, LocalDate date) {
-        if (timeReportView == null) {
-            timeReportView = TimeReportView.WEEK;
-        }
-        LocalDate reportDate = getPreviousDate(timeReportView, date);
-        return getTimeReport(reportDate, timeReportView);
+    /**
+     * Time sheet for the week/month period containing {@code date}. When null, uses today.
+     */
+    public TimeReport getTimeReport(TimeReportView timeReportView, LocalDate date) {
+        TimeReportView view = timeReportView != null ? timeReportView : TimeReportView.WEEK;
+        LocalDate anchor = date != null ? date : calendarService.getNowDate();
+        return getTimeReportForPeriod(anchor, view);
     }
 
     public TimeReport getUserTimeReport(long userId, TimeReportView timeReportView, LocalDate date) {
@@ -126,7 +110,7 @@ public class TimeEntryService {
         }
     }
 
-    private TimeReport getTimeReport(LocalDate date, TimeReportView timeReportView) {
+    private TimeReport getTimeReportForPeriod(LocalDate date, TimeReportView timeReportView) {
         ReportDates reportDates = getReportDates(timeReportView, date);
         return getTimeReportBetweenDates(reportDates, timeReportView);
     }
@@ -156,20 +140,6 @@ public class TimeEntryService {
         }
 
         return timeReport;
-    }
-
-    LocalDate getPreviousDate(TimeReportView timeReportView, LocalDate date) {
-        return switch (timeReportView) {
-            case WEEK -> date.minusWeeks(1);
-            case MONTH -> date.minusMonths(1);
-        };
-    }
-
-    LocalDate getNextDate(TimeReportView timeReportView, LocalDate date) {
-        return switch (timeReportView) {
-            case WEEK -> date.plusWeeks(1);
-            case MONTH -> date.plusMonths(1);
-        };
     }
 
     ReportDates getReportDates(TimeReportView timeReportView, LocalDate date) {
@@ -236,21 +206,15 @@ public class TimeEntryService {
         return closedMonths;
     }
 
-    public VacationReport getCurrentVacationReport() {
-        return getVacationReport(LocalDate.now(), TimeReportView.MONTH);
+    /**
+     * Vacation report for the month containing {@code date}. When null, uses today.
+     */
+    public VacationReport getVacationReport(LocalDate date) {
+        LocalDate anchor = date != null ? date : calendarService.getNowDate();
+        return buildVacationReport(anchor, TimeReportView.MONTH);
     }
 
-    public VacationReport getPreviousVacationReport(LocalDate date) {
-        LocalDate previousDate = getPreviousDate(TimeReportView.MONTH, date);
-        return getVacationReport(previousDate, TimeReportView.MONTH);
-    }
-
-    public VacationReport getNextVacationReport(LocalDate date) {
-        LocalDate nextDate = getNextDate(TimeReportView.MONTH, date);
-        return getVacationReport(nextDate, TimeReportView.MONTH);
-    }
-
-    private VacationReport getVacationReport(LocalDate date, TimeReportView timeReportView) {
+    private VacationReport buildVacationReport(LocalDate date, TimeReportView timeReportView) {
         ReportDates reportDates = getReportDates(timeReportView, date);
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
 

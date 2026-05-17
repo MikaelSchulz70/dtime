@@ -27,37 +27,23 @@ class ReportMcpToolsTest {
     }
 
     @Test
-    void getCurrentReports_includesViewAndType() throws Exception {
+    void getReport_includesViewTypeAndDate() throws Exception {
+        when(backendApiClient.get("/api/report?view=MONTH&type=USER&date=2026-05-15", Object.class))
+                .thenReturn(Map.of());
+
+        tools.getReport("MONTH", "USER", "2026-05-15");
+
+        verify(backendApiClient).get("/api/report?view=MONTH&type=USER&date=2026-05-15", Object.class);
+    }
+
+    @Test
+    void getReport_omitsDateWhenBlank() throws Exception {
         when(backendApiClient.get("/api/report?view=MONTH&type=ACCOUNT", Object.class))
                 .thenReturn(Map.of());
 
-        tools.getCurrentReports("MONTH", "ACCOUNT");
+        tools.getReport("MONTH", "ACCOUNT", null);
 
         verify(backendApiClient).get("/api/report?view=MONTH&type=ACCOUNT", Object.class);
-    }
-
-    @Test
-    void getPreviousReport_includesDate() throws Exception {
-        when(backendApiClient.get(
-                "/api/report/previous?view=YEAR&type=USER&date=2024-06-01", Object.class))
-                .thenReturn(Map.of());
-
-        tools.getPreviousReport("YEAR", "USER", "2024-06-01");
-
-        verify(backendApiClient).get(
-                "/api/report/previous?view=YEAR&type=USER&date=2024-06-01", Object.class);
-    }
-
-    @Test
-    void getMonthlyUserReportSummary_usesPreviousReportForTargetMonth() throws Exception {
-        when(backendApiClient.get(
-                "/api/report/previous?view=MONTH&type=USER&date=2026-06-01", Object.class))
-                .thenReturn(Map.of("userReports", java.util.List.of()));
-
-        tools.getMonthlyUserReportSummary("2026-05-15");
-
-        verify(backendApiClient).get(
-                "/api/report/previous?view=MONTH&type=USER&date=2026-06-01", Object.class);
     }
 
     @Test

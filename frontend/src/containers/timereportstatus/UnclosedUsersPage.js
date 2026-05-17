@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TimeReportStatusService from '../../service/TimeReportStatusService';
+import { shiftPeriodDate } from '../../util/periodNavigation';
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
@@ -201,8 +202,8 @@ function UnclosedUsersPage(props) {
     const confirm = useConfirm();
     const { t } = useTranslation();
 
-    const loadCurrentReport = useCallback(() => {
-        TimeReportStatusService.getCurrentUnclosedUsers()
+    const loadReport = useCallback((date) => {
+        TimeReportStatusService.getUnclosedUsers(date)
             .then(response => {
                 console.log('Unclosed users response:', response);
                 setReport(response);
@@ -212,7 +213,7 @@ function UnclosedUsersPage(props) {
                 const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoad');
                 showError(errorMessage);
             });
-    }, [showError]);
+    }, [showError, t]);
 
     const checkMailEnabled = useCallback(() => {
         const systemService = new SystemService();
@@ -228,39 +229,25 @@ function UnclosedUsersPage(props) {
     }, []);
 
     useEffect(() => {
-        loadCurrentReport();
+        loadReport();
         checkMailEnabled();
-    }, [loadCurrentReport, checkMailEnabled]);
+    }, [loadReport, checkMailEnabled]);
 
-    const handlePreviousReport = useCallback((event) => {
-        const date = event.target.name;
+    const handlePreviousReport = useCallback(() => {
+        if (!report?.fromDate) {
+            return;
+        }
+        const date = shiftPeriodDate(report.fromDate, 'MONTH', -1);
+        loadReport(date);
+    }, [report, loadReport]);
 
-        TimeReportStatusService.getPreviousUnclosedUsers(date)
-            .then(response => {
-                console.log('Previous unclosed users response:', response);
-                setReport(response);
-            })
-            .catch(error => {
-                console.error('Error loading previous unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoadPrevious');
-                showError(errorMessage);
-            });
-    }, [showError]);
-
-    const handleNextReport = useCallback((event) => {
-        const date = event.target.name;
-
-        TimeReportStatusService.getNextUnclosedUsers(date)
-            .then(response => {
-                console.log('Next unclosed users response:', response);
-                setReport(response);
-            })
-            .catch(error => {
-                console.error('Error loading next unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoadNext');
-                showError(errorMessage);
-            });
-    }, [showError]);
+    const handleNextReport = useCallback(() => {
+        if (!report?.fromDate) {
+            return;
+        }
+        const date = shiftPeriodDate(report.fromDate, 'MONTH', 1);
+        loadReport(date);
+    }, [report, loadReport]);
 
     const handleReportUpdate = useCallback((updatedReport) => {
         setReport(updatedReport);

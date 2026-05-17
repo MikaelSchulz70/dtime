@@ -152,17 +152,8 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetPreviousTimeReportSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport/previous")
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetPreviousTimeReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport/previous")
+    void shouldGetTimeReportForSpecificDateSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/timereport")
                         .param("view", TimeReportView.WEEK.name())
                         .param("date", "2024-01-15"))
                 .andExpect(status().isOk())
@@ -171,42 +162,9 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForPreviousTimeReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/timereport/previous"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForPreviousTimeReportWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/timereport/previous")
+    void shouldReturnBadRequestForTimeReportWithInvalidDate() throws Exception {
+        mockMvc.perform(get("/api/timereport")
                         .param("date", "invalid-date"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetNextTimeReportSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport/next")
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetNextTimeReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport/next")
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForNextTimeReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/timereport/next"))
                 .andExpect(status().isBadRequest());
     }
 

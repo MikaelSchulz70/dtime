@@ -14,24 +14,12 @@ public class TimeReportStatusMcpTools extends McpToolsSupport {
         super(backendApiClient, objectMapper);
     }
 
-    @Tool(description = "Users with unclosed time reports for the current period (admin)")
-    public String getCurrentUnclosedUsers() throws Exception {
-        return getJson("/api/timereportstatus");
-    }
-
     @Tool(description =
-            "Users with unclosed time reports for the period before the anchor date (admin). date: ISO YYYY-MM-DD.")
-    public String getPreviousUnclosedUsers(String date) throws Exception {
+            "Users with unclosed time reports for the month containing date (admin). "
+                    + "Omit date for current month. date: ISO YYYY-MM-DD inside target month.")
+    public String getUnclosedUsers(String date) throws Exception {
         Map<String, Object> params = queryMap();
-        params.put("date", date);
-        return getJson(buildPath("/api/timereportstatus/previous", params));
-    }
-
-    @Tool(description =
-            "Users with unclosed time reports for the period after the anchor date (admin). date: ISO YYYY-MM-DD.")
-    public String getNextUnclosedUsers(String date) throws Exception {
-        Map<String, Object> params = queryMap();
-        params.put("date", date);
-        return getJson(buildPath("/api/timereportstatus/next", params));
+        putIfPresent(params, "date", date);
+        return getJson(buildPath("/api/timereportstatus", params));
     }
 }

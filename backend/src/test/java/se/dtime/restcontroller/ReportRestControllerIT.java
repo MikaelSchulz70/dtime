@@ -50,8 +50,8 @@ class ReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldGetPreviousReportWithAllParamsSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/previous")
+    void shouldGetReportForSpecificDateSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/report")
                         .param("view", ReportView.MONTH.name())
                         .param("type", ReportType.TASK.name())
                         .param("date", "2024-01-15"))
@@ -61,53 +61,10 @@ class ReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForPreviousReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/report/previous"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForPreviousReportWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/report/previous")
+    void shouldReturnBadRequestForReportWithInvalidDate() throws Exception {
+        mockMvc.perform(get("/api/report")
                         .param("date", "invalid-date"))
                 .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForPreviousReportWithUserRole() throws Exception {
-        mockMvc.perform(get("/api/report/previous")
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldGetNextReportWithAllParamsSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/next")
-                        .param("view", ReportView.MONTH.name())
-                        .param("type", ReportType.USER.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForNextReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/report/next"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForNextReportWithUserRole() throws Exception {
-        mockMvc.perform(get("/api/report/next")
-                        .param("date", "2024-01-15")
-                        .param("type", ReportType.USER.name())
-                        .param("view", ReportView.MONTH.name()))
-                .andExpect(status().isForbidden());
     }
 
     @Test
@@ -127,36 +84,12 @@ class ReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetNextUserReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/user/next")
+    void shouldGetUserReportForSpecificDateSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/report/user")
                         .param("view", ReportView.MONTH.name())
                         .param("date", "2024-01-15"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForNextUserReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/report/user/next"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetPreviousUserReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/user/previous")
-                        .param("view", ReportView.MONTH.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForPreviousUserReportWithoutDate() throws Exception {
-        mockMvc.perform(get("/api/report/user/previous"))
-                .andExpect(status().isBadRequest());
     }
 
     @Test

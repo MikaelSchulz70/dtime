@@ -20,7 +20,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/report")
 public class ReportRestController {
-    
+
     private final ReportService reportService;
     private final ReportRepository reportRepository;
 
@@ -29,57 +29,24 @@ public class ReportRestController {
         this.reportRepository = reportRepository;
     }
 
-
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "")
-    public ResponseEntity<Report> getCurrentReports(@RequestParam(value = "view", required = false) ReportView reportView,
-                                                    @RequestParam(value = "type", required = false) ReportType reportType) {
-        Report report = reportService.getCurrentReports(reportView, reportType);
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/previous")
-    public ResponseEntity<Report> getPreviousReport(@RequestParam(value = "view", required = false) ReportView reportView,
-                                                    @RequestParam(value = "type", required = false) ReportType reportType,
-                                                    @RequestParam(value = "date", required = true)
-                                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getPreviousReport(reportView, reportType, date);
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/next")
-    public ResponseEntity<Report> getNextReport(@RequestParam(value = "view", required = false) ReportView reportView,
-                                                @RequestParam(value = "type", required = false) ReportType reportType,
-                                                @RequestParam(value = "date", required = true)
-                                                @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getNextReport(reportView, reportType, date);
+    public ResponseEntity<Report> getReport(
+            @RequestParam(value = "view", required = false) ReportView reportView,
+            @RequestParam(value = "type", required = false) ReportType reportType,
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        Report report = reportService.getReport(reportView, reportType, date);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping(path = "/user")
-    public ResponseEntity<Report> getUserReport(@RequestParam(value = "view", required = false) ReportView reportView) {
-        Report report = reportService.getUserReport(reportView);
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "/user/next")
-    public ResponseEntity<Report> getNextUserReport(@RequestParam(value = "view", required = false) ReportView reportView,
-                                                    @RequestParam(value = "date", required = true)
-                                                    @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getNextUserReport(reportView, date);
-        return new ResponseEntity<>(report, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "/user/previous")
-    public ResponseEntity<Report> getPreviousUserReport(@RequestParam(value = "view", required = false) ReportView reportView,
-                                                        @RequestParam(value = "date", required = true)
-                                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getPreviousUserReport(reportView, date);
+    public ResponseEntity<Report> getUserReport(
+            @RequestParam(value = "view", required = false) ReportView reportView,
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        Report report = reportService.getUserReport(reportView, date);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 

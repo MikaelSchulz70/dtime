@@ -63,20 +63,6 @@ public class TimeReportServiceTest {
     }
 
     @Test
-    public void getPreviousDateTest() {
-        LocalDate date = LocalDate.of(2018, 1, 17);
-        assertEquals(LocalDate.of(2018, 1, 10), timeReportService.getPreviousDate(TimeReportView.WEEK, date));
-        assertEquals(LocalDate.of(2017, 12, 17), timeReportService.getPreviousDate(TimeReportView.MONTH, date));
-    }
-
-    @Test
-    public void getNextDateTest() {
-        LocalDate date = LocalDate.of(2018, 7, 16);
-        assertEquals(LocalDate.of(2018, 7, 23), timeReportService.getNextDate(TimeReportView.WEEK, date));
-        assertEquals(LocalDate.of(2018, 8, 16), timeReportService.getNextDate(TimeReportView.MONTH, date));
-    }
-
-    @Test
     public void getReportDatesTest() {
         LocalDate date = LocalDate.of(2018, 11, 28);
 

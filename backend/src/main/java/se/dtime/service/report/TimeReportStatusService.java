@@ -36,19 +36,12 @@ public class TimeReportStatusService {
         this.reportConverter = reportConverter;
     }
 
-    public UnclosedUserReport getCurrentUnclosedUsers() {
-        LocalDate date = calendarService.getNowDate();
-        return getUnclosedUsersForDate(date);
-    }
-
-    public UnclosedUserReport getPreviousUnclosedUsers(LocalDate date) {
-        LocalDate reportDate = ReportUtil.getPreviousDate(ReportView.MONTH, date);
-        return getUnclosedUsersForDate(reportDate);
-    }
-
-    public UnclosedUserReport getNextUnclosedUsers(LocalDate date) {
-        LocalDate reportDate = ReportUtil.getNextDate(ReportView.MONTH, date);
-        return getUnclosedUsersForDate(reportDate);
+    /**
+     * Unclosed users for the month that contains {@code date}. When null, uses today.
+     */
+    public UnclosedUserReport getUnclosedUsers(LocalDate date) {
+        LocalDate anchor = date != null ? date : calendarService.getNowDate();
+        return getUnclosedUsersForDate(anchor);
     }
 
     public void closeUserTimeReport(CloseDate closeDate) {

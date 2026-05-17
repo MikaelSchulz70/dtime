@@ -7,20 +7,6 @@ import java.time.LocalDate;
 
 public class ReportUtil {
 
-    static LocalDate getNextDate(ReportView reportView, LocalDate date) {
-        return switch (reportView) {
-            case MONTH -> date.plusMonths(1);
-            case YEAR -> date.plusYears(1);
-        };
-    }
-
-    static LocalDate getPreviousDate(ReportView reportView, LocalDate date) {
-        return switch (reportView) {
-            case MONTH -> date.minusMonths(1);
-            case YEAR -> date.minusYears(1);
-        };
-    }
-
     static ReportDates getReportDates(ReportView reportView, LocalDate date) {
         LocalDate fromDate;
         LocalDate toDate = switch (reportView) {

@@ -4,6 +4,17 @@ import { Headers } from './ServiceUtil';
 
 const BASE_URL = "/api/timereport";
 
+function buildQuery(params) {
+    const search = new URLSearchParams();
+    Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+            search.append(key, value);
+        }
+    });
+    const qs = search.toString();
+    return qs ? `?${qs}` : '';
+}
+
 export default class TimeService {
 
     updateTime(time) {
@@ -13,31 +24,22 @@ export default class TimeService {
             Headers());
     }
 
-    getTimes(view) {
-        return axios.get(BASE_URL + '?view=' + view);
-    }
-
-    getPreviousTimes(view, date) {
-        return axios.get(BASE_URL + '/previous?view=' + view + '&date=' + date);
-    }
-
-    getNextTimes(view, date) {
-        return axios.get(BASE_URL + '/next?view=' + view + '&date=' + date);
+    /**
+     * Time sheet for the period containing date (omit date for current period).
+     */
+    getTimeReport(view, date) {
+        return axios.get(BASE_URL + buildQuery({ view, date }));
     }
 
     getUserTimes(userId, fromDate) {
         return axios.get(BASE_URL + '/user?view=MONTH&userId=' + userId + '&date=' + fromDate);
     }
 
-    getVacations() {
-        return axios.get(BASE_URL + '/vacations');
+    /**
+     * Vacation report for the month containing date (omit date for current month).
+     */
+    getVacationReport(date) {
+        return axios.get(BASE_URL + '/vacations' + buildQuery({ date }));
     }
 
-    getPreviousVacations(date) {
-        return axios.get(BASE_URL + '/vacations/previous?date=' + date);
-    }
-
-    getNextVacations(date) {
-        return axios.get(BASE_URL + '/vacations/next?date=' + date);
-    }
 }

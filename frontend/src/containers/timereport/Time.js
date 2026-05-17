@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import TimeService from '../../service/TimeService';
 import * as Constants from '../../common/Constants';
+import { shiftPeriodDate } from '../../util/periodNavigation';
 import ReportService from '../../service/ReportService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
@@ -14,47 +15,37 @@ function Times(props) {
     const { t } = useTranslation();
     const confirm = useConfirm();
 
-    useEffect(() => {
-        loadCurrentTimes(Constants.MONTH_VIEW);
-    }, []);
-
-    const loadCurrentTimes = useCallback((view) => {
-        var timeService = new TimeService();
-        timeService.getTimes(view)
+    const loadTimeReport = useCallback((view, date) => {
+        const timeService = new TimeService();
+        timeService.getTimeReport(view, date)
             .then(response => {
                 setTimeReport(response.data);
                 setReportView(view);
             })
-            .catch(error => {
+            .catch(() => {
                 showError(t('time.messages.loadFailed'));
             });
     }, [showError, t]);
 
-    const loadPreviousTimes = useCallback((event) => {
-        const date = event.target.name;
+    useEffect(() => {
+        loadTimeReport(Constants.MONTH_VIEW);
+    }, [loadTimeReport]);
 
-        const timeService = new TimeService();
-        timeService.getPreviousTimes(reportView, date)
-            .then(response => {
-                setTimeReport(response.data);
-            })
-            .catch(error => {
-                showError(t('time.messages.loadFailed'));
-            });
-    }, [reportView, showError, t]);
+    const loadPreviousTimes = useCallback(() => {
+        if (!timeReport?.firstDate) {
+            return;
+        }
+        const date = shiftPeriodDate(timeReport.firstDate, reportView, -1);
+        loadTimeReport(reportView, date);
+    }, [timeReport, reportView, loadTimeReport]);
 
-    const loadNextTimes = useCallback((event) => {
-        const date = event.target.name;
-
-        const timeService = new TimeService();
-        timeService.getNextTimes(reportView, date)
-            .then(response => {
-                setTimeReport(response.data);
-            })
-            .catch(error => {
-                showError(t('time.messages.loadFailed'));
-            });
-    }, [reportView, showError, t]);
+    const loadNextTimes = useCallback(() => {
+        if (!timeReport?.firstDate) {
+            return;
+        }
+        const date = shiftPeriodDate(timeReport.firstDate, reportView, 1);
+        loadTimeReport(reportView, date);
+    }, [timeReport, reportView, loadTimeReport]);
 
     const closeReport = useCallback(async (event) => {
         const confirmed = await confirm({
@@ -70,19 +61,23 @@ function Times(props) {
         var payLoad = '{ "userId": "' + timeReport.user.id + '", "closeDate": "' + date + '"}';
         var service = new ReportService();
         service.updateOpenCloseReport(payLoad, 'close')
-            .then(response => {
-                loadCurrentTimes(Constants.MONTH_VIEW);
+            .then(() => {
+                loadTimeReport(Constants.MONTH_VIEW);
                 showSuccess(t('time.messages.reportClosed'));
             })
-            .catch(error => {
+            .catch(() => {
                 showError(t('time.messages.closeFailed'));
             });
-    }, [timeReport, loadCurrentTimes, showSuccess, showError, confirm, t]);
+    }, [timeReport, loadTimeReport, showSuccess, showError, confirm, t]);
 
     const viewChange = useCallback((event) => {
         const view = event.target.value;
-        loadCurrentTimes(view);
-    }, [loadCurrentTimes]);
+        if (timeReport?.firstDate) {
+            loadTimeReport(view, timeReport.firstDate);
+        } else {
+            loadTimeReport(view);
+        }
+    }, [timeReport, loadTimeReport]);
 
     if (timeReport == null) return null;
 
@@ -91,10 +86,10 @@ function Times(props) {
             <h2>{t('time.title')}</h2>
             <div className="row mb-2">
                 <div className="col-auto">
-                    <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={loadPreviousTimes}>&lt;&lt;</button>
+                    <button type="button" className="btn btn-success btn-sm" onClick={loadPreviousTimes}>&lt;&lt;</button>
                 </div>
                 <div className="col-auto">
-                    <button className="btn btn-success btn-sm" name={timeReport.lastDate} onClick={loadNextTimes}>&gt;&gt;</button>
+                    <button type="button" className="btn btn-success btn-sm" onClick={loadNextTimes}>&gt;&gt;</button>
                 </div>
                 <div className="col-auto">
                     <select className="form-control form-control-sm" value={reportView} name="reportView" onChange={viewChange}>

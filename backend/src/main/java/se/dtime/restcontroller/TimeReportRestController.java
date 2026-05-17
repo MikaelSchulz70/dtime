@@ -31,27 +31,12 @@ public class TimeReportRestController {
 
     @PreAuthorize("hasRole('USER')")
     @GetMapping(path = "")
-    public ResponseEntity<TimeReport> getCurrentTimeReport(@RequestParam(value = "view", required = false) TimeReportView timeReportView) {
-        TimeReport timeReport = timeEntryService.getCurrentTimeReport(timeReportView);
+    public ResponseEntity<TimeReport> getTimeReport(
+            @RequestParam(value = "view", required = false) TimeReportView timeReportView,
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        TimeReport timeReport = timeEntryService.getTimeReport(timeReportView, date);
         return new ResponseEntity<>(timeReport, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "/previous")
-    public ResponseEntity<TimeReport> getPreviousTimeReport(@RequestParam(value = "view", required = false) TimeReportView timeReportView,
-                                                            @RequestParam(value = "date", required = true)
-                                                            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        TimeReport timeReport = timeEntryService.getPreviousTimeReport(timeReportView, date);
-        return new ResponseEntity<>(timeReport, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "/next")
-    public ResponseEntity<TimeReport> getNextTimeReport(@RequestParam(value = "view", required = false) TimeReportView timeReportView,
-                                                        @RequestParam(value = "date", required = true)
-                                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        TimeReport timeReportDay = timeEntryService.getNextTimeReport(timeReportView, date);
-        return new ResponseEntity<>(timeReportDay, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
@@ -66,24 +51,10 @@ public class TimeReportRestController {
 
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping(path = "/vacations")
-    public ResponseEntity<VacationReport> getVacations() {
-        VacationReport vacationReport = timeEntryService.getCurrentVacationReport();
-        return new ResponseEntity<>(vacationReport, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/vacations/previous")
-    public ResponseEntity<VacationReport> getPreviousVacations(@RequestParam(value = "date", required = true)
-                                                               @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        VacationReport vacationReport = timeEntryService.getPreviousVacationReport(date);
-        return new ResponseEntity<>(vacationReport, HttpStatus.OK);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/vacations/next")
-    public ResponseEntity<VacationReport> getNextVacations(@RequestParam(value = "date", required = true)
-                                                           @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        VacationReport vacationReport = timeEntryService.getNextVacationReport(date);
+    public ResponseEntity<VacationReport> getVacations(
+            @RequestParam(value = "date", required = false)
+            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
+        VacationReport vacationReport = timeEntryService.getVacationReport(date);
         return new ResponseEntity<>(vacationReport, HttpStatus.OK);
     }
 }

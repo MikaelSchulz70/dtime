@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { useTranslation } from 'react-i18next';
 import TimeService from '../../service/TimeService';
+import { shiftPeriodDate } from '../../util/periodNavigation';
 import * as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
 
@@ -168,46 +169,36 @@ export default function Vacations(props) {
     const [vacations, setVacations] = useState(null);
     const { showError } = useToast();
 
-    const loadCurrentVacations = useCallback(() => {
-        var timeService = new TimeService();
-        timeService.getVacations()
+    const loadVacations = useCallback((date) => {
+        const timeService = new TimeService();
+        timeService.getVacationReport(date)
             .then(response => {
                 setVacations(response.data);
             })
-            .catch(error => {
+            .catch(() => {
                 showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
             });
-    }, [showError]);
+    }, [showError, t]);
 
-    const loadPreviousVacations = useCallback((event) => {
-        const date = event.target.name;
-        var timeService = new TimeService();
+    const loadPreviousVacations = useCallback(() => {
+        if (!vacations?.firstDate) {
+            return;
+        }
+        const date = shiftPeriodDate(vacations.firstDate, 'MONTH', -1);
+        loadVacations(date);
+    }, [vacations, loadVacations]);
 
-        timeService.getPreviousVacations(date)
-            .then(response => {
-                setVacations(response.data);
-            })
-            .catch(error => {
-                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
-            });
-    }, [showError]);
-
-    const loadNextVacations = useCallback((event) => {
-        const date = event.target.name;
-        var timeService = new TimeService();
-
-        timeService.getNextVacations(date)
-            .then(response => {
-                setVacations(response.data);
-            })
-            .catch(error => {
-                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
-            });
-    }, [showError]);
+    const loadNextVacations = useCallback(() => {
+        if (!vacations?.firstDate) {
+            return;
+        }
+        const date = shiftPeriodDate(vacations.firstDate, 'MONTH', 1);
+        loadVacations(date);
+    }, [vacations, loadVacations]);
 
     useEffect(() => {
-        loadCurrentVacations();
-    }, [loadCurrentVacations]);
+        loadVacations();
+    }, [loadVacations]);
 
     if (vacations == null) return null;
 
@@ -223,7 +214,6 @@ export default function Vacations(props) {
                                     <div className="d-flex gap-2">
                                         <button
                                             className="btn btn-success btn-sm"
-                                            name={vacations.firstDate}
                                             onClick={loadPreviousVacations}
                                             title={t('vacations.navigation.previousMonth')}
                                         >
@@ -231,7 +221,6 @@ export default function Vacations(props) {
                                         </button>
                                         <button
                                             className="btn btn-success btn-sm"
-                                            name={vacations.lastDate}
                                             onClick={loadNextVacations}
                                             title={t('vacations.navigation.nextMonth')}
                                         >
