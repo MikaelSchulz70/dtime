@@ -53,8 +53,8 @@ public class TimeReportValidator extends ValidatorBase<TimeEntry> {
     }
 
     public void validateAdd(TimeEntry timeEntry) {
-        TaskContributorPO taskContributorPO = taskContributorRepository.findById(timeEntry.getTaskContributorId()).orElseThrow(() -> new ValidationException("time.report.assignment.not.found"));
-        check(taskContributorPO.getActivationStatus() == ActivationStatus.ACTIVE, "time.report.assignment.not.active");
+        TaskContributorPO taskContributorPO = taskContributorRepository.findById(timeEntry.getTaskContributorId()).orElseThrow(() -> new ValidationException("time.report.task.not.found"));
+        check(taskContributorPO.getActivationStatus() == ActivationStatus.ACTIVE, "time.report.task.not.active");
 
         if (timeEntry.getTime() != null) {
             checkInvalidInput(timeEntry.getTime().compareTo(java.math.BigDecimal.valueOf(MIN_TIME)) >= 0, "time.report.invalid.time.min");

@@ -5,6 +5,7 @@ import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.TimeEntryPO;
+import se.dtime.model.ActivationStatus;
 import se.dtime.model.timereport.*;
 import se.dtime.service.BaseConverter;
 import se.dtime.service.task.TaskConverter;
@@ -49,10 +50,12 @@ public class TimeReportConverter extends BaseConverter {
         Set<TaskPO> taskPOSet = mergeCategories(timeEntryPOS, taskPOS);
 
         for (TaskPO taskPO : taskPOSet) {
+            TaskContributorPO taskContributorPO = taskContributorMap.get(taskPO.getId());
             TimeReportTask timeReportTask = TimeReportTask.builder().
                     task(taskConverter.toModel(taskPO)).
                     timeEntries(new ArrayList<>()).
                     totalTime(BigDecimal.ZERO).
+                    editable(isRowEditable(taskPO, taskContributorPO)).
                     build();
 
             timeReportTasks.add(timeReportTask);
@@ -61,7 +64,7 @@ public class TimeReportConverter extends BaseConverter {
                 TimeEntry timeEntry = timeEntryPOS.stream().
                         filter(t -> t.getTaskContributor().getTask().getId().equals(taskPO.getId()) && day.getDate().equals(t.getDate())).
                         findFirst().map(te -> convertToTimeReportDay(day, te)).
-                        orElse(convertToTimeReportDay(day, taskContributorMap.get(taskPO.getId())));
+                        orElse(convertToTimeReportDay(day, taskContributorPO));
 
                 timeReportTask.setTotalTime(timeReportTask.getTotalTime().add(timeEntry.getTime() != null ? timeEntry.getTime() : BigDecimal.ZERO));
                 timeReportTask.getTimeEntries().add(timeEntry);
@@ -71,6 +74,19 @@ public class TimeReportConverter extends BaseConverter {
         timeReportTasks.sort((TimeReportTask t1, TimeReportTask t2) -> t1.getTask().getName().compareTo(t2.getTask().getName()));
 
         return timeReportTasks;
+    }
+
+    private boolean isRowEditable(TaskPO taskPO, TaskContributorPO taskContributorPO) {
+        if (taskPO.getActivationStatus() != ActivationStatus.ACTIVE) {
+            return false;
+        }
+        if (taskPO.getAccount() != null && taskPO.getAccount().getActivationStatus() != ActivationStatus.ACTIVE) {
+            return false;
+        }
+        if (taskContributorPO == null || taskContributorPO.getActivationStatus() != ActivationStatus.ACTIVE) {
+            return false;
+        }
+        return true;
     }
 
     TimeEntry convertToTimeReportDay(Day day, TaskContributorPO taskContributorPO) {

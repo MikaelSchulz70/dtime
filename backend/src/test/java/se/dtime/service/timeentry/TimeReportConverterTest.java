@@ -6,10 +6,13 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import se.dtime.dbmodel.AccountPO;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.TaskPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.dbmodel.timereport.TimeEntryPO;
+import se.dtime.model.Account;
+import se.dtime.model.ActivationStatus;
 import se.dtime.model.Task;
 import se.dtime.model.timereport.*;
 import se.dtime.service.task.TaskConverter;
@@ -107,6 +110,50 @@ public class TimeReportConverterTest {
         days[0] = Day.builder().withinCurrentMonth(false).build();
         days[1] = Day.builder().withinCurrentMonth(false).build();
         assertFalse(timeReportConverter.isWithinMonth(days));
+    }
+
+    @Test
+    public void convertToTimeReport_marksRowNotEditableWhenTaskContributorInactive() {
+        LocalDate fromDate = LocalDate.of(YEAR, MONTH, 1);
+        LocalDate toDate = LocalDate.of(YEAR, MONTH, 2);
+        UserPO userPO = new UserPO(1L);
+        Day[] days = createDays(fromDate, toDate);
+
+        AccountPO accountPO = new AccountPO(1L);
+        accountPO.setActivationStatus(ActivationStatus.ACTIVE);
+
+        TaskPO taskPO = createTaskPO(1);
+        taskPO.setActivationStatus(ActivationStatus.ACTIVE);
+        taskPO.setAccount(accountPO);
+
+        TaskContributorPO contributor = createTaskContributor(1, 1, 1);
+        contributor.setActivationStatus(ActivationStatus.INACTIVE);
+        contributor.setTask(taskPO);
+
+        when(taskConverter.toModel(any(TaskPO.class))).thenAnswer(invocation -> {
+            TaskPO po = invocation.getArgument(0);
+            return Task.builder()
+                    .id(po.getId())
+                    .name(po.getName())
+                    .activationStatus(po.getActivationStatus())
+                    .account(Account.builder()
+                            .id(po.getAccount().getId())
+                            .activationStatus(po.getAccount().getActivationStatus())
+                            .build())
+                    .build();
+        });
+
+        TimeEntryPO timeEntryPO = createTimeEntryPO(1, 1, 1, BigDecimal.valueOf(8), fromDate);
+        timeEntryPO.getTaskContributor().setTask(taskPO);
+        timeEntryPO.getTaskContributor().setActivationStatus(ActivationStatus.INACTIVE);
+        List<TimeEntryPO> timeEntryPOS = List.of(timeEntryPO);
+        List<TaskContributorPO> taskContributorPOS = List.of(contributor);
+
+        TimeReport timeReport = timeReportConverter.convertToTimeReport(
+                days, userPO, timeEntryPOS, taskContributorPOS);
+
+        assertEquals(1, timeReport.getTimeReportTasks().size());
+        assertFalse(timeReport.getTimeReportTasks().get(0).isEditable());
     }
 
     @Test

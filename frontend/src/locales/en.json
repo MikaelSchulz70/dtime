@@ -357,7 +357,10 @@
       "closeConfirm": "Are you really sure you want close this month?\nYou will not be able to open it again.",
       "reportClosed": "Report closed successfully",
       "loadFailed": "Failed to load time report",
-      "closeFailed": "Failed to close report"
+      "closeFailed": "Failed to close report",
+      "taskInactiveRow": "Task is inactive — time cannot be edited",
+      "accountInactiveRow": "Account is inactive — time cannot be edited",
+      "assignmentInactiveRow": "You are not assigned to this task — time cannot be edited"
     }
   },
   "reports": {

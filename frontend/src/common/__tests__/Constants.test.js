@@ -35,7 +35,7 @@ describe('Constants', () => {
   describe('Color Constants', () => {
     it('should have correct color values', () => {
       expect(Constants.DAY_COLOR).toBe('#ffffff');
-      expect(Constants.WEEKEND_COLOR).toBe('#b6cff7ff');
+      expect(Constants.WEEKEND_COLOR).toBe('#b6cff7');
       expect(Constants.ALERT_COLOR).toBe('#28a745');
       expect(Constants.BRAND_PRIMARY).toBe('#28a745');
       expect(Constants.BRAND_SECONDARY).toBe('#6c757d');

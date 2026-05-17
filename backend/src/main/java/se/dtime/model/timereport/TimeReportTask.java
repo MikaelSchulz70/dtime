@@ -15,4 +15,6 @@ public class TimeReportTask {
     private Task task;
     private BigDecimal totalTime;
     private List<TimeEntry> timeEntries;
+    /** False when the task, account, or user's task assignment is inactive. */
+    private boolean editable;
 }

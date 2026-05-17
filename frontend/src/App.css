@@ -366,6 +366,19 @@ td .btn {
   max-width: 100%;
 }
 
+.time-report-row-inactive {
+  opacity: 0.85;
+}
+
+.time-report-row-inactive .time-report-label {
+  color: var(--bs-secondary-color, #6c757d);
+}
+
+.time-report-row-inactive input.time {
+  pointer-events: none;
+  cursor: not-allowed;
+}
+
 /* Row total hours column (third column) */
 .time-report-table th:nth-child(3),
 .time-report-table td:nth-child(3) {
@@ -387,9 +400,29 @@ td .btn {
 .time-report-table input.time {
   width: 40px;
   height: 28px;
+  min-width: 40px;
+  max-width: 40px;
   margin: 0 auto;
   display: block;
   font-size: 0.85rem;
+  padding: 0.25rem 0.125rem;
+  box-sizing: border-box;
+}
+
+.time-report-table input.time.time-locked,
+.time-report-table input.time:read-only,
+.time-report-table input.time:disabled {
+  width: 40px;
+  height: 28px;
+  min-width: 40px;
+  max-width: 40px;
+  padding: 0.25rem 0.125rem;
+  font-size: 0.85rem;
+}
+
+.time-report-table input.time:disabled {
+  opacity: 1;
+  cursor: not-allowed;
 }
 
 /* Vacation calendar grid (same alignment rules as time report) */

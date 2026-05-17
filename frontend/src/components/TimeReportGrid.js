@@ -1,22 +1,11 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import TimeService from '../service/TimeService';
+import { handleApiError } from '../service/ServiceUtil';
 import * as Constants from '../common/Constants';
 import { useToast } from './Toast';
 import { useTranslation } from 'react-i18next';
 
 export function getDayBackgroundColor(day, isClosed) {
-    if (isClosed) {
-        if (day.weekend) {
-            return Constants.CLOSED_WEEK_END_COLOR;
-        }
-        if (day.majorHoliday) {
-            return Constants.CLOSED_MAJOR_HOLIDAY_COLOR;
-        }
-        if (day.halfDay) {
-            return Constants.CLOSED_HALF_DAY_COLOR;
-        }
-        return Constants.CLOSED_COLOR;
-    }
     if (day.weekend) {
         return Constants.WEEKEND_COLOR;
     }
@@ -26,7 +15,34 @@ export function getDayBackgroundColor(day, isClosed) {
     if (day.halfDay) {
         return Constants.HALF_DAY_COLOR;
     }
+    if (isClosed) {
+        return Constants.CLOSED_COLOR;
+    }
     return Constants.DAY_COLOR;
+}
+
+function isInactiveStatus(status) {
+    return status === Constants.INACTIVE_STATUS || status === 'INACTIVE';
+}
+
+export function isTimeReportTaskEditable(timeReportTask) {
+    if (timeReportTask == null) {
+        return false;
+    }
+    if (typeof timeReportTask.editable === 'boolean') {
+        return timeReportTask.editable;
+    }
+    const task = timeReportTask.task;
+    if (!task) {
+        return false;
+    }
+    if (isInactiveStatus(task.activationStatus)) {
+        return false;
+    }
+    if (isInactiveStatus(task.account?.activationStatus)) {
+        return false;
+    }
+    return true;
 }
 
 export function calcTaskTotalTime(timeReportTask) {
@@ -97,15 +113,12 @@ function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged
         return true;
     }, []);
 
-    const handleError = useCallback((status, error) => {
-        if (status === 400 && error != null) {
-            showError(error);
-        } else if (status === 500) {
-            showError(t('common.messages.internalServerError', { error }));
-        } else {
-            showError(t('common.messages.genericError', { error }));
+    const showApiError = useCallback((error) => {
+        const message = handleApiError(error);
+        if (message) {
+            showError(message);
         }
-    }, [showError, t]);
+    }, [showError]);
 
     const addUpdate = useCallback(() => {
         if (timeReportDay.closed || readOnly) {
@@ -117,10 +130,8 @@ function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged
             .then(response => {
                 timeChangedCallback(timeReportDay, response.data);
             })
-            .catch(error => {
-                handleError(error.response?.status, error.response?.data?.error);
-            });
-    }, [timeReportDay, readOnly, timeChangedCallback, handleError]);
+            .catch(showApiError);
+    }, [timeReportDay, readOnly, timeChangedCallback, showApiError]);
 
     const handleChange = useCallback((event) => {
         if (timeReportDay.closed || readOnly) {
@@ -144,41 +155,39 @@ function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged
         return null;
     }
 
-    var isClosed = timeReportDay.closed || readOnly;
+    const isLocked = timeReportDay.closed || readOnly;
+    const isInactiveRow = readOnly && !timeReportDay.closed;
     var backGroundColor = getDayBackgroundColor(timeReportDay.day, timeReportDay.closed);
     var time = (timeReportDay.time == null || timeReportDay.time === 0 ? '' : timeReportDay.time);
-    var classes = 'time' + (fieldError ? ' border border-danger' : '');
+    var classes = 'time'
+        + (fieldError ? ' border border-danger' : '')
+        + (isLocked ? ' time-locked' : '');
     var inputName = JSON.stringify(timeReportDay.day.date);
 
     const inputStyle = {
         backgroundColor: backGroundColor,
-        width: '40px',
-        ...(readOnly ? {
-            textAlign: 'center',
-            border: '1px solid #dee2e6',
-            fontSize: '0.875rem',
-            fontWeight: time ? '600' : '400',
-        } : {}),
     };
 
     return (
         <td style={{ padding: '0px' }}>
             <input
                 style={inputStyle}
-                className={readOnly ? 'form-control form-control-sm' : classes}
-                readOnly={isClosed}
+                className={classes}
+                readOnly={isLocked}
+                disabled={isInactiveRow}
                 name={inputName}
                 type="text"
                 value={time}
                 maxLength="5"
-                onChange={readOnly ? undefined : handleChange}
-                onBlur={readOnly ? undefined : addUpdate}
+                onChange={isLocked ? undefined : handleChange}
+                onBlur={isLocked ? undefined : addUpdate}
             />
         </td>
     );
 }
 
 function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged, readOnly }) {
+    const { t } = useTranslation();
     const timeChangedCallback = useCallback((timeReportDay) => {
         if (timeChanged) {
             timeChanged(timeReportDay);
@@ -188,6 +197,15 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged, readOn
     if (timeReportTask == null) {
         return null;
     }
+
+    const rowReadOnly = readOnly || !isTimeReportTaskEditable(timeReportTask);
+    const inactiveReason = rowReadOnly && !readOnly
+        ? (isInactiveStatus(timeReportTask.task.activationStatus)
+            ? t('time.messages.taskInactiveRow')
+            : isInactiveStatus(timeReportTask.task.account?.activationStatus)
+                ? t('time.messages.accountInactiveRow')
+                : t('time.messages.assignmentInactiveRow'))
+        : null;
 
     var keyBase = timeReportTask.task.id;
 
@@ -201,7 +219,7 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged, readOn
                 id={key}
                 timeReportDay={timeReportDay}
                 timeChanged={timeChangedCallback}
-                readOnly={readOnly}
+                readOnly={rowReadOnly}
             />
         );
         i++;
@@ -209,14 +227,24 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged, readOn
 
     var accountName = timeReportTask.task.account.name;
     var taskName = timeReportTask.task.name;
+    const labelTitle = inactiveReason
+        ? `${accountName} — ${inactiveReason}`
+        : accountName;
+    const taskLabelTitle = inactiveReason
+        ? `${taskName} — ${inactiveReason}`
+        : taskName;
 
     return (
-        <tr key={keyBase} className={readOnly ? 'border-bottom' : undefined}>
+        <tr
+            key={keyBase}
+            className={rowReadOnly && !readOnly ? 'time-report-row-inactive border-bottom' : (readOnly ? 'border-bottom' : undefined)}
+            title={inactiveReason || undefined}
+        >
             <th className="time-report-label-col">
-                <span className="time-report-label" title={accountName}>{accountName}</span>
+                <span className="time-report-label" title={labelTitle}>{accountName}</span>
             </th>
             <th className="time-report-label-col">
-                <span className="time-report-label" title={taskName}>{taskName}</span>
+                <span className="time-report-label" title={taskLabelTitle}>{taskName}</span>
             </th>
             <th style={{ padding: '0px' }}>
                 <TimeReportReadOnlyTotal value={totalTaskTime} name={timeReportTask.task.name} />

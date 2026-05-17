@@ -183,6 +183,22 @@ describe('ServiceUtil', () => {
       expect(result).toBe('Validation failed');
     });
 
+    it('should prefer message over error field for 400 responses', () => {
+      const error = {
+        response: {
+          status: 400,
+          data: {
+            error: 'Bad Request',
+            message: 'Task not active',
+          },
+        },
+      };
+
+      const result = handleApiError(error);
+
+      expect(result).toBe('Task not active');
+    });
+
     it('should extract error from response data when message is not available', () => {
       const error = {
         response: {

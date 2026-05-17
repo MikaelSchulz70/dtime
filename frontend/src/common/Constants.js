@@ -27,13 +27,10 @@ export const TIME_REPORT_STATUS_UNCLOSED = 'UNCLOSED_USERS';
 
 // Colors - Professional Theme (Avanza-inspired)    
 export const DAY_COLOR = "#ffffff";
-export const WEEKEND_COLOR = "#b6cff7ff";  // Light yellow - more visible than previous #f8f9fa
-export const MAJOR_HOLIDAY_COLOR = "#df9a9aff";  // Light blue - more visible 
-export const HALF_DAY_COLOR = "#FFD700";  // Light cyan - distinct from weekend
-export const CLOSED_COLOR = "#e9ecef";
-export const CLOSED_WEEK_END_COLOR = "#f8d7da";  // Light red for closed weekends
-export const CLOSED_MAJOR_HOLIDAY_COLOR = "#d1ecf1";  // Light blue for closed holidays
-export const CLOSED_HALF_DAY_COLOR = "#b3e5fc";  // Darker cyan for closed half days
+export const WEEKEND_COLOR = "#b6cff7";  // Light blue — weekends (kept when report is closed)
+export const MAJOR_HOLIDAY_COLOR = "#df9a9a";  // Light red — public holidays
+export const HALF_DAY_COLOR = "#FFD700";  // Gold — half days
+export const CLOSED_COLOR = "#e9ecef";  // Neutral gray — closed month, regular weekdays only
 export const ALERT_COLOR = '#28a745';
 
 // Professional Color Palette
