@@ -11,46 +11,9 @@ import {
     TimeTrendChart,
     ChartViewToggle
 } from '../../components/Charts';
+import TimeReportTable from '../../components/TimeReportGrid';
 
 Modal.setAppElement('#root');
-
-function TimeReportTableEntry({ timeReportDay }) {
-    if (timeReportDay == null) return null;
-
-    var backgroundColor = '';
-    var time = (timeReportDay.time == null || timeReportDay.time === 0 ? '' : timeReportDay.time);
-
-    if (timeReportDay.day.weekend) {
-        backgroundColor = Constants.WEEKEND_COLOR;
-    } else if (timeReportDay.day.majorHoliday) {
-        backgroundColor = Constants.MAJOR_HOLIDAY_COLOR;
-    } else if (timeReportDay.day.halfDay) {
-        backgroundColor = Constants.HALF_DAY_COLOR;
-    } else {
-        backgroundColor = Constants.DAY_COLOR;
-    }
-
-    const inputStyle = {
-        backgroundColor: backgroundColor,
-        width: '40px',
-        textAlign: 'center',
-        border: '1px solid #dee2e6',
-        fontSize: '0.875rem',
-        fontWeight: time ? '600' : '400'
-    }
-
-    return (
-        <td style={{ padding: "0px" }}>
-            <input
-                style={inputStyle}
-                className="form-control form-control-sm"
-                readOnly={true}
-                type="text"
-                value={time}
-            />
-        </td>
-    );
-}
 
 function UserReportSummaryTable({ report }) {
     const { t } = useTranslation();
@@ -85,73 +48,41 @@ function UserReportSummaryTable({ report }) {
     );
 }
 
-function TimeReportTableRow({ timeReportTask, totalTaskTime }) {
-    if (timeReportTask == null) return null;
-    var entries = [];
-    if (timeReportTask != null) {
-        timeReportTask.timeEntries.forEach(function (timeEntry, index) {
-            entries.push(
-                <TimeReportTableEntry key={index} timeReportDay={timeEntry} />);
-        });
-    }
-
-    var accountName = timeReportTask.task.account.name;
-    var accountShortName = accountName.substring(0, Math.min(15, accountName.length));
-    var taskName = timeReportTask.task.name;
-    var taskShortName = taskName.substring(0, Math.min(15, taskName.length));
-
-    return (
-        <tr className="border-bottom">
-            <th className="text-nowrap" title={accountName} style={{ padding: '0px' }}>
-                {accountShortName}
-            </th>
-            <th className="text-nowrap" title={taskName} style={{ padding: '0px' }}>
-                {taskShortName}
-            </th>
-            <td style={{ padding: '0px' }}>
-                <input
-                    className="time form-control form-control-sm fw-bold text-center"
-                    style={{
-                        width: "40px",
-                        backgroundColor: '#f8f9fa',
-                        border: '2px solid #28a745',
-                        color: '#28a745'
-                    }}
-                    readOnly={true}
-                    type="text"
-                    value={totalTaskTime || '0'}
-                />
-            </td>
-            {entries}
-        </tr>
-    );
-}
-
-function UserReportRows({ userReport, reportView, workableHours, fromDate, toDate, showError }) {
+function UserReportRows({ userReport, reportView, workableHours, fromDate, toDate, showError, variant = 'admin' }) {
     const { t } = useTranslation();
+    const isSelf = variant === 'self';
 
     if (userReport == null)
         return null;
 
-    var closeTextColor = "red";
-    if (userReport.closed) {
-        closeTextColor = "white";
-    }
-
     var rows = [];
     var keyBase = userReport.userId + '_';
     var keyHeader = keyBase + '0';
-    rows.push(<tr key={keyHeader}>
-        <th className="fw-bold">{userReport.fullName}</th>
-        <th className="fw-bold">{t('reports.tableAccount')}</th>
-        <th className="fw-bold text-start">{t('reports.tableTask')}</th>
-        <th className="fw-bold col-num">{t('reports.tableTotalHours')}</th>
-        <th className="fw-bold">
-            {reportView === Constants.MONTH_VIEW ? (
-                <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
-            ) : ''}
-        </th>
-    </tr>);
+
+    if (isSelf) {
+        rows.push(<tr key={keyHeader}>
+            <th className="fw-bold">{t('reports.tableAccount')}</th>
+            <th className="fw-bold text-start">{t('reports.tableTask')}</th>
+            <th className="fw-bold col-num">{t('reports.tableTotalHours')}</th>
+            <th className="fw-bold">
+                {reportView === Constants.MONTH_VIEW ? (
+                    <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
+                ) : ''}
+            </th>
+        </tr>);
+    } else {
+        rows.push(<tr key={keyHeader}>
+            <th className="fw-bold">{userReport.fullName}</th>
+            <th className="fw-bold">{t('reports.tableAccount')}</th>
+            <th className="fw-bold text-start">{t('reports.tableTask')}</th>
+            <th className="fw-bold col-num">{t('reports.tableTotalHours')}</th>
+            <th className="fw-bold">
+                {reportView === Constants.MONTH_VIEW ? (
+                    <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
+                ) : ''}
+            </th>
+        </tr>);
+    }
 
     userReport.taskReports.forEach(function (taskReport) {
         var accountName = taskReport.accountName;
@@ -160,75 +91,46 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         var taskShortName = taskName.substring(0, Math.min(20, taskName.length));
 
         var key = keyBase + '_' + taskReport.idtask;
-        rows.push(
-            <tr key={key}>
-                <td></td>
-                <td className="text-nowrap" title={accountName}>{accountShortName}</td>
-                <td className="text-nowrap text-start" title={taskName}>{taskShortName}</td>
-                <td className="col-num">{taskReport.totalHours}</td>
-                <td></td>
-            </tr>);
+        if (isSelf) {
+            rows.push(
+                <tr key={key}>
+                    <td className="text-nowrap" title={accountName}>{accountShortName}</td>
+                    <td className="text-nowrap text-start" title={taskName}>{taskShortName}</td>
+                    <td className="col-num">{taskReport.totalHours}</td>
+                    <td></td>
+                </tr>);
+        } else {
+            rows.push(
+                <tr key={key}>
+                    <td></td>
+                    <td className="text-nowrap" title={accountName}>{accountShortName}</td>
+                    <td className="text-nowrap text-start" title={taskName}>{taskShortName}</td>
+                    <td className="col-num">{taskReport.totalHours}</td>
+                    <td></td>
+                </tr>);
+        }
     });
 
-    var textColor = '';
-    if (userReport.totalTime < workableHours) {
-        textColor = 'text-danger';
-    }
-
     var key = keyBase + "_footer";
-    rows.push(<tr key={key} className="bg-success text-white border-top border-2">
-        <th className="text-muted"></th>
-        <th className="fw-bold fs-6"></th>
-        <th></th>
-        <th className="fw-bold fs-6 col-num">{userReport.totalTime}</th>
-        <th></th>
-    </tr>);
+    if (isSelf) {
+        rows.push(<tr key={key} className="bg-success text-white border-top border-2">
+            <th className="fw-bold fs-6" colSpan="2">{t('reports.totalTime')}</th>
+            <th className="fw-bold fs-6 col-num">{userReport.totalTime}</th>
+            <th></th>
+        </tr>);
+    } else {
+        rows.push(<tr key={key} className="bg-success text-white border-top border-2">
+            <th className="text-muted"></th>
+            <th className="fw-bold fs-6"></th>
+            <th></th>
+            <th className="fw-bold fs-6 col-num">{userReport.totalTime}</th>
+            <th></th>
+        </tr>);
+    }
     return (
         <tbody>
             {rows}
         </tbody>
-    );
-}
-
-function TimeReportTableHeaderRow({ days }) {
-    const { t } = useTranslation();
-    if (days == null)
-        return null;
-    var columns = [];
-    if (days != null) {
-        var i = 3;
-        days.forEach(function (day) {
-            var textClass = 'fw-bold text-center';
-            var dayStyle = {};
-            
-            // Use text colors that mirror the main grid color patterns but are visible on green background
-            if (day.weekend) {
-                dayStyle = { color: '#4a90e2', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Blue for weekends (represents weekend color)
-            } else if (day.majorHoliday) {
-                dayStyle = { color: '#e74c3c', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Red for major holidays  
-            } else if (day.halfDay) {
-                dayStyle = { color: '#f39c12', textShadow: '0 0 3px rgba(0,0,0,0.3)' }; // Orange/Gold for half days
-            } else {
-                dayStyle = { color: 'white', textShadow: '0 0 2px rgba(0,0,0,0.5)' }; // White with shadow for regular days
-            }
-
-            var key = 'header-' + i;
-            columns.push(
-                <th key={key} className={`${textClass} p-2`} style={dayStyle}>
-                    {day.day}
-                </th>
-            );
-            i++;
-        });
-    }
-
-    return (
-        <tr key="0" className="table-success">
-            <th key="header-0"><font color={Constants.DAY_COLOR}>{t('time.headers.account')}</font></th>
-            <th key="header-1"><font color={Constants.DAY_COLOR}>{t('time.headers.task')}</font></th>
-            <th key="header-2" className="col-num"><font color={Constants.DAY_COLOR}>{t('reports.tableTotalHours')}</font></th>
-            {columns}
-        </tr>
     );
 }
 
@@ -250,38 +152,13 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
         var service = new TimeService();
         service.getUserTimes(userId, fromDate)
             .then(response => {
-                console.log('Server response:', response);
                 setTimeReport(response.data);
                 setIsOpen(true);
             })
             .catch(error => {
-                console.error('Error loading user report:', error);
                 showError(t('reports.messages.loadUserReportFailed', { message: error.response?.data?.message || error.message }));
             });
     }, [userId, fromDate, showError, t]);
-
-    var headerRow = '';
-    if (timeReport != null) {
-        headerRow = <TimeReportTableHeaderRow days={timeReport.days} />;
-    }
-
-    var rows = [];
-    if (timeReport != null && timeReport.timeReportTasks != null) {
-        timeReport.timeReportTasks.forEach(function (timeReportTask) {
-            var totalTaskTime = 0;
-            timeReportTask.timeEntries.forEach(function (timeEntry) {
-                if (timeEntry.time != null) {
-                    var time = parseFloat(timeEntry.time);
-                    if (!isNaN(time)) {
-                        totalTaskTime += time;
-                    }
-                }
-            });
-
-            rows.push(
-                <TimeReportTableRow timeReportTask={timeReportTask} totalTaskTime={totalTaskTime} />);
-        });
-    }
 
     return (
         <div>
@@ -434,25 +311,25 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     </div>
                                     <div className="card-body p-3">
                                         {viewMode === 'table' ? (
-                                            <div className="table-responsive" style={{ 
-                                                overflowX: 'auto', 
+                                            <div className="table-responsive" style={{
+                                                overflowX: 'auto',
                                                 overflowY: 'auto',
                                                 maxHeight: 'calc(75vh - 200px)',
                                                 border: '1px solid #dee2e6',
                                                 borderRadius: '8px'
                                             }}>
-                                                <table className="table-sm time-report-table mb-0" style={{ 
-                                                    fontSize: '0.9rem',
-                                                    minWidth: 'max-content',
-                                                    width: 'auto'
-                                                }}>
-                                                    <thead className="table-success sticky-top">
-                                                        {headerRow}
-                                                    </thead>
-                                                    <tbody>
-                                                        {rows}
-                                                    </tbody>
-                                                </table>
+                                                <TimeReportTable
+                                                    timeReport={timeReport}
+                                                    readOnly={true}
+                                                    className="table-sm time-report-table mb-0"
+                                                    tableStyle={{
+                                                        fontSize: '0.9rem',
+                                                        minWidth: 'max-content',
+                                                        width: 'auto',
+                                                    }}
+                                                    theadClassName="table-success sticky-top"
+                                                    headerVariant="modal"
+                                                />
                                             </div>
                                         ) : (
                                             <div>
@@ -535,10 +412,12 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
     )
 }
 
-function UserTaskReportTable({ report, reportView, fromDate }) {
+function UserTaskReportTable({ report, reportView, fromDate, variant = 'admin' }) {
     const { t } = useTranslation();
     const { showError } = useToast();
     const [viewMode, setViewMode] = useState('table');
+    const isSelf = variant === 'self';
+    const titleKey = isSelf ? 'reports.taskTimeBreakdown' : 'reports.userTaskTimeSummary';
 
     if (report == null)
         return null;
@@ -549,7 +428,18 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
     var toDateValue = report.toDate;
     if (report.userReports != null) {
         report.userReports.forEach(function (userReport) {
-            rows.push(<UserReportRows key={userReport.userId} userReport={userReport} workableHours={workableHours} reportView={reportView} fromDate={fromDateValue} toDate={toDateValue} showError={showError} />);
+            rows.push(
+                <UserReportRows
+                    key={userReport.userId}
+                    userReport={userReport}
+                    workableHours={workableHours}
+                    reportView={reportView}
+                    fromDate={fromDateValue}
+                    toDate={toDateValue}
+                    showError={showError}
+                    variant={variant}
+                />
+            );
         });
     }
 
@@ -558,7 +448,7 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 fw-bold text-white">{t('reports.userTaskTimeSummary')}</h5>
+                        <h5 className="mb-0 fw-bold text-white">{t(titleKey)}</h5>
                         <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
                     </div>
                 </div>
@@ -566,27 +456,38 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
                     {viewMode === 'table' ? (
                         <div className="table-responsive">
                             <table className="table table-hover mb-0">
+                                {isSelf ? <UserReportSummaryTable report={report} /> : null}
                                 {rows}
                             </table>
                         </div>
                     ) : (
                         <div className="p-3">
                             <div className="row">
-                                <div className="col-lg-6 mb-4">
-                                    <h6 className="mb-3 fw-bold text-primary">{t('reports.userHoursOverview')}</h6>
-                                    <UserTaskBarChart userReports={report.userReports} />
-                                </div>
+                                {!isSelf ? (
+                                    <div className="col-lg-6 mb-4">
+                                        <h6 className="mb-3 fw-bold text-primary">{t('reports.userHoursOverview')}</h6>
+                                        <UserTaskBarChart userReports={report.userReports} />
+                                    </div>
+                                ) : null}
                                 <div className="col-lg-6 mb-4">
                                     <h6 className="mb-3 fw-bold text-success">{t('reports.taskDistribution')}</h6>
                                     <TaskDistributionPieChart userReports={report.userReports} />
                                 </div>
+                                {isSelf ? (
+                                    <div className="col-lg-6 mb-4">
+                                        <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
+                                        <AccountHoursChart userReports={report.userReports} />
+                                    </div>
+                                ) : null}
                             </div>
-                            <div className="row">
-                                <div className="col-12">
-                                    <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
-                                    <AccountHoursChart userReports={report.userReports} />
+                            {!isSelf ? (
+                                <div className="row">
+                                    <div className="col-12">
+                                        <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
+                                        <AccountHoursChart userReports={report.userReports} />
+                                    </div>
                                 </div>
-                            </div>
+                            ) : null}
                         </div>
                     )}
                 </div>

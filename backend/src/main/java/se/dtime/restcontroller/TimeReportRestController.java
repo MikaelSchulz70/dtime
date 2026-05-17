@@ -54,7 +54,7 @@ public class TimeReportRestController {
         return new ResponseEntity<>(timeReportDay, HttpStatus.OK);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @GetMapping(path = "/user")
     public ResponseEntity<TimeReport> getUserTimeReport(@RequestParam(value = "userId", required = true) long userId,
                                                         @RequestParam(value = "view", required = true) TimeReportView timeReportView,

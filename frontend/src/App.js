@@ -25,7 +25,7 @@ import TasksModal from './containers/task/TasksModal';
 import TaskContributor from './containers/taskcontributor/TaskContributor';
 import MyTaskAssignments from './containers/taskcontributor/MyTaskAssignments';
 import AdminReports from './containers/report/AdminReports';
-import UserReports from './containers/report/UserReports';
+import UserTaskReportPage from './containers/report/UserTaskReportPage';
 import Vacations from './containers/report/Vacations';
 import SystemConfig from './containers/system/SystemConfig';
 import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
@@ -84,7 +84,7 @@ const Main = () => {
               <Route path='/taskcontributor' element={<TaskContributor />} />
               <Route path='/mytasks' element={<MyTaskAssignments />} />
               <Route path='/reports' element={<AdminReports />} />
-              <Route path='/userreport' element={<UserReports />} />
+              <Route path='/userreport' element={<UserTaskReportPage />} />
               <Route path='/vacations' element={<Vacations />} />
               <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
               <Route path='/system/properties' element={<SystemConfig />} />

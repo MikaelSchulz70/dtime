@@ -239,10 +239,21 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForUserTimeReportWithUserRole() throws Exception {
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldGetUserTimeReportForOwnUserWithUserRole() throws Exception {
         mockMvc.perform(get("/api/timereport/user")
                         .param("userId", testUser.getId().toString())
+                        .param("view", TimeReportView.WEEK.name())
+                        .param("date", "2024-01-15"))
+                .andExpect(status().isOk())
+                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
+    }
+
+    @Test
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldReturnForbiddenWhenUserRequestsAnotherUsersTimeReport() throws Exception {
+        mockMvc.perform(get("/api/timereport/user")
+                        .param("userId", testAdmin.getId().toString())
                         .param("view", TimeReportView.WEEK.name())
                         .param("date", "2024-01-15"))
                 .andExpect(status().isForbidden());

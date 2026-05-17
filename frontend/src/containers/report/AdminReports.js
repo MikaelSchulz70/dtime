@@ -158,7 +158,7 @@ function AdminReports() {
             </div>
             <div className="row">
                 {reportType === Constants.USER_TASK_REPORT ? (
-                    <UserTaskReportTable report={report} reportView={reportView} fromDate={report.fromDate} />
+                    <UserTaskReportTable report={report} reportView={reportView} fromDate={report.fromDate} variant="admin" />
                 ) : reportType === Constants.TASK_REPORT ? (
                     <TaskReportTable report={report} />
                 ) : reportType === Constants.USER_REPORT ? (

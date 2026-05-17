@@ -1,6 +1,9 @@
 package se.dtime.service.timeentry;
 
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.security.access.AccessDeniedException;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
@@ -104,9 +107,23 @@ public class TimeEntryService {
     }
 
     public TimeReport getUserTimeReport(long userId, TimeReportView timeReportView, LocalDate date) {
+        assertCanViewUserTimeReport(userId);
         ReportDates reportDates = getReportDates(timeReportView, date);
         UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
         return getTimeReportBetweenDatesForUser(reportDates, userPO, timeReportView);
+    }
+
+    private void assertCanViewUserTimeReport(long requestedUserId) {
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        boolean isAdmin = authentication != null && authentication.getAuthorities().stream()
+                .anyMatch(authority -> "ROLE_ADMIN".equals(authority.getAuthority()));
+        if (isAdmin) {
+            return;
+        }
+        UserPO currentUser = currentUserResolver.resolveCurrentUser();
+        if (currentUser.getId() != requestedUserId) {
+            throw new AccessDeniedException("Access denied");
+        }
     }
 
     private TimeReport getTimeReport(LocalDate date, TimeReportView timeReportView) {

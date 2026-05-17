@@ -336,14 +336,34 @@ td .btn {
   font-size: 0.9rem;
 }
 
-/* First two columns (Account, Task) should be left-aligned */
+/* Account and Task columns: wider, truncate with ellipsis, full text on hover via title */
 .time-report-table th:first-child,
-.time-report-table td:first-child,
+.time-report-table td:first-child {
+  text-align: left;
+  width: 140px;
+  min-width: 140px;
+  max-width: 140px;
+}
+
 .time-report-table th:nth-child(2),
 .time-report-table td:nth-child(2) {
   text-align: left;
-  min-width: 80px;
-  max-width: 100px;
+  width: 200px;
+  min-width: 200px;
+  max-width: 200px;
+}
+
+.time-report-table th.time-report-label-col {
+  overflow: hidden;
+  font-weight: inherit;
+}
+
+.time-report-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 100%;
 }
 
 /* Row total hours column (third column) */
