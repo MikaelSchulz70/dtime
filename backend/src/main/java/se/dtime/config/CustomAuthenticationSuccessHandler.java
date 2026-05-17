@@ -28,6 +28,8 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
     public void onAuthenticationSuccess(HttpServletRequest request, HttpServletResponse response,
                                         Authentication authentication) throws IOException, ServletException {
 
+        SwitchUserIntentSupport.clearSwitchUserIntent(response);
+
         log.debug("CustomAuthenticationSuccessHandler called - devServerEnabled: {}, frontendDevServerUrl: {}",
                 devServerEnabled, frontendDevServerUrl);
 

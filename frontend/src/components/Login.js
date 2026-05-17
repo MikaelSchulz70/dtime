@@ -3,7 +3,10 @@ import { Alert, Button, Card, Col, Container, Row } from 'react-bootstrap';
 import { useLocation } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import axios from 'axios';
+import config from '../config/env';
 // import logo from '../assets/logo.png'; // Using public logo instead
+
+const SWITCH_USER_PENDING_KEY = 'dtime.switchUserPending';
 
 const Login = () => {
   const LAST_OIDC_USER_KEY = 'dtime.lastOidcUser';
@@ -13,6 +16,10 @@ const Login = () => {
   const [oidcEnabled, setOidcEnabled] = useState(false);
   const [loading, setLoading] = useState(true);
   const [rememberedUser, setRememberedUser] = useState('');
+  const urlParams = new URLSearchParams(location.search);
+  const hasError = urlParams.get('error');
+  const errorReason = urlParams.get('reason');
+  const hasLogout = urlParams.get('logout');
 
   useEffect(() => {
     const checkOidcAuth = async () => {
@@ -37,19 +44,34 @@ const Login = () => {
     }
   }, []);
 
+  useEffect(() => {
+    if (hasLogout) {
+      window.localStorage.removeItem(LAST_OIDC_USER_KEY);
+      setRememberedUser('');
+    }
+  }, [hasLogout]);
+
+  useEffect(() => {
+    if (loading || !oidcEnabled || hasLogout || hasError) {
+      return;
+    }
+    if (sessionStorage.getItem(SWITCH_USER_PENDING_KEY) !== '1') {
+      return;
+    }
+    const backendBase = config.backendUrl.replace(/\/$/, '');
+    window.location.href = `${backendBase}/api/auth/oidc/switch-user/resume`;
+  }, [loading, oidcEnabled, hasLogout, hasError]);
+
   const handleAuthentikLogin = () => {
     window.location.href = '/oauth2/authorization/authentik';
   };
 
   const handleSwitchUserLogin = () => {
     window.localStorage.removeItem(LAST_OIDC_USER_KEY);
-    window.location.href = '/api/auth/oidc/switch-user';
+    sessionStorage.setItem(SWITCH_USER_PENDING_KEY, '1');
+    const backendBase = config.backendUrl.replace(/\/$/, '');
+    window.location.href = `${backendBase}/api/auth/oidc/switch-user`;
   };
-
-  const urlParams = new URLSearchParams(location.search);
-  const hasError = urlParams.get('error');
-  const errorReason = urlParams.get('reason');
-  const hasLogout = urlParams.get('logout');
 
   return (
     <Container className="min-vh-100 d-flex align-items-center justify-content-center">
@@ -107,6 +129,9 @@ const Login = () => {
                 >
                   {t('auth.login.signInAsAnotherUser')}
                 </Button>
+              </div>
+              <div className="text-center mt-2">
+                <small className="text-muted">{t('auth.login.switchUserHint')}</small>
               </div>
               {!loading && !oidcEnabled && (
                 <Alert variant="warning" className="mt-3 mb-0">

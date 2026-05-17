@@ -1,5 +1,6 @@
 package se.dtime.config;
 
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpSession;
 import org.junit.jupiter.api.Test;
 import org.springframework.mock.web.MockHttpServletRequest;
@@ -66,6 +67,41 @@ class SwitchUserOAuth2AuthorizationRequestResolverTest {
     }
 
     @Test
+    void isSwitchUserReauth_trueWhenSwitchUserCookiePresent() {
+        MockHttpServletRequest request = authorizationRequest("");
+        Cookie cookie = new Cookie(SwitchUserIntentSupport.COOKIE_NAME, SwitchUserIntentSupport.COOKIE_VALUE_SWITCH);
+        request.setCookies(cookie);
+        assertThat(SwitchUserOAuth2AuthorizationRequestResolver.isSwitchUserReauth(request)).isTrue();
+    }
+
+    @Test
+    void isSwitchUserReauth_trueWhenPostLogoutCookiePresent() {
+        MockHttpServletRequest request = authorizationRequest("");
+        Cookie cookie = new Cookie(SwitchUserIntentSupport.COOKIE_NAME,
+                SwitchUserIntentSupport.COOKIE_VALUE_POST_LOGOUT);
+        request.setCookies(cookie);
+        assertThat(SwitchUserOAuth2AuthorizationRequestResolver.isSwitchUserReauth(request)).isTrue();
+    }
+
+    @Test
+    void resolve_usesSelectAccountOnly_afterIdpLogoutCookie() {
+        SwitchUserOAuth2AuthorizationRequestResolver resolver =
+                new SwitchUserOAuth2AuthorizationRequestResolver(authentikRepository());
+        MockHttpServletRequest request = authorizationRequest("switch_user=1");
+        request.setCookies(new Cookie(SwitchUserIntentSupport.COOKIE_NAME,
+                SwitchUserIntentSupport.COOKIE_VALUE_POST_LOGOUT));
+
+        OAuth2AuthorizationRequest authRequest = resolver.resolve(request);
+
+        assertThat(authRequest).isNotNull();
+        assertThat(authRequest.getAdditionalParameters())
+                .containsEntry("prompt", "select_account")
+                .doesNotContainKey("max_age");
+        assertThat(authRequest.getAuthorizationRequestUri()).contains("prompt=select_account");
+        assertThat(authRequest.getAuthorizationRequestUri()).doesNotContain("prompt=login");
+    }
+
+    @Test
     void resolve_addsPromptAndMaxAge_whenSwitchUserQueryParam() {
         SwitchUserOAuth2AuthorizationRequestResolver resolver =
                 new SwitchUserOAuth2AuthorizationRequestResolver(authentikRepository());
@@ -75,7 +111,7 @@ class SwitchUserOAuth2AuthorizationRequestResolverTest {
 
         assertThat(authRequest).isNotNull();
         assertThat(authRequest.getAdditionalParameters())
-                .containsEntry("prompt", "login")
+                .containsEntry("prompt", "login select_account")
                 .containsEntry("max_age", "0");
         assertThat(authRequest.getAuthorizationRequestUri()).contains("prompt=login").contains("max_age=0");
     }
@@ -91,7 +127,7 @@ class SwitchUserOAuth2AuthorizationRequestResolverTest {
         OAuth2AuthorizationRequest authRequest = resolver.resolve(request);
 
         assertThat(authRequest).isNotNull();
-        assertThat(authRequest.getAdditionalParameters()).containsEntry("prompt", "login");
+        assertThat(authRequest.getAdditionalParameters()).containsEntry("prompt", "login select_account");
         assertThat(request.getSession(false).getAttribute(SwitchUserOAuth2AuthorizationRequestResolver.SESSION_SWITCH_USER_REAUTH))
                 .isNull();
     }
@@ -118,6 +154,6 @@ class SwitchUserOAuth2AuthorizationRequestResolverTest {
         OAuth2AuthorizationRequest authRequest = resolver.resolve(request, "authentik");
 
         assertThat(authRequest).isNotNull();
-        assertThat(authRequest.getAdditionalParameters()).containsEntry("prompt", "login");
+        assertThat(authRequest.getAdditionalParameters()).containsEntry("prompt", "login select_account");
     }
 }

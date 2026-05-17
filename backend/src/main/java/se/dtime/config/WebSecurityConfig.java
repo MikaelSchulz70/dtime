@@ -1,14 +1,19 @@
 package se.dtime.config;
 
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
+import org.springframework.util.StringUtils;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.FormHttpMessageConverter;
 import org.springframework.http.converter.StringHttpMessageConverter;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.web.authentication.logout.LogoutSuccessHandler;
 import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
@@ -90,7 +95,10 @@ public class WebSecurityConfig {
             JwtAuthenticationConverter authentikMachineJwtAuthenticationConverter) throws Exception {
         http
                 .authorizeHttpRequests(authz -> authz
-                        .requestMatchers("/error", "/api/auth/oidc/status", "/api/auth/oidc/failure", "/api/auth/oidc/switch-user", "/actuator/health", "/oauth2/**").permitAll()
+                        .requestMatchers("/error", "/api/auth/oidc/status", "/api/auth/oidc/failure",
+                                "/api/auth/oidc/switch-user", "/api/auth/oidc/switch-user/continue",
+                                "/api/auth/oidc/switch-user/resume",
+                                "/actuator/health", "/oauth2/**").permitAll()
                         .requestMatchers("/api/**").authenticated()
                         .anyRequest().authenticated()
                 )
@@ -103,8 +111,9 @@ public class WebSecurityConfig {
                 .logout(logout -> logout
                         .logoutUrl("/logout")
                         .permitAll()
-                        .deleteCookies("JSESSIONID", "remember-me")
+                        .deleteCookies("JSESSIONID", "remember-me", SwitchUserIntentSupport.COOKIE_NAME)
                         .invalidateHttpSession(true)
+                        .logoutSuccessHandler(oidcLogoutSuccessHandler())
                 )
                 .rememberMe(rememberMe -> rememberMe.rememberMeServices(rememberMeServices));
 
@@ -190,6 +199,19 @@ public class WebSecurityConfig {
                 .build();
         accessTokenResponseClient.setRestClient(restClient);
         return accessTokenResponseClient;
+    }
+
+    private LogoutSuccessHandler oidcLogoutSuccessHandler() {
+        return (HttpServletRequest request, HttpServletResponse response, Authentication authentication) -> {
+            String target = "/?logout=1";
+            if (devServerEnabled) {
+                String base = StringUtils.hasText(frontendDevServerUrl)
+                        ? frontendDevServerUrl
+                        : "https://localhost:3000";
+                target = PublicFrontendUrlResolver.trimTrailingSlashes(base) + "/?logout=1";
+            }
+            response.sendRedirect(target);
+        };
     }
 
     private String resolveErrorCode(AuthenticationException exception) {

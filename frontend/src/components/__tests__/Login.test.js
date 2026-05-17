@@ -67,7 +67,7 @@ describe('Login (OIDC / Authentik)', () => {
       expect(screen.getByText(/OIDC login is not enabled/i)).toBeInTheDocument();
     });
     expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).toBeDisabled();
-    expect(screen.getByRole('button', { name: /Sign in as another user/i })).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Sign out and sign in as another user/i })).toBeDisabled();
   });
 
   it('enables Authentik buttons when OIDC is enabled', async () => {
@@ -77,7 +77,7 @@ describe('Login (OIDC / Authentik)', () => {
     await waitFor(() => {
       expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).not.toBeDisabled();
     });
-    expect(screen.getByRole('button', { name: /Sign in as another user/i })).not.toBeDisabled();
+    expect(screen.getByRole('button', { name: /Sign out and sign in as another user/i })).not.toBeDisabled();
   });
 
   it('shows Continue as when last user is cached in localStorage', async () => {
@@ -109,11 +109,12 @@ describe('Login (OIDC / Authentik)', () => {
     renderLoginAt();
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /Sign in as another user/i })).not.toBeDisabled();
+      expect(screen.getByRole('button', { name: /Sign out and sign in as another user/i })).not.toBeDisabled();
     });
-    await user.click(screen.getByRole('button', { name: /Sign in as another user/i }));
+    await user.click(screen.getByRole('button', { name: /Sign out and sign in as another user/i }));
     expect(window.localStorage.getItem('dtime.lastOidcUser')).toBeNull();
-    expect(window.location.href).toBe('/api/auth/oidc/switch-user');
+    expect(sessionStorage.getItem('dtime.switchUserPending')).toBe('1');
+    expect(window.location.href).toBe('https://localhost:8443/api/auth/oidc/switch-user');
   });
 
   it('shows OIDC failure message when error=oauth', async () => {
@@ -141,6 +142,17 @@ describe('Login (OIDC / Authentik)', () => {
     await waitFor(() => {
       expect(screen.getByText('You have been logged out.')).toBeInTheDocument();
     });
+  });
+
+  it('clears remembered user when logout query is present', async () => {
+    window.localStorage.setItem('dtime.lastOidcUser', 'Arne Anka');
+    mockedAxios.get.mockResolvedValue({ data: { enabled: true } });
+    renderLoginAt('?logout=1');
+
+    await waitFor(() => {
+      expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).toBeInTheDocument();
+    });
+    expect(window.localStorage.getItem('dtime.lastOidcUser')).toBeNull();
   });
 
   it('treats OIDC as disabled when status request fails', async () => {

@@ -29,6 +29,7 @@ spring:
 server:
   port: 8443
   address: 0.0.0.0
+  forward-headers-strategy: framework
   ssl:
     key-store-type: PKCS12
     key-store: classpath:keystore/dtime_new.p12
@@ -55,6 +56,12 @@ oauth:
     token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:http://localhost:9000/application/o/token/}
     user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:http://localhost:9000/application/o/userinfo/}
     jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:http://localhost:9000/application/o/dtime/jwks/}
+    # OAuth callback hits the backend directly (browser redirect from Authentik). Must match Authentik allowlist.
+    redirect-uri: ${OAUTH_AUTHENTIK_REDIRECT_URI:https://localhost:8443/login/oauth2/code/authentik}
+    # Backend origin for switch-user post-logout continue URL (must match Authentik allowlist).
+    backend-public-base-url: ${OAUTH_AUTHENTIK_BACKEND_PUBLIC_BASE_URL:https://localhost:8443}
+    # true = clear Authentik SSO via end-session before OAuth (required to pick another user).
+    switch-user-idp-logout: ${OAUTH_AUTHENTIK_SWITCH_USER_IDP_LOGOUT:true}
     machine-jwt:
       enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:true}
       jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:http://localhost:9000/application/o/dtmcp/jwks/}

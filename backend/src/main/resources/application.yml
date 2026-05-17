@@ -71,6 +71,10 @@ oauth:
     full-logout-flow-uri: ${OAUTH_AUTHENTIK_FULL_LOGOUT_FLOW_URI:}
     require-app-role: ${OAUTH_AUTHENTIK_REQUIRE_APP_ROLE:true}
     switch-user-return-base-url: ${OAUTH_AUTHENTIK_SWITCH_USER_RETURN_BASE_URL:}
+    # When true, switch-user redirects through Authentik end-session (requires continue URL in allowlist).
+    switch-user-idp-logout: ${OAUTH_AUTHENTIK_SWITCH_USER_IDP_LOGOUT:true}
+    redirect-uri: ${OAUTH_AUTHENTIK_REDIRECT_URI:}
+    backend-public-base-url: ${OAUTH_AUTHENTIK_BACKEND_PUBLIC_BASE_URL:}
     token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:}
     user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:}
     jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:}

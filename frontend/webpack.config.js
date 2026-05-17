@@ -87,6 +87,10 @@ module.exports = (env, argv) => {
           cookieDomainRewrite: 'localhost',
           cookiePathRewrite: '/',
           onProxyReq: (proxyReq, req) => {
+            if (req.headers.host) {
+              proxyReq.setHeader('X-Forwarded-Host', req.headers.host);
+            }
+            proxyReq.setHeader('X-Forwarded-Proto', 'https');
             if (req.headers.cookie) {
               proxyReq.setHeader('Cookie', req.headers.cookie);
             }

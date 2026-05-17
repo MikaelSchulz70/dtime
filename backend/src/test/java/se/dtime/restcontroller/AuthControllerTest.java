@@ -18,7 +18,6 @@ import org.springframework.test.util.ReflectionTestUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.core.AuthorizationGrantType;
 import org.springframework.security.oauth2.core.ClientAuthenticationMethod;
-import org.mockito.ArgumentCaptor;
 import se.dtime.config.SwitchUserOAuth2AuthorizationRequestResolver;
 
 import java.util.Map;
@@ -107,7 +106,7 @@ class AuthControllerTest {
         verify(oldSession).invalidate();
         verify(newSession).setAttribute(SwitchUserOAuth2AuthorizationRequestResolver.SESSION_SWITCH_USER_REAUTH,
                 Boolean.TRUE);
-        verify(response).sendRedirect("/oauth2/authorization/authentik");
+        verify(response).sendRedirect("/oauth2/authorization/authentik?switch_user=1");
     }
 
     @Test
@@ -145,8 +144,7 @@ class AuthControllerTest {
         controller.switchOidcUser(request, response);
 
         verify(rememberMeServices).logout(eq(request), eq(response), isNull());
-        verify(response).sendRedirect("/oauth2/authorization/authentik");
-        verifyNoMoreInteractions(response);
+        verify(response).sendRedirect("/oauth2/authorization/authentik?switch_user=1");
     }
 
     @Test
@@ -164,14 +162,16 @@ class AuthControllerTest {
 
         verify(newSession).setAttribute(SwitchUserOAuth2AuthorizationRequestResolver.SESSION_SWITCH_USER_REAUTH,
                 Boolean.TRUE);
-        verify(response).sendRedirect("/oauth2/authorization/authentik");
+        verify(response).sendRedirect("/oauth2/authorization/authentik?switch_user=1");
     }
 
     @Test
-    void switchOidcUser_redirectsToAuthentikEndSessionWhenConfigured() throws Exception {
+    void switchOidcUser_redirectsToAuthentikEndSession_whenIdpLogoutEnabled() throws Exception {
         TokenBasedRememberMeServices rememberMeServices = mock(TokenBasedRememberMeServices.class);
         AuthController controller = new AuthController(rememberMeServices);
         ReflectionTestUtils.setField(controller, "authentikOAuthEnabled", true);
+        ReflectionTestUtils.setField(controller, "switchUserIdpLogout", true);
+        ReflectionTestUtils.setField(controller, "backendPublicBaseUrl", "https://localhost:8443");
         ReflectionTestUtils.setField(controller, "authentikEndSessionUri",
                 "https://idp.example/application/o/dtime/end-session/");
 
@@ -192,35 +192,31 @@ class AuthControllerTest {
         ReflectionTestUtils.setField(controller, "clientRegistrationRepository", repo);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getScheme()).thenReturn("https");
-        when(request.getServerName()).thenReturn("app.test");
-        when(request.getServerPort()).thenReturn(8443);
-        when(request.getContextPath()).thenReturn("");
-        when(request.isSecure()).thenReturn(true);
         HttpSession oldSession = mock(HttpSession.class);
-        HttpSession newSession = mock(HttpSession.class);
         when(request.getSession(false)).thenReturn(oldSession);
-        when(request.getSession(true)).thenReturn(newSession);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
         controller.switchOidcUser(request, response);
 
-        ArgumentCaptor<String> redirect = ArgumentCaptor.forClass(String.class);
+        org.mockito.ArgumentCaptor<String> redirect = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(response).sendRedirect(redirect.capture());
         assertThat(redirect.getValue()).startsWith("https://idp.example/application/o/dtime/end-session/");
         assertThat(redirect.getValue()).contains("client_id=the-client-id");
-        assertThat(redirect.getValue()).contains("post_logout_redirect_uri=");
-        assertThat(redirect.getValue()).contains("next=");
-        assertThat(redirect.getValue()).contains("switch_user");
+        assertThat(redirect.getValue()).contains(
+                "post_logout_redirect_uri=https://localhost:8443/api/auth/oidc/switch-user/resume");
+        assertThat(redirect.getValue()).doesNotContain("next=");
+        assertThat(redirect.getValue()).doesNotContain("switch_user");
     }
 
     @Test
-    void switchOidcUser_usesFrontendDevBaseForPostLogout_whenDevServerEnabled() throws Exception {
+    void switchOidcUser_redirectsToSpaContinueInDev_whenDevServerEnabled() throws Exception {
         TokenBasedRememberMeServices rememberMeServices = mock(TokenBasedRememberMeServices.class);
         AuthController controller = new AuthController(rememberMeServices);
         ReflectionTestUtils.setField(controller, "authentikOAuthEnabled", true);
+        ReflectionTestUtils.setField(controller, "switchUserIdpLogout", true);
         ReflectionTestUtils.setField(controller, "devServerEnabled", true);
         ReflectionTestUtils.setField(controller, "frontendDevServerUrl", "https://localhost:3000");
+        ReflectionTestUtils.setField(controller, "backendPublicBaseUrl", "https://localhost:8443");
         ReflectionTestUtils.setField(controller, "authentikEndSessionUri",
                 "https://idp.example/application/o/dtime/end-session/");
 
@@ -241,66 +237,31 @@ class AuthControllerTest {
         ReflectionTestUtils.setField(controller, "clientRegistrationRepository", repo);
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getScheme()).thenReturn("https");
-        when(request.getServerName()).thenReturn("localhost");
-        when(request.getServerPort()).thenReturn(8443);
-        when(request.getContextPath()).thenReturn("");
-        when(request.isSecure()).thenReturn(true);
-        HttpSession oldSession = mock(HttpSession.class);
-        HttpSession newSession = mock(HttpSession.class);
-        when(request.getSession(false)).thenReturn(oldSession);
-        when(request.getSession(true)).thenReturn(newSession);
+        when(request.getSession(false)).thenReturn(null);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
         controller.switchOidcUser(request, response);
 
-        ArgumentCaptor<String> redirect = ArgumentCaptor.forClass(String.class);
+        org.mockito.ArgumentCaptor<String> redirect = org.mockito.ArgumentCaptor.forClass(String.class);
         verify(response).sendRedirect(redirect.capture());
-        assertThat(redirect.getValue()).contains("post_logout_redirect_uri=https://localhost:3000");
-        assertThat(redirect.getValue()).doesNotContain("localhost:8443");
+        assertThat(redirect.getValue()).contains(
+                "post_logout_redirect_uri=https://localhost:8443/api/auth/oidc/switch-user/resume");
     }
 
     @Test
-    void switchOidcUser_usesConfiguredFullLogoutFlowUri_whenProvided() throws Exception {
-        TokenBasedRememberMeServices rememberMeServices = mock(TokenBasedRememberMeServices.class);
-        AuthController controller = new AuthController(rememberMeServices);
-        ReflectionTestUtils.setField(controller, "authentikOAuthEnabled", true);
-        ReflectionTestUtils.setField(controller, "authentikFullLogoutFlowUri",
-                "https://idp.example/if/flow/company-full-logout/");
-
-        ClientRegistration registration = ClientRegistration.withRegistrationId("authentik")
-                .clientId("the-client-id")
-                .clientSecret("secret")
-                .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
-                .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/cb")
-                .authorizationUri("https://idp.example/application/o/dtime/authorize/")
-                .tokenUri("https://idp.example/token")
-                .jwkSetUri("https://idp.example/jwks")
-                .userInfoUri("https://idp.example/ui")
-                .scope("openid")
-                .build();
-        ClientRegistrationRepository repo = mock(ClientRegistrationRepository.class);
-        when(repo.findByRegistrationId("authentik")).thenReturn(registration);
-        ReflectionTestUtils.setField(controller, "clientRegistrationRepository", repo);
+    void switchOidcUserContinue_setsFlagAndRedirectsToOAuthOnBackendBase() throws Exception {
+        AuthController controller = new AuthController(null);
+        ReflectionTestUtils.setField(controller, "backendPublicBaseUrl", "https://localhost:8443");
 
         HttpServletRequest request = mock(HttpServletRequest.class);
-        when(request.getScheme()).thenReturn("https");
-        when(request.getServerName()).thenReturn("app.test");
-        when(request.getServerPort()).thenReturn(8443);
-        when(request.getContextPath()).thenReturn("");
-        when(request.isSecure()).thenReturn(true);
-        HttpSession oldSession = mock(HttpSession.class);
-        HttpSession newSession = mock(HttpSession.class);
-        when(request.getSession(false)).thenReturn(oldSession);
-        when(request.getSession(true)).thenReturn(newSession);
+        HttpSession session = mock(HttpSession.class);
+        when(request.getSession(true)).thenReturn(session);
         HttpServletResponse response = mock(HttpServletResponse.class);
 
-        controller.switchOidcUser(request, response);
+        controller.switchOidcUserContinue(request, response);
 
-        ArgumentCaptor<String> redirect = ArgumentCaptor.forClass(String.class);
-        verify(response).sendRedirect(redirect.capture());
-        assertThat(redirect.getValue()).startsWith("https://idp.example/if/flow/company-full-logout/");
-        assertThat(redirect.getValue()).contains("client_id=the-client-id");
+        verify(session).setAttribute(SwitchUserOAuth2AuthorizationRequestResolver.SESSION_SWITCH_USER_REAUTH,
+                Boolean.TRUE);
+        verify(response).sendRedirect("https://localhost:8443/oauth2/authorization/authentik?switch_user=1");
     }
 }

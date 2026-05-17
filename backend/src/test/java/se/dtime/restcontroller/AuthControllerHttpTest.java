@@ -71,7 +71,7 @@ class AuthControllerHttpTest {
         MockMvc mockMvc = buildMockMvc(true, mock(ClientRegistrationRepository.class));
         mockMvc.perform(get("/api/auth/oidc/switch-user"))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("/oauth2/authorization/authentik"));
+                .andExpect(redirectedUrl("/oauth2/authorization/authentik?switch_user=1"));
     }
 
     @Test
@@ -79,6 +79,6 @@ class AuthControllerHttpTest {
         MockMvc mockMvc = buildMockMvc(false, mock(ClientRegistrationRepository.class));
         mockMvc.perform(get("/api/auth/oidc/switch-user"))
                 .andExpect(status().isFound())
-                .andExpect(redirectedUrl("/oauth2/authorization/authentik"));
+                .andExpect(redirectedUrl("/oauth2/authorization/authentik?switch_user=1"));
     }
 }

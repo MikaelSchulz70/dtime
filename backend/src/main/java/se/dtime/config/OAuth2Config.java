@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnProperty;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.util.StringUtils;
 import org.springframework.security.oauth2.client.registration.ClientRegistration;
 import org.springframework.security.oauth2.client.registration.ClientRegistrationRepository;
 import org.springframework.security.oauth2.client.registration.InMemoryClientRegistrationRepository;
@@ -32,6 +33,13 @@ public class OAuth2Config {
     @Value("${oauth.authentik.jwk-set-uri:}")
     private String jwkSetUri;
 
+    /**
+     * Fixed OAuth2 callback URI (must match Authentik allowlist exactly).
+     * In local dev this is typically the backend port ({@code :8443}), not the webpack dev server ({@code :3000}).
+     */
+    @Value("${oauth.authentik.redirect-uri:}")
+    private String redirectUri;
+
     @Bean
     @ConditionalOnProperty(name = "oauth.authentik.enabled", havingValue = "true")
     public ClientRegistrationRepository clientRegistrationRepository() {
@@ -45,7 +53,7 @@ public class OAuth2Config {
                 .clientSecret(authentikClientSecret)
                 .clientAuthenticationMethod(ClientAuthenticationMethod.CLIENT_SECRET_POST)
                 .authorizationGrantType(AuthorizationGrantType.AUTHORIZATION_CODE)
-                .redirectUri("{baseUrl}/login/oauth2/code/{registrationId}")
+                .redirectUri(resolveRedirectUri())
                 .scope("openid", "email", "profile")
                 .authorizationUri(authorizationUri)
                 .tokenUri(tokenUri)
@@ -56,5 +64,12 @@ public class OAuth2Config {
                 .build();
 
         return new InMemoryClientRegistrationRepository(authentikClientRegistration);
+    }
+
+    private String resolveRedirectUri() {
+        if (StringUtils.hasText(redirectUri)) {
+            return redirectUri.trim();
+        }
+        return "{baseUrl}/login/oauth2/code/{registrationId}";
     }
 }

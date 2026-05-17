@@ -48,7 +48,14 @@ public final class AuthentikEndSessionUriResolver {
         if (StringUtils.hasText(configuredFlowUri)) {
             return configuredFlowUri.trim();
         }
-        return null;
+        if (registration == null) {
+            return null;
+        }
+        String authorizationUri = registration.getProviderDetails().getAuthorizationUri();
+        if (!StringUtils.hasText(authorizationUri)) {
+            return null;
+        }
+        return deriveFlowFromProviderUri(authorizationUri.trim());
     }
 
     /**

@@ -128,7 +128,8 @@
       },
       "continueAs": "Continue as {{name}}",
       "signInWithAuthentik": "Sign in with Authentik",
-      "signInAsAnotherUser": "Sign in as another user",
+      "signInAsAnotherUser": "Sign out and sign in as another user",
+      "switchUserHint": "Signs you out of Authentik and starts DTime login for another account. On the Authentik logout screen, choose \"Log back into DTime\" if you see it.",
       "oidcNotEnabled": "OIDC login is not enabled in backend configuration.",
       "errors": {
         "invalidCredentials": "Invalid username or password.",

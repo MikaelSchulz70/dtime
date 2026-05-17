@@ -83,6 +83,6 @@ class AuthentikEndSessionUriResolverTest {
                 "",
                 "",
                 registrationWithAuthorizationUri("http://localhost:9000/application/o/dtime/authorize/")))
-                .isNull();
+                .isEqualTo("http://localhost:9000/if/flow/default-invalidation-flow/");
     }
 }

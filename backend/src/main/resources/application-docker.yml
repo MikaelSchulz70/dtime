@@ -61,6 +61,12 @@ server:
 security:
   enable-csrf: ${SECURITY_CSRF_ENABLED:false}
 
+# Authentik OIDC (values from .env / compose)
+oauth:
+  authentik:
+    enabled: ${OAUTH_AUTHENTIK_ENABLED:false}
+    end-session-uri: ${OAUTH_AUTHENTIK_END_SESSION_URI:}
+
 # Email Configuration
 mail:
   enabled: ${MAIL_ENABLED:false}
@@ -72,6 +78,14 @@ dtime:
   hours_per_day: 8
   system:
     start-date: 2025-01-01
+
+# When the SPA runs on https://localhost:3000 and the backend is on :8443, OIDC callbacks
+# and switch-user must return to the SPA origin (see CustomAuthenticationSuccessHandler).
+app:
+  frontend:
+    dev-server:
+      enabled: true
+      url: https://localhost:3000
 
 # Logging Configuration
 logging:

@@ -47,15 +47,17 @@ import SpecialDays from './containers/specialday/SpecialDays';
 // Logout component - converted to functional component with hooks
 function Logout() {
   const { t } = useTranslation();
+  const LAST_OIDC_USER_KEY = 'dtime.lastOidcUser';
   useEffect(() => {
+    window.localStorage.removeItem(LAST_OIDC_USER_KEY);
     axios.get('/logout')
       .then(_response => {
-        window.location.href = '/';
+        window.location.href = '/?logout=1';
       })
       .catch(error => {
         console.error('Logout error:', error);
         // Force redirect even if logout fails
-        window.location.href = '/';
+        window.location.href = '/?logout=1';
       });
   }, []);
 
@@ -135,6 +137,7 @@ const AppContent = () => {
         window.localStorage.setItem(LAST_OIDC_USER_KEY, sanitizeDisplayName(loginUser));
       }
       if (loginSuccess) {
+        sessionStorage.removeItem('dtime.switchUserPending');
         window.history.replaceState({}, '', window.location.pathname);
       }
 

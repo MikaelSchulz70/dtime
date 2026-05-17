@@ -54,16 +54,24 @@ public class SwitchUserOAuth2AuthorizationRequestResolver implements OAuth2Autho
         if (session != null) {
             session.removeAttribute(SESSION_SWITCH_USER_REAUTH);
         }
-        return OAuth2AuthorizationRequest.from(authorizationRequest)
-                .additionalParameters(params -> {
-                    params.put("prompt", "login");
-                    params.put("max_age", "0");
-                })
-                .build();
+        OAuth2AuthorizationRequest.Builder builder = OAuth2AuthorizationRequest.from(authorizationRequest);
+        if (SwitchUserIntentSupport.isAfterIdpLogout(request)) {
+            // End-session (or invalidation) already cleared the IdP session; prompt=login here forces a second login.
+            builder.additionalParameters(params -> params.put("prompt", "select_account"));
+        } else {
+            builder.additionalParameters(params -> {
+                params.put("prompt", "login select_account");
+                params.put("max_age", "0");
+            });
+        }
+        return builder.build();
     }
 
     static boolean isSwitchUserReauth(HttpServletRequest request) {
         if ("1".equals(request.getParameter(SWITCH_USER_PARAM))) {
+            return true;
+        }
+        if (SwitchUserIntentSupport.hasSwitchUserIntent(request)) {
             return true;
         }
         HttpSession session = request.getSession(false);
