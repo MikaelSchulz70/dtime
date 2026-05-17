@@ -1,0 +1,38 @@
+# Ollama MCP bridge — included from repo root together with docker-compose.yml.
+#
+# Default: MCP at http://dtime-mcp:8081/mcp (container, profile mcp).
+# Dev on host: set BRIDGE_MCP_CONFIG=bridge-config.host-mcp.json and run MCP via mvn / local :8081.
+
+services:
+  dtime-ollama-bridge:
+    image: ghcr.io/jonigl/ollama-mcp-bridge:v0.11.2
+    container_name: dtime-ollama-bridge
+    restart: unless-stopped
+    environment:
+      OLLAMA_URL: http://dtime-ollama:11434
+      CORS_ORIGINS: ${OLLAMA_BRIDGE_CORS_ORIGINS:-http://localhost:3000,https://localhost:3000}
+      SYSTEM_PROMPT: ${OLLAMA_BRIDGE_SYSTEM_PROMPT:-You are a helpful assistant for DTime time tracking and project management. Use MCP tools to look up users, tasks, accounts, and time reports when needed.}
+      OLLAMA_PROXY_TIMEOUT: ${OLLAMA_PROXY_TIMEOUT:-600000}
+    ports:
+      - "${OLLAMA_BRIDGE_PORT:-8082}:8000"
+    volumes:
+      - ./${BRIDGE_MCP_CONFIG:-bridge-config.json}:/config/bridge-config.json:ro
+    command: ["uv", "run", "ollama-mcp-bridge", "--config", "/config/bridge-config.json"]
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+    depends_on:
+      dtime-ollama:
+        condition: service_healthy
+      dtime-mcp:
+        condition: service_healthy
+        required: false
+    healthcheck:
+      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 45s
+    profiles:
+      - ollama
+      - full-stack
+      - mcp

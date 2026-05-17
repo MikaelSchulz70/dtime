@@ -74,6 +74,7 @@ dtime/
 ├── deploy.sh                # Deployment script
 ├── package.sh               # Distribution packaging
 ├── mcp/                     # MCP server (read-only API tools for AI clients)
+├── ollama/                  # Ollama compose + bridge config (see ollama/README.md)
 ├── infra/                   # PostgreSQL + Authentik (see infra/README.md)
 ├── docker-compose.yml       # App stack (profiles: full-stack, production, mcp)
 ├── start-mcp.sh             # MCP prerequisites / run hints
@@ -81,7 +82,20 @@ dtime/
 └── README.md
 ```
 
-Module-specific details: [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mcp/README.md](mcp/README.md), [infra/README.md](infra/README.md).
+Module-specific details: [backend/README.md](backend/README.md), [frontend/README.md](frontend/README.md), [mcp/README.md](mcp/README.md), [ollama/README.md](ollama/README.md), [infra/README.md](infra/README.md).
+
+### Ollama chat (admin)
+
+Admin-only **Chat** at `/chat` in the frontend calls **`/api/ollama/api/chat`**, proxied to **ollama-mcp-bridge** (not raw Ollama), so MCP tools (users, tasks, time reports) are available.
+
+**Requirements:** `dtime-mcp` healthy with machine JWT configured; `dtime-ollama` with a pulled model (default `llama3.2` — see [ollama/README.md](ollama/README.md#memory-and-model-choice) if you hit RAM limits).
+
+```bash
+docker compose --profile full-stack --profile mcp --profile ollama up -d
+docker exec dtime-ollama ollama pull llama3.2
+```
+
+Local frontend dev (`npm start`): run the bridge on **localhost:8082** (compose above) or set `OLLAMA_BRIDGE_URL` in `.env` for webpack.
 
 ## Running the stack
 
@@ -93,6 +107,8 @@ Default **host ports** (see [docker-compose.yml](docker-compose.yml) header):
 | Frontend (prod compose) | http://localhost:3000 | Nginx in container |
 | Backend API | https://localhost:8443 | HTTPS (dev keystore) |
 | MCP server | http://localhost:8081/mcp | Streamable HTTP MCP |
+| Ollama | http://localhost:11434 | Profile `ollama` — local LLM |
+| Ollama MCP bridge | http://localhost:8082 | Profile `ollama` — Chat API + tools |
 | PostgreSQL | localhost:5432 | `dtime-db` or [infra](infra/README.md) |
 | Authentik | http://localhost:9000 | [infra/authentik](infra/README.md) |
 
@@ -116,6 +132,10 @@ docker compose --profile full-stack up -d
 
 # Optional: add MCP (needs Authentik + machine JWT in .env)
 docker compose --profile full-stack --profile mcp up -d
+
+# Optional: admin Chat with Ollama + MCP tools (requires mcp profile + pulled model)
+docker compose --profile full-stack --profile mcp --profile ollama up -d
+docker exec dtime-ollama ollama pull llama3.2
 ```
 
 Or use the deploy script:
@@ -168,7 +188,7 @@ Set `FRONTEND_BACKEND_URL` in `.env` to the **public HTTPS URL** of your backend
 ### Stop services
 
 ```bash
-docker compose --profile full-stack --profile mcp down
+docker compose --profile full-stack --profile mcp --profile ollama down
 docker compose --profile production down
 ```
 

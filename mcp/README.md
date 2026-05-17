@@ -136,6 +136,15 @@ export OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI=http://localhost:9000/application
 - MCP (streamable): **POST** http://localhost:8081/mcp ([Spring AI MCP server docs](https://docs.spring.io/spring-ai/reference/api/mcp/mcp-server-boot-starter-docs.html))
 - Cursor: add to `~/.cursor/mcp.json` or `.cursor/mcp.json`: `"url": "http://localhost:8081/mcp"`
 
+## Consumers
+
+| Client | MCP URL | Notes |
+|--------|---------|--------|
+| **Cursor** | `http://localhost:8081/mcp` | Streamable HTTP; no MCP endpoint auth in v1 |
+| **ollama-mcp-bridge** (admin Chat) | `http://dtime-mcp:8081/mcp` | Inside Docker Compose; see [ollama/README.md](../ollama/README.md) |
+
+No MCP Java changes are required for v1 when the bridge points at the existing streamable HTTP endpoint. The bridge uses the same read-only tools as Cursor; backend access is still the **machine** OAuth client (admin API scope), not the signed-in browser user.
+
 ### Troubleshooting `API unauthorized (401)`
 
 | Symptom | Fix |

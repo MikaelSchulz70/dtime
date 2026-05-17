@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "dtime": {
+      "url": "http://dtime-mcp:8081/mcp"
+    }
+  }
+}

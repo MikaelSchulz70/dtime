@@ -1,11 +1,15 @@
-version: '3.8'
-
 # Typical host port binding (defaults below). Keep MCP off 8443 / 3000 / 8080 to avoid clashes:
 #   Backend (HTTPS): https://localhost:8443 — application-dev.yml + application-docker.yml (server.port: 8443)
 #   Backend prod profile may also bind HTTP on 8080 internally (application-prod.yml); compose only publishes 8443.
 #   Frontend dev: https://localhost:3000 — webpack FRONTEND_PORT (default 3000)
 #   Frontend prod compose: localhost:3000 → nginx:80 inside container (no MCP overlap)
 #   MCP: http://localhost:8081 (default SERVER_PORT/MCP_PORT; distinct from backend 8443 and frontend 3000)
+#   Ollama: http://localhost:11434 — see ollama/docker-compose.yml (profile ollama / full-stack / mcp)
+#   Ollama MCP bridge: http://localhost:8082 — included from ollama/docker-compose.yml
+
+include:
+  - path: ./ollama/docker-compose.yml
+  - path: ./ollama/docker-compose.bridge.yml
 
 services:
   # PostgreSQL Database
@@ -13,6 +17,9 @@ services:
     extends:
       file: ./infra/postgres/docker-compose.yml
       service: postgres
+    # Avoid clashing with another Postgres on host :5432 (e.g. dtime-postgres / infra)
+    ports: !override
+      - "${DATABASE_HOST_PORT:-5433}:5432"
 
   # Spring Boot Backend (optional - for full stack development)
   dtime-backend:
@@ -52,7 +59,7 @@ services:
       dtime-db:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1"]
+      test: [ "CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3
@@ -124,7 +131,7 @@ services:
       dtime-backend:
         condition: service_healthy
     healthcheck:
-      test: ["CMD-SHELL", "curl -sf \"http://127.0.0.1:$${SERVER_PORT}/actuator/health\" >/dev/null || exit 1"]
+      test: [ "CMD-SHELL", "curl -sf \"http://127.0.0.1:$${SERVER_PORT}/actuator/health\" >/dev/null || exit 1" ]
       interval: 30s
       timeout: 10s
       retries: 3

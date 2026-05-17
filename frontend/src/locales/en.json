@@ -181,8 +181,22 @@
       "vacations": "Vacations",
       "timeReportStatus": "Time Report Status",
       "systemProperties": "System properties",
-      "specialDays": "Special Days"
+      "specialDays": "Special Days",
+      "chat": "Chat"
     }
+  },
+  "chat": {
+    "title": "Chat",
+    "description": "Ask questions about DTime data. The assistant can use MCP tools (users, tasks, time reports). Uses the Ollama model below (see ollama/README.md if you run out of memory).",
+    "empty": "Send a message to start the conversation.",
+    "you": "You",
+    "assistant": "Assistant",
+    "placeholder": "Ask about users, tasks, or time reports… (Enter to send, Shift+Enter for new line)",
+    "model": "Model",
+    "send": "Send",
+    "sending": "Thinking…",
+    "clear": "Clear",
+    "errorGeneric": "Could not reach the chat service. Ensure Ollama and the MCP bridge are running."
   },
   "users": {
     "title": "Users",

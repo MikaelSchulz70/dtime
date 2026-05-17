@@ -77,6 +77,8 @@ const NavigationMenu = ({ session }) => {
             <NavDropdown.Divider />
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/system/properties" eventKey={13}>{t('navigation.menu.systemProperties')}</Nav.Link>
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/specialdays" eventKey={14}>{t('navigation.menu.specialDays')}</Nav.Link>
+            <NavDropdown.Divider />
+            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/chat" eventKey={23}>{t('navigation.menu.chat')}</Nav.Link>
           </NavDropdown>
           <Nav.Link as={Link} to="/logout" eventKey={22} className="nav-link-professional">{t('navigation.menu.logout')}</Nav.Link>
         </Nav>

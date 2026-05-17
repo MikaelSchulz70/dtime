@@ -2,6 +2,18 @@ const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production' || process.env.NODE_ENV === 'production';
+  const ollamaBridgeTarget = process.env.OLLAMA_BRIDGE_URL || 'http://127.0.0.1:8082';
+  const backendTarget = process.env.REACT_APP_BACKEND_URL || 'https://localhost:8443';
+
+  const isOllamaProxyPath = (pathname) => pathname.startsWith('/api/ollama');
+  const isBackendProxyPath = (pathname) =>
+    !isOllamaProxyPath(pathname) &&
+    (pathname.startsWith('/api') ||
+      pathname.startsWith('/logout') ||
+      pathname.startsWith('/perform_login') ||
+      pathname.startsWith('/pub') ||
+      pathname.startsWith('/oauth2') ||
+      pathname.startsWith('/login/oauth2'));
 
   return {
     entry: './src/index.js',
@@ -80,8 +92,17 @@ module.exports = (env, argv) => {
       },
       proxy: [
         {
-          context: ['/api', '/logout', '/perform_login', '/pub', '/oauth2', '/login/oauth2'],
-          target: process.env.REACT_APP_BACKEND_URL || 'https://localhost:8443',
+          context: isOllamaProxyPath,
+          target: ollamaBridgeTarget,
+          changeOrigin: true,
+          secure: false,
+          pathRewrite: { '^/api/ollama': '' },
+          proxyTimeout: 600000,
+          timeout: 600000,
+        },
+        {
+          context: isBackendProxyPath,
+          target: backendTarget,
           secure: false,
           changeOrigin: true,
           cookieDomainRewrite: 'localhost',

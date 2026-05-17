@@ -1,0 +1,7 @@
+{
+  "mcpServers": {
+    "dtime": {
+      "url": "http://host.docker.internal:8081/mcp"
+    }
+  }
+}

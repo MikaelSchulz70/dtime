@@ -30,6 +30,7 @@ import Vacations from './containers/report/Vacations';
 import SystemConfig from './containers/system/SystemConfig';
 import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
 import SpecialDays from './containers/specialday/SpecialDays';
+import Chat from './containers/chat/Chat';
 
 // Placeholder imports for missing components - these may not be used in routes
 // TODO: Remove unused imports or create these components if needed
@@ -65,7 +66,14 @@ function Logout() {
 }
 
 
-const Main = () => {
+const AdminRoute = ({ session, children }) => {
+  if (!session?.loggedInUser?.admin) {
+    return <Navigate to="/" replace />;
+  }
+  return children;
+};
+
+const Main = ({ session }) => {
   const { t } = useTranslation();
   return (
     <main>
@@ -91,6 +99,7 @@ const Main = () => {
               <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
               <Route path='/system/properties' element={<SystemConfig />} />
               <Route path='/specialdays' element={<SpecialDays />} />
+              <Route path='/chat' element={<AdminRoute session={session}><Chat /></AdminRoute>} />
               <Route path='/logout' element={<Logout />} />
               <Route path='*' element={<Navigate to="/" replace />} />
             </Routes>
@@ -198,7 +207,7 @@ const AppContent = () => {
     <div className="d-flex flex-column min-vh-100">
       <NavigationMenu session={session} />
       <div className="flex-grow-1">
-        <Main />
+        <Main session={session} />
       </div>
       <Footer />
     </div>

@@ -5,6 +5,8 @@
  */
 
 const DEFAULT_BACKEND_URL = 'https://localhost:8443';
+const DEFAULT_OLLAMA_BRIDGE_URL = 'http://localhost:8082';
+const DEFAULT_OLLAMA_MODEL = 'llama3.2';
 
 class Config {
   constructor() {
@@ -18,6 +20,8 @@ class Config {
 
     this.config = {
       BACKEND_URL: runtimeConfig.REACT_APP_BACKEND_URL || DEFAULT_BACKEND_URL,
+      OLLAMA_BRIDGE_URL: runtimeConfig.OLLAMA_BRIDGE_URL || DEFAULT_OLLAMA_BRIDGE_URL,
+      OLLAMA_DEFAULT_MODEL: runtimeConfig.OLLAMA_DEFAULT_MODEL || DEFAULT_OLLAMA_MODEL,
       NODE_ENV: runtimeConfig.NODE_ENV || 'development',
     };
   }
@@ -40,6 +44,14 @@ class Config {
 
   get isProduction() {
     return this.nodeEnv === 'production';
+  }
+
+  get ollamaBridgeUrl() {
+    return this.get('OLLAMA_BRIDGE_URL');
+  }
+
+  get ollamaDefaultModel() {
+    return this.get('OLLAMA_DEFAULT_MODEL');
   }
 }
 

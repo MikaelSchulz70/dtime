@@ -1,0 +1,31 @@
+# Ollama LLM for DTime. Run standalone from this directory or via root compose `include`.
+#
+# Standalone:
+#   cd ollama && docker compose --profile ollama up -d
+#   docker exec dtime-ollama ollama pull llama3.2
+#
+# Bridge (+ MCP tools) is in docker-compose.bridge.yml — merged from repo root only.
+
+services:
+  dtime-ollama:
+    image: ollama/ollama:latest
+    container_name: dtime-ollama
+    restart: unless-stopped
+    ports:
+      - "${OLLAMA_PORT:-11434}:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    healthcheck:
+      test: ["CMD", "ollama", "list"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 30s
+    profiles:
+      - ollama
+      - full-stack
+      - mcp
+
+volumes:
+  ollama_data:
+    driver: local
