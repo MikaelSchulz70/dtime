@@ -57,10 +57,21 @@ public class AccountRestController {
             @RequestParam(value = "name", required = false) String name) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, mapSortProperty(sort)));
 
         PagedResponse<Account> response = accountService.getAllPaged(pageable, active, name);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private String mapSortProperty(String requestedSort) {
+        if (requestedSort == null || requestedSort.isBlank()) {
+            return "name";
+        }
+        return switch (requestedSort) {
+            case "accountId" -> "id";
+            case "id", "name", "activationStatus" -> requestedSort;
+            default -> "name";
+        };
     }
 
     @PreAuthorize("hasRole('ADMIN')")

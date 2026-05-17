@@ -58,10 +58,21 @@ public class TaskRestController {
             @RequestParam(value = "accountId", required = false) Long accountId) {
 
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
-        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sort));
+        Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, mapSortProperty(sort)));
 
         PagedResponse<Task> response = taskService.getAllPaged(pageable, active, name, accountId);
         return new ResponseEntity<>(response, HttpStatus.OK);
+    }
+
+    private String mapSortProperty(String requestedSort) {
+        if (requestedSort == null || requestedSort.isBlank()) {
+            return "name";
+        }
+        return switch (requestedSort) {
+            case "taskId" -> "id";
+            case "id", "name", "activationStatus", "taskType", "isBillable" -> requestedSort;
+            default -> "name";
+        };
     }
 
     @PreAuthorize("hasRole('ADMIN')")

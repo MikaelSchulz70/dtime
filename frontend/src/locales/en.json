@@ -194,6 +194,7 @@
     "placeholder": "Ask about users, tasks, or time reports… (Enter to send, Shift+Enter for new line)",
     "model": "Model",
     "send": "Send",
+    "stop": "Stop",
     "sending": "Thinking…",
     "clear": "Clear",
     "errorGeneric": "Could not reach the chat service. Ensure Ollama and the MCP bridge are running."

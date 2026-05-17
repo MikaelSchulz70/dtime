@@ -2,6 +2,17 @@ import env from '../config/env';
 
 const CHAT_PATH = '/api/ollama/api/chat';
 
+export class ChatAbortedError extends Error {
+  constructor() {
+    super('Chat stopped');
+    this.name = 'ChatAbortedError';
+  }
+}
+
+export function isChatAbortedError(err) {
+  return err instanceof ChatAbortedError || err?.name === 'ChatAbortedError';
+}
+
 export function getDefaultModel() {
   return env.ollamaDefaultModel;
 }
@@ -160,11 +171,11 @@ export function applyStreamChunk(assistantMessage, chunk) {
 /**
  * Send a chat request to the Ollama MCP bridge (proxied at /api/ollama).
  * @param {Array<{role: string, content: string}>} messages
- * @param {{ model?: string, stream?: boolean, onChunk?: (partial: object) => void }} options
+ * @param {{ model?: string, stream?: boolean, onChunk?: (partial: object) => void, signal?: AbortSignal }} options
  * @returns {Promise<{ role: string, content: string, toolStatus?: string }>}
  */
 export async function sendChat(messages, options = {}) {
-  const { model = getDefaultModel(), stream = true, onChunk } = options;
+  const { model = getDefaultModel(), stream = true, onChunk, signal } = options;
 
   let response;
   try {
@@ -179,8 +190,12 @@ export async function sendChat(messages, options = {}) {
         messages,
         stream,
       }),
+      signal,
     });
   } catch (err) {
+    if (err.name === 'AbortError') {
+      throw new ChatAbortedError();
+    }
     throw new Error(
       'Cannot reach the chat service. Start the Ollama bridge (port 8082) and restart npm start. ' +
         `(${err.message})`
@@ -207,10 +222,10 @@ export async function sendChat(messages, options = {}) {
     return data.message || { role: 'assistant', content: data.response || '' };
   }
 
-  return readStreamingChat(response, onChunk);
+  return readStreamingChat(response, onChunk, signal);
 }
 
-async function readStreamingChat(response, onChunk) {
+async function readStreamingChat(response, onChunk, signal) {
   const reader = response.body.getReader();
   const decoder = new TextDecoder();
   let buffer = '';
@@ -226,7 +241,22 @@ async function readStreamingChat(response, onChunk) {
   };
 
   while (true) {
-    const { done, value } = await reader.read();
+    if (signal?.aborted) {
+      await reader.cancel();
+      throw new ChatAbortedError();
+    }
+
+    let readResult;
+    try {
+      readResult = await reader.read();
+    } catch (err) {
+      if (err.name === 'AbortError') {
+        throw new ChatAbortedError();
+      }
+      throw err;
+    }
+
+    const { done, value } = readResult;
     if (done) {
       break;
     }

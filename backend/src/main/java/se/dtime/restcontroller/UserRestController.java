@@ -51,8 +51,10 @@ public class UserRestController {
             return "displayName";
         }
         return switch (requestedSort) {
+            case "userId" -> "id";
             case "firstName", "lastName" -> "displayName";
-            default -> requestedSort;
+            case "id", "displayName", "email", "userRole", "activationStatus", "externalId" -> requestedSort;
+            default -> "displayName";
         };
     }
 

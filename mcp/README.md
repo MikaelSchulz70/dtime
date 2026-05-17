@@ -190,16 +190,92 @@ docker build -t dtime-mcp:latest mcp/
 
 ## Tools
 
-All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**:
+All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. Implementations live under [`mcp/src/main/java/se/dtime/mcp/service/`](src/main/java/se/dtime/mcp/service/) (one `@Service` per API area). After a rebuild, the Ollama bridge health check reports **`tools`: 29** (`curl -s http://127.0.0.1:8082/health`).
 
-- `getPagedUsers`, `getUser`
-- `getPagedAccounts`, `getAccount`
-- `getPagedTasks`, `getTask`
-- `getTaskContributors`
-- `getUserTimeReport` — **admin**; `view` must match backend `TimeReportView` (`WEEK`, `MONTH`, …)
-- `getVacationReport`, `getSystemConfig`
+### Users (`/api/users`)
 
-Bulk `GET /api/users` etc. without pagination are deliberately **not** exposed (LLM/context safety).
+| Tool | Backend |
+|------|---------|
+| `getAllUsers` | `GET /api/users` — optional `active` |
+| `getPagedUsers` | `GET /api/users/paged` |
+| `getUser` | `GET /api/users/{id}` |
+
+### Accounts (`/api/account`)
+
+| Tool | Backend |
+|------|---------|
+| `getAllAccounts` | `GET /api/account` — optional `active` |
+| `getPagedAccounts` | `GET /api/account/paged` |
+| `getAccount` | `GET /api/account/{id}` |
+
+### Tasks (`/api/task`)
+
+| Tool | Backend |
+|------|---------|
+| `getAllTasks` | `GET /api/task` — optional `active` |
+| `getPagedTasks` | `GET /api/task/paged` |
+| `getTask` | `GET /api/task/{id}` |
+
+### Task contributors (`/api/taskcontributor`)
+
+| Tool | Backend |
+|------|---------|
+| `getTaskContributors` | `GET /api/taskcontributor/{userId}` |
+| `getCurrentTaskContributors` | `GET /api/taskcontributor/currentTaskContributors` |
+
+### Special days (`/api/specialday`)
+
+| Tool | Backend |
+|------|---------|
+| `getAllSpecialDays` | `GET /api/specialday` |
+| `getSpecialDayYears` | `GET /api/specialday/years` |
+| `getSpecialDaysByYear` | `GET /api/specialday/year/{year}` |
+| `getSpecialDay` | `GET /api/specialday/{id}` |
+
+### Time reports (`/api/timereport`)
+
+| Tool | Backend |
+|------|---------|
+| `getUserTimeReport` | `GET /api/timereport/user` — `view`: `WEEK` or `MONTH`; `date`: ISO `YYYY-MM-DD` |
+| `getVacationReport` | `GET /api/timereport/vacations` |
+| `getPreviousVacationReport` | `GET /api/timereport/vacations/previous` |
+| `getNextVacationReport` | `GET /api/timereport/vacations/next` |
+
+### Time report status (`/api/timereportstatus`)
+
+| Tool | Backend |
+|------|---------|
+| `getCurrentUnclosedUsers` | `GET /api/timereportstatus` |
+| `getPreviousUnclosedUsers` | `GET /api/timereportstatus/previous` |
+| `getNextUnclosedUsers` | `GET /api/timereportstatus/next` |
+
+### Reports (`/api/report`) — admin aggregates
+
+| Tool | Backend |
+|------|---------|
+| `getMonthlyUserReportSummary` | `GET /api/report/previous` — **preferred** for “users who reported in month X”; pass any `dateInMonth` in that month |
+| `getCurrentReports` | `GET /api/report` — optional `view` (`MONTH`, `YEAR`), `type` (`USER_TASK`, `TASK`, `USER`, `ACCOUNT`, `BILLABLE_TASK_TYPE`) |
+| `getPreviousReport` | `GET /api/report/previous` — requires `date` |
+| `getNextReport` | `GET /api/report/next` — requires `date` |
+| `getBillableTaskTypeReport` | `GET /api/report/billable-task-type` — `fromDate`, `toDate` |
+
+### System (`/api/system`)
+
+| Tool | Backend |
+|------|---------|
+| `getSystemConfig` | `GET /api/system/config` |
+| `getMailEnabled` | `GET /api/system/mail/enabled` |
+
+Bulk list tools (`getAllUsers`, `getAllAccounts`, `getAllTasks`) may return large JSON payloads; tool descriptions recommend **paged** tools when possible.
+
+### Not exposed (by design)
+
+| Endpoint | Reason |
+|----------|--------|
+| `/api/auth/**` | OIDC redirect flows, not data APIs |
+| `/api/session` | Requires interactive browser user principal |
+| `/api/timereport`, `/previous`, `/next` (no `userId`) | “Current user” scope; machine JWT has no real end-user |
+| `/api/report/user`, `/user/next`, `/user/previous` | Same current-user scope — use `getUserTimeReport` or admin `getCurrentReports` with `type` |
 
 ## License
 

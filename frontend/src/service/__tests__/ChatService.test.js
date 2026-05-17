@@ -1,7 +1,9 @@
 import {
   applyStreamChunk,
+  ChatAbortedError,
   extractErrorMessage,
   formatToolCallStatus,
+  isChatAbortedError,
   parseNdjsonBuffer,
 } from '../ChatService';
 
@@ -69,6 +71,13 @@ describe('applyStreamChunk', () => {
       done: false,
     });
     expect(msg.toolStatus).toBe('Calling: dtime.getPagedUsers');
+  });
+});
+
+describe('ChatAbortedError', () => {
+  it('is detected by isChatAbortedError', () => {
+    const err = new ChatAbortedError();
+    expect(isChatAbortedError(err)).toBe(true);
   });
 });
 

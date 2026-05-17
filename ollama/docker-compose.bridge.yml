@@ -11,7 +11,7 @@ services:
     environment:
       OLLAMA_URL: http://dtime-ollama:11434
       CORS_ORIGINS: ${OLLAMA_BRIDGE_CORS_ORIGINS:-http://localhost:3000,https://localhost:3000}
-      SYSTEM_PROMPT: ${OLLAMA_BRIDGE_SYSTEM_PROMPT:-You are a helpful assistant for DTime time tracking and project management. Use MCP tools to look up users, tasks, accounts, and time reports when needed.}
+      SYSTEM_PROMPT: ${OLLAMA_BRIDGE_SYSTEM_PROMPT:-You are a helpful assistant for DTime time tracking and project management. Always call MCP tools for factual data; never invent numbers. Org-wide monthly questions (how many users reported time in May, total hours that month): use getMonthlyUserReportSummary with dateInMonth any day in that month (e.g. 2026-05-01 for May 2026), then read userReports and sum totalTime. Single-user week/month grid: getUserTimeReport with a real userId from getPagedUsers. Current month org totals: getCurrentReports with view=MONTH and type=USER. Never pass null for userId.}
       OLLAMA_PROXY_TIMEOUT: ${OLLAMA_PROXY_TIMEOUT:-600000}
     ports:
       - "${OLLAMA_BRIDGE_PORT:-8082}:8000"

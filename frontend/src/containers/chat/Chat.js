@@ -1,7 +1,12 @@
 import React, { useCallback, useRef, useState } from 'react';
 import { Alert, Button, Card, Form, Spinner } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
-import { formatToolCallStatus, getDefaultModel, sendChat } from '../../service/ChatService';
+import {
+  formatToolCallStatus,
+  getDefaultModel,
+  isChatAbortedError,
+  sendChat,
+} from '../../service/ChatService';
 
 const Chat = () => {
   const { t } = useTranslation();
@@ -11,6 +16,7 @@ const Chat = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const listRef = useRef(null);
+  const abortControllerRef = useRef(null);
 
   const scrollToBottom = useCallback(() => {
     if (listRef.current) {
@@ -27,6 +33,10 @@ const Chat = () => {
     }
   };
 
+  const handleStop = () => {
+    abortControllerRef.current?.abort();
+  };
+
   const handleSend = async (event) => {
     event.preventDefault();
     const text = input.trim();
@@ -41,6 +51,9 @@ const Chat = () => {
     setError(null);
     setLoading(true);
 
+    const abortController = new AbortController();
+    abortControllerRef.current = abortController;
+
     const assistantPlaceholder = { role: 'assistant', content: '', toolStatus: null };
     setMessages([...nextMessages, assistantPlaceholder]);
 
@@ -48,6 +61,7 @@ const Chat = () => {
       const assistantMessage = await sendChat(nextMessages, {
         model,
         stream: true,
+        signal: abortController.signal,
         onChunk: (chunk) => {
           const toolStatus = formatToolCallStatus(chunk.message?.tool_calls);
           if (!toolStatus && !chunk.message?.content) {
@@ -77,11 +91,15 @@ const Chat = () => {
         return updated;
       });
     } catch (err) {
+      if (isChatAbortedError(err)) {
+        return;
+      }
       setMessages(nextMessages);
       const message = err.message || t('chat.errorGeneric');
       setError(message);
       console.error('Chat error:', err);
     } finally {
+      abortControllerRef.current = null;
       setLoading(false);
       scrollToBottom();
     }
@@ -153,18 +171,23 @@ const Chat = () => {
                   onKeyDown={handleInputKeyDown}
                   placeholder={t('chat.placeholder')}
                   disabled={loading}
+                  style={{ minHeight: '4.5rem', resize: 'vertical' }}
                 />
               </Form.Group>
-              <Button type="submit" variant="success" disabled={loading || !input.trim()}>
+              <div className="d-flex gap-2 align-items-center">
                 {loading ? (
-                  <>
-                    <Spinner animation="border" size="sm" className="me-2" />
-                    {t('chat.sending')}
-                  </>
+                  <Button type="button" variant="danger" onClick={handleStop}>
+                    {t('chat.stop')}
+                  </Button>
                 ) : (
-                  t('chat.send')
+                  <Button type="submit" variant="success" disabled={!input.trim()}>
+                    {t('chat.send')}
+                  </Button>
                 )}
-              </Button>
+                {loading && (
+                  <span className="text-muted small">{t('chat.sending')}</span>
+                )}
+              </div>
             </Form>
           </Card.Body>
         </Card>

@@ -56,6 +56,18 @@ class UserRestControllerIT extends BaseRestControllerIT {
     }
 
     @Test
+    @WithMockUser(roles = "ADMIN")
+    void shouldGetPagedUsersWithUserIdSortAlias() throws Exception {
+        mockMvc.perform(get("/api/users/paged")
+                .param("page", "0")
+                .param("size", "10")
+                .param("sort", "userId")
+                .param("direction", "asc"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.content").isArray());
+    }
+
+    @Test
     @WithMockUser(roles = "USER")
     void shouldReturnForbiddenForGetPagedWithUserRole() throws Exception {
         mockMvc.perform(get("/api/users/paged"))
