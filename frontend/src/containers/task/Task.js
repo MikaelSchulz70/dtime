@@ -3,8 +3,10 @@ import { Link } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import TaskService from '../../service/TaskService';
 import *  as Constants from '../../common/Constants';
-import { TaskTypeLabels } from '../../common/TaskType';
+import { TaskTypeI18nKeys } from '../../common/TaskType';
+import { formatActivationStatus } from '../../common/displayLabels';
 import { useToast } from '../../components/Toast';
+import { useConfirm } from '../../components/ConfirmProvider';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 
@@ -18,13 +20,13 @@ function TaskTableRow({ task, handleDelete }) {
         <tr>
             <td>{task.account.name}</td>
             <td>{task.name}</td>
-            <td>{TaskTypeLabels[task.taskType] || task.taskType}</td>
-            <td>{task.activationStatus}</td>
-            <td className="text-center">
+            <td>{t(TaskTypeI18nKeys[task.taskType] || task.taskType)}</td>
+            <td>{formatActivationStatus(task.activationStatus, t)}</td>
+            <td>
                 {task.isBillable ? (
-                    <span className="text-success">✓ Yes</span>
+                    <span className="text-success">{t('tasks.billable.yes')}</span>
                 ) : (
-                    <span className="text-muted">✗ No</span>
+                    <span className="text-muted">{t('tasks.billable.no')}</span>
                 )}
             </td>
             <td>
@@ -95,7 +97,7 @@ function TaskTable({ tasks, handleDelete, nameFilter, accountNameFilter, statusF
                         getSortIcon={getSortIcon}
                         className="text-white"
                     >
-                        Billable
+                        {t('tasks.columns.billable')}
                     </SortableTableHeader>
                     <th className="text-white">{t('common.labels.actions')}</th>
                 </tr>
@@ -112,6 +114,7 @@ function Task(props) {
     const [statusFilter, setStatusFilter] = useState(Constants.ACTIVE_STATUS);
     const [tasks, setTasks] = useState(null);
     const { showError, showSuccess } = useToast();
+    const confirm = useConfirm();
 
     const loadFromServer = useCallback(() => {
         var service = new TaskService();
@@ -156,9 +159,14 @@ function Task(props) {
         }
     }, []);
 
-    const handleDelete = useCallback((id) => {
-        const shallDelete = confirm(t('tasks.messages.taskDeleteConfirm'));
-        if (!shallDelete) {
+    const handleDelete = useCallback(async (id) => {
+        const confirmed = await confirm({
+            message: t('tasks.messages.taskDeleteConfirm'),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -171,7 +179,7 @@ function Task(props) {
             .catch(error => {
                 showError(t('tasks.messages.deleteTaskFailed') + ': ' + (error.response.data.error));
             });
-    }, [loadFromServer, showSuccess, showError, t]);
+    }, [loadFromServer, showSuccess, showError, confirm, t]);
 
     if (tasks == null) return null;
 

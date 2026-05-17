@@ -55,6 +55,21 @@ module.exports = [
       'no-extra-semi': 'warn',
       'no-prototype-builtins': 'warn',
       'react/no-unescaped-entities': 'error',
+      'no-restricted-globals': [
+        'error',
+        {
+          name: 'confirm',
+          message: 'Use useConfirm() from components/ConfirmProvider instead of the global confirm().',
+        },
+      ],
+      'no-restricted-properties': [
+        'error',
+        {
+          object: 'window',
+          property: 'confirm',
+          message: 'Use useConfirm() from components/ConfirmProvider instead of window.confirm.',
+        },
+      ],
     },
     settings: {
       react: {

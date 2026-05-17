@@ -4,9 +4,12 @@ import UserService from '../../service/UserService';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
+import { useConfirm } from '../../components/ConfirmProvider';
+import { formatActivationStatus, formatUserRole } from '../../common/displayLabels';
 
 const UsersModal = () => {
     const { t } = useTranslation();
+    const confirm = useConfirm();
     const [users, setUsers] = useState([]);
     const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(users, 'firstName');
     const [loading, setLoading] = useState(false);
@@ -85,7 +88,7 @@ const UsersModal = () => {
             setUsers(serverResponse.content);
         } catch (error) {
             console.error('Error loading users:', error);
-            showAlert(t('users.errors.loadFailed', 'Failed to load users'), 'danger');
+            showAlert(t('users.errors.loadFailed'), 'danger');
         } finally {
             setLoading(false);
         }
@@ -121,13 +124,17 @@ const UsersModal = () => {
     };
 
     const handleDeactivate = async (user) => {
-        const confirmMessage = t(
-            'users.deactivateConfirm',
-            { name: `${user.firstName} ${user.lastName}`.trim(), email: user.email },
-            `Deactivate ${user.firstName} ${user.lastName} (${user.email})? They will no longer be able to sign in.`
-        );
+        const confirmMessage = t('users.deactivateConfirm', {
+            name: `${user.firstName} ${user.lastName}`.trim(),
+            email: user.email,
+        });
 
-        if (!window.confirm(confirmMessage)) {
+        const confirmed = await confirm({
+            message: confirmMessage,
+            confirmLabel: t('users.deactivate'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -135,14 +142,14 @@ const UsersModal = () => {
         try {
             const userService = new UserService();
             await userService.deactivate(user.id);
-            showAlert(t('users.deactivateSuccess', 'User deactivated successfully'));
+            showAlert(t('users.deactivateSuccess'));
             loadUsers();
         } catch (error) {
             console.error('Error deactivating user:', error);
             const errorMessage = error.response?.data?.error
                 || error.response?.data?.message
                 || error.message
-                || t('users.errors.deactivateFailed', 'Failed to deactivate user');
+                || t('users.errors.deactivateFailed');
             showAlert(errorMessage, 'danger');
         } finally {
             setPendingActionId(null);
@@ -150,13 +157,17 @@ const UsersModal = () => {
     };
 
     const handleActivate = async (user) => {
-        const confirmMessage = t(
-            'users.activateConfirm',
-            { name: `${user.firstName} ${user.lastName}`.trim(), email: user.email },
-            `Activate ${user.firstName} ${user.lastName} (${user.email})? They will be able to sign in again.`
-        );
+        const confirmMessage = t('users.activateConfirm', {
+            name: `${user.firstName} ${user.lastName}`.trim(),
+            email: user.email,
+        });
 
-        if (!window.confirm(confirmMessage)) {
+        const confirmed = await confirm({
+            message: confirmMessage,
+            confirmLabel: t('users.activate'),
+            variant: 'primary',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -164,14 +175,14 @@ const UsersModal = () => {
         try {
             const userService = new UserService();
             await userService.activate(user.id);
-            showAlert(t('users.activateSuccess', 'User activated successfully'));
+            showAlert(t('users.activateSuccess'));
             loadUsers();
         } catch (error) {
             console.error('Error activating user:', error);
             const errorMessage = error.response?.data?.error
                 || error.response?.data?.message
                 || error.message
-                || t('users.errors.activateFailed', 'Failed to activate user');
+                || t('users.errors.activateFailed');
             showAlert(errorMessage, 'danger');
         } finally {
             setPendingActionId(null);
@@ -189,9 +200,9 @@ const UsersModal = () => {
                 <Card.Header>
                     <Row>
                         <Col>
-                            <h4 className="mb-0">{t('users.title', 'Users')}</h4>
+                            <h4 className="mb-0">{t('users.title')}</h4>
                             <small className="text-muted">
-                                {t('users.authentikHint', 'Users are created when they sign in via Authentik. You can activate or deactivate users here.')}
+                                {t('users.authentikHint')}
                             </small>
                         </Col>
                     </Row>
@@ -208,7 +219,7 @@ const UsersModal = () => {
                             <input
                                 className="form-control"
                                 type="text"
-                                placeholder={t('users.filters.firstName', 'Filter by first name')}
+                                placeholder={t('users.filters.firstName')}
                                 name="firstName"
                                 value={filters.firstName}
                                 onChange={handleFilterChange}
@@ -218,7 +229,7 @@ const UsersModal = () => {
                             <input
                                 className="form-control"
                                 type="text"
-                                placeholder={t('users.filters.lastName', 'Filter by last name')}
+                                placeholder={t('users.filters.lastName')}
                                 name="lastName"
                                 value={filters.lastName}
                                 onChange={handleFilterChange}
@@ -226,13 +237,13 @@ const UsersModal = () => {
                         </Col>
                         <Col md={3}>
                             <select className="form-select" name="status" value={filters.status} onChange={handleFilterChange}>
-                                <option value="">{t('users.filters.allStatus', 'All Status')}</option>
-                                <option value="ACTIVE">{t('users.status.active', 'Active')}</option>
-                                <option value="INACTIVE">{t('users.status.inactive', 'Inactive')}</option>
+                                <option value="">{t('users.filters.allStatus')}</option>
+                                <option value="ACTIVE">{t('users.status.active')}</option>
+                                <option value="INACTIVE">{t('users.status.inactive')}</option>
                             </select>
                         </Col>
                         <Col md={3} className="d-flex align-items-center">
-                            <span className="me-2">{t('users.pagination.show', 'Show')}:</span>
+                            <span className="me-2">{t('users.pagination.show')}:</span>
                             <select
                                 className="form-select form-select-sm"
                                 style={{ width: 'auto' }}
@@ -243,7 +254,7 @@ const UsersModal = () => {
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                             </select>
-                            <span className="ms-2">{t('users.pagination.entries', 'entries')}</span>
+                            <span className="ms-2">{t('users.pagination.entries')}</span>
                         </Col>
                     </Row>
 
@@ -251,31 +262,31 @@ const UsersModal = () => {
                         <thead className="bg-success">
                             <tr>
                                 <SortableTableHeader field="firstName" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
-                                    {t('users.columns.firstName', 'First Name')}
+                                    {t('users.columns.firstName')}
                                 </SortableTableHeader>
                                 <SortableTableHeader field="lastName" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
-                                    {t('users.columns.lastName', 'Last Name')}
+                                    {t('users.columns.lastName')}
                                 </SortableTableHeader>
                                 <SortableTableHeader field="email" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
-                                    {t('users.columns.email', 'Email')}
+                                    {t('users.columns.email')}
                                 </SortableTableHeader>
                                 <SortableTableHeader field="userRole" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
-                                    {t('users.columns.role', 'Role')}
+                                    {t('users.columns.role')}
                                 </SortableTableHeader>
                                 <SortableTableHeader field="activationStatus" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
-                                    {t('users.columns.status', 'Status')}
+                                    {t('users.columns.status')}
                                 </SortableTableHeader>
-                                <th className="text-white">{t('users.columns.actions', 'Actions')}</th>
+                                <th className="text-white">{t('users.columns.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">{t('common.loading', 'Loading...')}</td>
+                                    <td colSpan="6" className="text-center">{t('common.loading.default')}</td>
                                 </tr>
                             ) : (sortedUsers || []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">{t('users.empty', 'No users found')}</td>
+                                    <td colSpan="6" className="text-center">{t('users.empty')}</td>
                                 </tr>
                             ) : (
                                 (sortedUsers || []).map(user => (
@@ -283,8 +294,8 @@ const UsersModal = () => {
                                         <td>{user.firstName}</td>
                                         <td>{user.lastName}</td>
                                         <td>{user.email}</td>
-                                        <td>{user.userRole}</td>
-                                        <td>{user.activationStatus}</td>
+                                        <td>{formatUserRole(user.userRole, t)}</td>
+                                        <td>{formatActivationStatus(user.activationStatus, t)}</td>
                                         <td>
                                             {user.activationStatus === 'ACTIVE' ? (
                                                 <Button
@@ -294,8 +305,8 @@ const UsersModal = () => {
                                                     onClick={() => handleDeactivate(user)}
                                                 >
                                                     {pendingActionId === user.id
-                                                        ? t('common.loading', 'Loading...')
-                                                        : t('users.deactivate', 'Deactivate')}
+                                                        ? t('common.loading.default')
+                                                        : t('users.deactivate')}
                                                 </Button>
                                             ) : (
                                                 <Button
@@ -305,8 +316,8 @@ const UsersModal = () => {
                                                     onClick={() => handleActivate(user)}
                                                 >
                                                     {pendingActionId === user.id
-                                                        ? t('common.loading', 'Loading...')
-                                                        : t('users.activate', 'Activate')}
+                                                        ? t('common.loading.default')
+                                                        : t('users.activate')}
                                                 </Button>
                                             )}
                                         </td>
@@ -323,8 +334,8 @@ const UsersModal = () => {
                                     {t('users.pagination.showing', {
                                         from: Math.min(startIndex + 1, totalItems),
                                         to: endIndex,
-                                        total: totalItems
-                                    }, `Showing ${Math.min(startIndex + 1, totalItems)} to ${endIndex} of ${totalItems} entries`)}
+                                        total: totalItems,
+                                    })}
                                 </div>
                                 <Pagination size="sm">
                                     <Pagination.Prev

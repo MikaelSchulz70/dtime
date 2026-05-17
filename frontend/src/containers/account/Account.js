@@ -4,6 +4,8 @@ import { useTranslation } from 'react-i18next';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { useToast } from '../../components/Toast';
+import { useConfirm } from '../../components/ConfirmProvider';
+import { formatActivationStatus } from '../../common/displayLabels';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 
@@ -16,7 +18,7 @@ function AccountTableRow({ organization, handleDelete }) {
     return (
         <tr>
             <td>{organization.name}</td>
-            <td>{organization.activationStatus}</td>
+            <td>{formatActivationStatus(organization.activationStatus, t)}</td>
             <td>
                 <Link className="btn btn-outline-primary btn-sm me-2" to={editRoute}>{t('common.buttons.edit')}</Link>
                 <button className="btn btn-outline-danger btn-sm" onClick={() => handleDelete(organization.id)}>{t('common.buttons.delete')}</button>
@@ -76,6 +78,7 @@ function Account(props) {
     const [statusFilter, setStatusFilter] = useState(Constants.ACTIVE_STATUS);
     const [accounts, setAccounts] = useState(null);
     const { showError, showSuccess } = useToast();
+    const confirm = useConfirm();
 
     const loadFromServer = useCallback(() => {
         console.log('loadFromServer called for accounts');
@@ -136,9 +139,14 @@ function Account(props) {
         }
     }, []);
 
-    const handleDelete = useCallback((id) => {
-        const shallDelete = confirm(t('accounts.messages.accountDeleteConfirm'));
-        if (!shallDelete) {
+    const handleDelete = useCallback(async (id) => {
+        const confirmed = await confirm({
+            message: t('accounts.messages.accountDeleteConfirm'),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -151,7 +159,7 @@ function Account(props) {
             .catch(error => {
                 showError(t('accounts.messages.deleteAccountFailed') + ': ' + (error.response.data.error));
             });
-    }, [loadFromServer, showSuccess, showError, t]);
+    }, [loadFromServer, showSuccess, showError, confirm, t]);
 
     if (accounts == null) return null;
 

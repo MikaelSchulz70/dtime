@@ -1,11 +1,12 @@
 import React from 'react';
 import { Spinner, Container, Row, Col } from 'react-bootstrap';
+import i18n from '../i18n';
 
 const LoadingSpinner = ({ 
   size = 'sm', 
   variant = 'primary', 
   centered = false, 
-  text = 'Loading...',
+  text = i18n.t('common.loading.default'),
   fullPage = false 
 }) => {
   const spinner = (

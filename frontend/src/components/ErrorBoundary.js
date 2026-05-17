@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import { Alert, Button, Container } from 'react-bootstrap';
+import i18n from '../i18n';
 
 class ErrorBoundary extends Component {
   constructor(props) {
@@ -40,31 +41,30 @@ class ErrorBoundary extends Component {
       return (
         <Container className="mt-4">
           <Alert variant="danger">
-            <Alert.Heading>Oops! Something went wrong</Alert.Heading>
+            <Alert.Heading>{i18n.t('errors.boundary.heading')}</Alert.Heading>
             <p>
-              We&apos;re sorry, but something unexpected happened. Please try refreshing the page
-              or contact support if the problem persists.
+              {i18n.t('errors.boundary.message')}
             </p>
             {process.env.NODE_ENV === 'development' && (
               <details className="mt-3" style={{ whiteSpace: 'pre-wrap' }}>
-                <summary>Error Details (Development Only)</summary>
+                <summary>{i18n.t('errors.boundary.devDetails')}</summary>
                 <hr />
-                <strong>Error:</strong> {this.state.error && this.state.error.toString()}
+                <strong>{i18n.t('errors.boundary.errorLabel')}</strong> {this.state.error && this.state.error.toString()}
                 <br />
-                <strong>Error Info:</strong> {this.state.errorInfo ? this.state.errorInfo.componentStack : 'No additional error information available'}
+                <strong>{i18n.t('errors.boundary.errorInfoLabel')}</strong> {this.state.errorInfo ? this.state.errorInfo.componentStack : i18n.t('errors.boundary.noAdditionalInfo')}
               </details>
             )}
             <hr />
             <div className="d-flex justify-content-end">
               <Button variant="outline-danger" onClick={this.handleRetry}>
-                Try Again
+                {i18n.t('common.buttons.tryAgain')}
               </Button>
               <Button 
                 variant="danger" 
                 className="ms-2"
                 onClick={() => window.location.reload()}
               >
-                Reload Page
+                {i18n.t('common.buttons.reloadPage')}
               </Button>
             </div>
           </Alert>

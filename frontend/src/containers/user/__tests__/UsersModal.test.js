@@ -1,15 +1,31 @@
 import React from 'react';
-import { render, screen, waitFor } from '@testing-library/react';
+import { screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import UsersModal from '../UsersModal';
 import UserService from '../../../service/UserService';
+import { renderWithProviders } from '../../../test-utils/renderWithProviders';
 
 jest.mock('../../../service/UserService');
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key, defaultValue) => defaultValue || key
-  })
-}));
+jest.mock('react-i18next', () => {
+  const en = require('../../../locales/en.json');
+  const resolve = (key) => {
+    const value = key.split('.').reduce((obj, part) => obj?.[part], en);
+    return typeof value === 'string' ? value : key;
+  };
+  return {
+    useTranslation: () => ({
+      t: (key, options) => {
+        let text = resolve(key);
+        if (options && typeof options === 'object') {
+          Object.entries(options).forEach(([name, val]) => {
+            text = text.replace(new RegExp(`{{${name}}}`, 'g'), String(val));
+          });
+        }
+        return text;
+      },
+    }),
+  };
+});
 
 describe('UsersModal', () => {
   let mockUserService;
@@ -48,7 +64,6 @@ describe('UsersModal', () => {
       activate: jest.fn().mockResolvedValue({})
     };
     UserService.mockImplementation(() => mockUserService);
-    window.confirm = jest.fn(() => true);
   });
 
   afterEach(() => {
@@ -56,7 +71,7 @@ describe('UsersModal', () => {
   });
 
   it('renders user list from API', async () => {
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByText('John')).toBeInTheDocument();
@@ -64,8 +79,19 @@ describe('UsersModal', () => {
     });
   });
 
+  it('renders translated role labels instead of raw enum values', async () => {
+    renderWithProviders(<UsersModal />);
+
+    await waitFor(() => {
+      expect(screen.getByText('User')).toBeInTheDocument();
+      expect(screen.getByText('Admin')).toBeInTheDocument();
+    });
+    expect(screen.queryByText('USER')).not.toBeInTheDocument();
+    expect(screen.queryByText('ADMIN')).not.toBeInTheDocument();
+  });
+
   it('does not show add user button', async () => {
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByText('John')).toBeInTheDocument();
@@ -75,7 +101,7 @@ describe('UsersModal', () => {
   });
 
   it('shows deactivate button only for active users', async () => {
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Deactivate' })).toBeInTheDocument();
@@ -86,13 +112,15 @@ describe('UsersModal', () => {
 
   it('deactivates user when confirmed', async () => {
     const user = userEvent.setup();
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Deactivate' })).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Deactivate' }));
+    const confirmButtons = screen.getAllByRole('button', { name: 'Deactivate' });
+    await user.click(confirmButtons[confirmButtons.length - 1]);
 
     await waitFor(() => {
       expect(mockUserService.deactivate).toHaveBeenCalledWith(1);
@@ -100,21 +128,21 @@ describe('UsersModal', () => {
   });
 
   it('does not deactivate when confirmation is cancelled', async () => {
-    window.confirm.mockReturnValue(false);
     const user = userEvent.setup();
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Deactivate' })).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Deactivate' }));
+    await user.click(screen.getByRole('button', { name: 'Cancel' }));
 
     expect(mockUserService.deactivate).not.toHaveBeenCalled();
   });
 
   it('shows activate button only for inactive users', async () => {
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Activate' })).toBeInTheDocument();
@@ -125,13 +153,15 @@ describe('UsersModal', () => {
 
   it('activates user when confirmed', async () => {
     const user = userEvent.setup();
-    render(<UsersModal />);
+    renderWithProviders(<UsersModal />);
 
     await waitFor(() => {
       expect(screen.getByRole('button', { name: 'Activate' })).toBeInTheDocument();
     });
 
     await user.click(screen.getByRole('button', { name: 'Activate' }));
+    const confirmButtons = screen.getAllByRole('button', { name: 'Activate' });
+    await user.click(confirmButtons[confirmButtons.length - 1]);
 
     await waitFor(() => {
       expect(mockUserService.activate).toHaveBeenCalledWith(2);

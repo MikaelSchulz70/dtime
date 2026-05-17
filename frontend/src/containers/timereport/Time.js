@@ -4,11 +4,13 @@ import * as Constants from '../../common/Constants';
 import ReportService from '../../service/ReportService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
+import { useConfirm } from '../../components/ConfirmProvider';
 
 function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged, id }) {
     const [timeReportDay, setTimeReportDay] = useState(initialTimeReportDay);
     const [fieldError, setFieldError] = useState(false);
     const { showError } = useToast();
+    const { t } = useTranslation();
 
     useEffect(() => {
         setTimeReportDay(initialTimeReportDay);
@@ -69,11 +71,11 @@ function TimeReportTableEntry({ timeReportDay: initialTimeReportDay, timeChanged
         if (status === 400 && error != null) {
             showError(error);
         } else if (status === 500) {
-            showError("Internal server error: " + error);
+            showError(t('common.messages.internalServerError', { error }));
         } else {
-            showError("Error: " + error);
+            showError(t('common.messages.genericError', { error }));
         }
-    }, [showError]);
+    }, [showError, t]);
 
     const handleChange = useCallback((event) => {
         if (timeReportDay.closed) {
@@ -168,6 +170,7 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime, timeChanged }) {
 }
 
 function TimeReportTableHeaderRow({ days }) {
+    const { t } = useTranslation();
     if (days == null)
         return null;
 
@@ -195,9 +198,9 @@ function TimeReportTableHeaderRow({ days }) {
 
     return (
         <tr key="0">
-            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
-            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
-            <th key="header-2"><font color={Constants.DAY_COLOR}>Time</font></th>
+            <th key="header-0"><font color={Constants.DAY_COLOR}>{t('time.headers.account')}</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>{t('time.headers.task')}</font></th>
+            <th key="header-2"><font color={Constants.DAY_COLOR}>{t('time.headers.time')}</font></th>
             {columns}
         </tr>
     );
@@ -229,6 +232,7 @@ function TimeReportTableFooterRow({ days, time, label, id }) {
 }
 
 function TimeReportTable({ timeReport: initialTimeReport }) {
+    const { t } = useTranslation();
     const [timeReport, setTimeReport] = useState(initialTimeReport);
 
     useEffect(() => {
@@ -279,8 +283,8 @@ function TimeReportTable({ timeReport: initialTimeReport }) {
         });
     }
 
-    rows.push(<TimeReportTableFooterRow key="footer3" id="footer3" days={timeReport.days} time={totalTime} label='Sum total' />);
-    rows.push(<TimeReportTableFooterRow key="footer4" id="footer4" days={timeReport.days} time={timeReport.workableHours} label='Workable hours' />);
+    rows.push(<TimeReportTableFooterRow key="footer3" id="footer3" days={timeReport.days} time={totalTime} label={t('time.labels.sumTotal')} />);
+    rows.push(<TimeReportTableFooterRow key="footer4" id="footer4" days={timeReport.days} time={timeReport.workableHours} label={t('time.labels.workableHours')} />);
 
     return (
         <table className="table-sm time-report-table">
@@ -300,6 +304,7 @@ function Times(props) {
     const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
     const { showError, showSuccess } = useToast();
     const { t } = useTranslation();
+    const confirm = useConfirm();
 
     useEffect(() => {
         loadCurrentTimes(Constants.MONTH_VIEW);
@@ -313,9 +318,9 @@ function Times(props) {
                 setReportView(view);
             })
             .catch(error => {
-                showError('Failed to load time report');
+                showError(t('time.messages.loadFailed'));
             });
-    }, [showError]);
+    }, [showError, t]);
 
     const loadPreviousTimes = useCallback((event) => {
         const date = event.target.name;
@@ -326,9 +331,9 @@ function Times(props) {
                 setTimeReport(response.data);
             })
             .catch(error => {
-                showError('Failed to load time report');
+                showError(t('time.messages.loadFailed'));
             });
-    }, [reportView, showError]);
+    }, [reportView, showError, t]);
 
     const loadNextTimes = useCallback((event) => {
         const date = event.target.name;
@@ -339,13 +344,17 @@ function Times(props) {
                 setTimeReport(response.data);
             })
             .catch(error => {
-                showError('Failed to load time report');
+                showError(t('time.messages.loadFailed'));
             });
-    }, [reportView, showError]);
+    }, [reportView, showError, t]);
 
-    const closeReport = useCallback((event) => {
-        const shallClose = confirm('Are you really sure you want close this month?\nYou will not be able to open it again.');
-        if (!shallClose) {
+    const closeReport = useCallback(async (event) => {
+        const confirmed = await confirm({
+            message: t('time.messages.closeConfirm'),
+            confirmLabel: t('common.buttons.closeReport'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
         const date = event.target.name;
@@ -355,12 +364,12 @@ function Times(props) {
         service.updateOpenCloseReport(payLoad, 'close')
             .then(response => {
                 loadCurrentTimes(Constants.MONTH_VIEW);
-                showSuccess('Report closed successfully');
+                showSuccess(t('time.messages.reportClosed'));
             })
             .catch(error => {
-                showError('Failed to close report');
+                showError(t('time.messages.closeFailed'));
             });
-    }, [timeReport, loadCurrentTimes, showSuccess, showError]);
+    }, [timeReport, loadCurrentTimes, showSuccess, showError, confirm, t]);
 
     const viewChange = useCallback((event) => {
         const view = event.target.value;
@@ -381,13 +390,13 @@ function Times(props) {
                 </div>
                 <div className="col-auto">
                     <select className="form-control form-control-sm" value={reportView} name="reportView" onChange={viewChange}>
-                        <option value={Constants.WEEK_VIEW}>Week</option>
-                        <option value={Constants.MONTH_VIEW}>Month</option>
+                        <option value={Constants.WEEK_VIEW}>{t('common.timeView.week')}</option>
+                        <option value={Constants.MONTH_VIEW}>{t('common.timeView.month')}</option>
                     </select>
                 </div>
                 <div className="col text-end">
                     {reportView === Constants.MONTH_VIEW && !timeReport.closed ? (
-                        <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={closeReport}>Close report</button>
+                        <button className="btn btn-success btn-sm" name={timeReport.firstDate} onClick={closeReport}>{t('common.buttons.closeReport')}</button>
                     ) : ''}
                 </div>
                 <div className="col-auto">

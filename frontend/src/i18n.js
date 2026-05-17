@@ -8,21 +8,24 @@ const resources = {
   }
 };
 
-i18n
-  .use(initReactI18next)
-  .init({
-    resources,
-    lng: 'en', // default language
-    fallbackLng: 'en', // fallback language if current language is not available
-    
-    interpolation: {
-      escapeValue: false // React already does escaping
-    },
-    
-    // Options for react-i18next
-    react: {
-      useSuspense: false
-    }
-  });
+if (!i18n.isInitialized) {
+  if (initReactI18next) {
+    i18n.use(initReactI18next);
+  }
+  i18n.init({
+      resources,
+      lng: 'en', // default language
+      fallbackLng: 'en', // fallback language if current language is not available
+
+      interpolation: {
+        escapeValue: false // React already does escaping
+      },
+
+      // Options for react-i18next
+      react: {
+        useSuspense: false
+      }
+    });
+}
 
 export default i18n;

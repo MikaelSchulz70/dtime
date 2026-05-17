@@ -4,12 +4,14 @@ import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
 import { useBaseDetails } from '../BaseDetails';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 export default function AccountDetails(_props) {
     const { accountId } = useParams();
     const navigate = useNavigate();
     const { handleError, clearError, clearErrors } = useBaseDetails();
     const { showError } = useToast();
+    const { t } = useTranslation();
     
     const [account, setAccount] = useState(() => {
         if (accountId === '0') {
@@ -26,10 +28,10 @@ export default function AccountDetails(_props) {
                     setAccount(response.data);
                 })
                 .catch(_error => {
-                    showError?.('Failed to fetch account') || alert('Failed to fetch account');
+                    showError?.(t('accounts.messages.fetchFailed')) || alert(t('accounts.messages.fetchFailed'));
                 });
         }
-    }, [accountId, showError]);
+    }, [accountId, showError, t]);
 
     const handleCreateUpdate = useCallback((_id) => {
         clearErrors();
@@ -80,13 +82,13 @@ export default function AccountDetails(_props) {
     if (account == null) return null;
 
     var isAdd = (accountId === '0');
-    var buttonText = (isAdd ? "Add" : "Update");
+    var buttonText = (isAdd ? t('common.buttons.add') : t('common.buttons.update'));
 
     return (
 
             <div className="container">
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Name</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.name')}</label>
                     <div className="col-sm-6">
                         <input className="form-control" type="text" value={account.name} name="name" maxLength="40" onChange={handleChange} onBlur={validate} />
                     </div>
@@ -95,11 +97,11 @@ export default function AccountDetails(_props) {
                     </div>
                 </div>
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Status</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.status')}</label>
                     <div className="col-sm-6">
                         <select className="form-control" value={account.activationStatus} name="activationStatus" onChange={handleChange}>
-                            <option value={Constants.ACTIVE_STATUS}>Active</option>
-                            <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                            <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                            <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                         </select>
                     </div>
                     <div className="col-sm-4">
@@ -108,7 +110,7 @@ export default function AccountDetails(_props) {
                 </div>
                 <div className="form-group row">
                     <div className="col-sm-8">
-                        <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>Cancel</button>
+                        <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>{t('common.buttons.cancel')}</button>
                         <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(accountId)}>{buttonText}</button>
                     </div>
                 </div>

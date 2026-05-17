@@ -3,6 +3,7 @@ import Modal from 'react-modal';
 import * as Constants from '../../common/Constants';
 import TimeService from '../../service/TimeService';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 import {
     UserTaskBarChart,
     TaskDistributionPieChart,
@@ -52,26 +53,27 @@ function TimeReportTableEntry({ timeReportDay }) {
 }
 
 function UserReportSummaryTable({ report }) {
+    const { t } = useTranslation();
     if (report == null)
         return null;
 
     var rows = [];
     rows.push(
         <tr key={'summary-header'} className="bg-success text-white">
-            <th className="fw-bold fs-6">Summary</th>
-            <th className="fw-bold fs-6">Workable Hours (Month)</th>
-            <th className="fw-bold fs-6">Total Workable Hours</th>
-            <th className="fw-bold fs-6">Total Hours Worked</th>
+            <th className="fw-bold fs-6">{t('reports.summary.title')}</th>
+            <th className="fw-bold fs-6 col-num">{t('reports.summary.workableHoursMonth')}</th>
+            <th className="fw-bold fs-6 col-num">{t('reports.summary.totalWorkableHours')}</th>
+            <th className="fw-bold fs-6 col-num">{t('reports.summary.totalHoursWorked')}</th>
             <th></th>
         </tr>
     );
 
     rows.push(
         <tr key={'summary-info'} className="table-light">
-            <td className="fw-bold text-muted">Totals</td>
-            <td className="fw-bold">{report.workableHours}</td>
-            <td className="fw-bold">{report.totalWorkableHours}</td>
-            <td className="fw-bold text-success">{report.totalHoursWorked}</td>
+            <td className="fw-bold text-muted">{t('reports.summary.totals')}</td>
+            <td className="fw-bold col-num">{report.workableHours}</td>
+            <td className="fw-bold col-num">{report.totalWorkableHours}</td>
+            <td className="fw-bold col-num text-success">{report.totalHoursWorked}</td>
             <td></td>
         </tr>
     );
@@ -126,6 +128,7 @@ function TimeReportTableRow({ timeReportTask, totalTaskTime }) {
 }
 
 function UserReportRows({ userReport, reportView, workableHours, fromDate, toDate, showError }) {
+    const { t } = useTranslation();
 
     if (userReport == null)
         return null;
@@ -140,9 +143,9 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
     var keyHeader = keyBase + '0';
     rows.push(<tr key={keyHeader}>
         <th className="fw-bold">{userReport.fullName}</th>
-        <th className="fw-bold">Account</th>
-        <th className="fw-bold text-start">Task</th>
-        <th className="fw-bold">Hours</th>
+        <th className="fw-bold">{t('reports.tableAccount')}</th>
+        <th className="fw-bold text-start">{t('reports.tableTask')}</th>
+        <th className="fw-bold col-num">{t('reports.tableTotalHours')}</th>
         <th className="fw-bold">
             {reportView === Constants.MONTH_VIEW ? (
                 <UserDetailReport userId={userReport.userId} fromDate={fromDate} toDate={toDate} showError={showError} />
@@ -162,7 +165,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
                 <td></td>
                 <td className="text-nowrap" title={accountName}>{accountShortName}</td>
                 <td className="text-nowrap text-start" title={taskName}>{taskShortName}</td>
-                <td>{taskReport.totalHours}</td>
+                <td className="col-num">{taskReport.totalHours}</td>
                 <td></td>
             </tr>);
     });
@@ -177,7 +180,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
         <th className="text-muted"></th>
         <th className="fw-bold fs-6"></th>
         <th></th>
-        <th className={`fw-bold fs-6`}>{userReport.totalTime}</th>
+        <th className="fw-bold fs-6 col-num">{userReport.totalTime}</th>
         <th></th>
     </tr>);
     return (
@@ -188,6 +191,7 @@ function UserReportRows({ userReport, reportView, workableHours, fromDate, toDat
 }
 
 function TimeReportTableHeaderRow({ days }) {
+    const { t } = useTranslation();
     if (days == null)
         return null;
     var columns = [];
@@ -220,15 +224,16 @@ function TimeReportTableHeaderRow({ days }) {
 
     return (
         <tr key="0" className="table-success">
-            <th key="header-0"><font color={Constants.DAY_COLOR}>Account</font></th>
-            <th key="header-1"><font color={Constants.DAY_COLOR}>Task</font></th>
-            <th key="header-2"><font color={Constants.DAY_COLOR}>Total</font></th>
+            <th key="header-0"><font color={Constants.DAY_COLOR}>{t('time.headers.account')}</font></th>
+            <th key="header-1"><font color={Constants.DAY_COLOR}>{t('time.headers.task')}</font></th>
+            <th key="header-2" className="col-num"><font color={Constants.DAY_COLOR}>{t('reports.tableTotalHours')}</font></th>
             {columns}
         </tr>
     );
 }
 
 function UserDetailReport({ userId, fromDate, toDate, showError }) {
+    const { t } = useTranslation();
     const [timeReport, setTimeReport] = useState(null);
     const [isOpen, setIsOpen] = useState(false);
     const [viewMode, setViewMode] = useState('table');
@@ -251,9 +256,9 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
             })
             .catch(error => {
                 console.error('Error loading user report:', error);
-                showError('Failed to load user report: ' + (error.response?.data?.message || error.message));
+                showError(t('reports.messages.loadUserReportFailed', { message: error.response?.data?.message || error.message }));
             });
-    }, [userId, fromDate, showError]);
+    }, [userId, fromDate, showError, t]);
 
     var headerRow = '';
     if (timeReport != null) {
@@ -281,7 +286,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
     return (
         <div>
             <button className="btn btn-outline-success btn-sm" onClick={showDetails}>
-                📋 View Details
+                {t('reports.viewDetails')}
             </button>
             {isOpen ? (
                 <Modal
@@ -321,7 +326,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     <span className="fs-4">📊</span>
                                 </div>
                                 <div>
-                                    <h4 className="mb-1 text-white fw-bold">Time Report Details</h4>
+                                    <h4 className="mb-1 text-white fw-bold">{t('reports.timeReportDetails')}</h4>
                                     <p className="mb-0 text-white-50 small">
                                         📅 {fromDate && fromDate} {toDate && ` - ${toDate}`}
                                     </p>
@@ -335,7 +340,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                     onClick={closeDetails}
                                     style={{ borderRadius: '8px' }}
                                 >
-                                    <span className="fw-bold">✕ Close</span>
+                                    <span className="fw-bold">{t('reports.closeModal')}</span>
                                 </button>
                             </div>
                         </div>
@@ -352,7 +357,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                         <div className="text-primary mb-2">
                                                             <span className="fs-4">📈</span>
                                                         </div>
-                                                        <h6 className="card-title text-muted mb-1">Hours</h6>
+                                                        <h6 className="card-title text-muted mb-1">{t('reports.cardHours')}</h6>
                                                         <p className="card-text fs-5 fw-bold text-dark mb-0">
                                                             {(() => {
                                                                 if (!timeReport.timeReportTasks) return '0h';
@@ -374,7 +379,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                         <div className="text-info mb-2">
                                                             <span className="fs-4">📋</span>
                                                         </div>
-                                                        <h6 className="card-title text-muted mb-1">Tasks</h6>
+                                                        <h6 className="card-title text-muted mb-1">{t('reports.cardTasks')}</h6>
                                                         <p className="card-text fs-5 fw-bold text-dark mb-0">
                                                             {timeReport.timeReportTasks ? timeReport.timeReportTasks.length : 0}
                                                         </p>
@@ -387,7 +392,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                         <div className="text-warning mb-2">
                                                             <span className="fs-4">📅</span>
                                                         </div>
-                                                        <h6 className="card-title text-muted mb-1">Days</h6>
+                                                        <h6 className="card-title text-muted mb-1">{t('reports.cardDays')}</h6>
                                                         <p className="card-text fs-5 fw-bold text-dark mb-0">
                                                             {timeReport.days ? timeReport.days.length : 0}
                                                         </p>
@@ -400,7 +405,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                         <div className="text-success mb-2">
                                                             <span className="fs-4">⏱️</span>
                                                         </div>
-                                                        <h6 className="card-title text-muted mb-1">Avg/Day</h6>
+                                                        <h6 className="card-title text-muted mb-1">{t('reports.cardAvgPerDay')}</h6>
                                                         <p className="card-text fs-5 fw-bold text-dark mb-0">
                                                             {(() => {
                                                                 if (!timeReport.timeReportTasks || !timeReport.days) return '0h';
@@ -424,7 +429,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                 <div className="card border-0 shadow-sm">
                                     <div className="card-header bg-white border-bottom py-2">
                                         <h6 className="mb-0 fw-bold text-dark">
-                                            {viewMode === 'table' ? '📊 Detailed Time Entries' : '📈 Time Visualization'}
+                                            {viewMode === 'table' ? t('reports.detailedTimeEntries') : t('reports.timeVisualization')}
                                         </h6>
                                     </div>
                                     <div className="card-body p-3">
@@ -452,7 +457,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                         ) : (
                                             <div>
                                                 <div className="mb-4">
-                                                    <h6 className="mb-3 fw-bold text-primary">📊 Daily Time Distribution</h6>
+                                                    <h6 className="mb-3 fw-bold text-primary">{t('reports.dailyTimeDistribution')}</h6>
                                                     <TimeTrendChart
                                                         timeReportTasks={timeReport?.timeReportTasks}
                                                         days={timeReport?.days}
@@ -465,7 +470,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
 
                                                     // Create user reports format for chart components
                                                     const userReports = [{
-                                                        fullName: "Current User",
+                                                        fullName: t('reports.currentUser'),
                                                         totalTime: (() => {
                                                             let total = 0;
                                                             timeReport.timeReportTasks.forEach(task => {
@@ -491,12 +496,12 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                                     return (
                                                         <>
                                                             <div className="mb-4">
-                                                                <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                                                <h6 className="mb-3 fw-bold text-success">{t('reports.taskDistribution')}</h6>
                                                                 <TaskDistributionPieChart userReports={userReports} />
                                                             </div>
 
                                                             <div className="mb-4">
-                                                                <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                                                <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
                                                                 <AccountHoursChart userReports={userReports} />
                                                             </div>
                                                         </>
@@ -512,7 +517,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                         {/* Modal Footer */}
                         <div className="modal-footer bg-light border-top-0 py-3">
                             <small className="text-muted me-auto">
-                                💡 <strong>Tip:</strong> Hover over truncated names to see full text
+                                💡 {t('reports.truncatedNamesTip')}
                             </small>
                             <button
                                 type="button"
@@ -520,7 +525,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                                 onClick={closeDetails}
                                 style={{ borderRadius: '8px' }}
                             >
-                                Done
+                                {t('common.buttons.done')}
                             </button>
                         </div>
                     </div>
@@ -531,6 +536,7 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
 }
 
 function UserTaskReportTable({ report, reportView, fromDate }) {
+    const { t } = useTranslation();
     const { showError } = useToast();
     const [viewMode, setViewMode] = useState('table');
 
@@ -552,7 +558,7 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 fw-bold text-white">👥 User Task Time Summary</h5>
+                        <h5 className="mb-0 fw-bold text-white">{t('reports.userTaskTimeSummary')}</h5>
                         <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
                     </div>
                 </div>
@@ -567,17 +573,17 @@ function UserTaskReportTable({ report, reportView, fromDate }) {
                         <div className="p-3">
                             <div className="row">
                                 <div className="col-lg-6 mb-4">
-                                    <h6 className="mb-3 fw-bold text-primary">👤 User Hours Overview</h6>
+                                    <h6 className="mb-3 fw-bold text-primary">{t('reports.userHoursOverview')}</h6>
                                     <UserTaskBarChart userReports={report.userReports} />
                                 </div>
                                 <div className="col-lg-6 mb-4">
-                                    <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                    <h6 className="mb-3 fw-bold text-success">{t('reports.taskDistribution')}</h6>
                                     <TaskDistributionPieChart userReports={report.userReports} />
                                 </div>
                             </div>
                             <div className="row">
                                 <div className="col-12">
-                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
                                     <AccountHoursChart userReports={report.userReports} />
                                 </div>
                             </div>

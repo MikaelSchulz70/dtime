@@ -1,4 +1,5 @@
 import React, { createContext, useContext, useState, useCallback } from 'react';
+import { useTranslation } from 'react-i18next';
 
 const ToastContext = createContext();
 
@@ -70,6 +71,8 @@ const ToastContainer = () => {
 };
 
 const Toast = ({ toast, onClose }) => {
+    const { t } = useTranslation();
+
     const getToastClasses = () => {
         const baseClasses = 'toast show';
         const typeClasses = {
@@ -103,10 +106,10 @@ const Toast = ({ toast, onClose }) => {
 
     const getTitle = () => {
         const titles = {
-            success: 'Success',
-            error: 'Error',
-            warning: 'Warning',
-            info: 'Info'
+            success: t('errors.toast.success'),
+            error: t('errors.toast.error'),
+            warning: t('errors.toast.warning'),
+            info: t('errors.toast.info'),
         };
         return titles[toast.type] || titles.info;
     };
@@ -119,7 +122,7 @@ const Toast = ({ toast, onClose }) => {
                 <button
                     type="button"
                     className="btn-close btn-close-white"
-                    aria-label="Close"
+                    aria-label={t('accessibility.close')}
                     onClick={onClose}
                 />
             </div>

@@ -14,6 +14,7 @@ import {
 import axios from 'axios';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
+import { formatTaskType } from '../../common/displayLabels';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 import { ChartViewToggle } from '../../components/Charts';
@@ -30,6 +31,7 @@ ChartJS.register(
 );
 
 const BillableTaskTypeReportTable = ({ report }) => {
+    const { t } = useTranslation();
     const { showError } = useToast();
     const [reportData, setReportData] = useState([]);
     const [loading, setLoading] = useState(false);
@@ -52,11 +54,11 @@ const BillableTaskTypeReportTable = ({ report }) => {
             setReportData(response.data);
         } catch (error) {
             console.error('Error loading billable task type report:', error);
-            showError('Failed to load report: ' + (error.response?.data?.message || error.message));
+            showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
         } finally {
             setLoading(false);
         }
-    }, [report.fromDate, report.toDate, showError]);
+    }, [report.fromDate, report.toDate, showError, t]);
 
     useEffect(() => {
         if (report && report.fromDate && report.toDate) {
@@ -64,18 +66,8 @@ const BillableTaskTypeReportTable = ({ report }) => {
         }
     }, [report, loadReportData]);
 
-    const getTaskTypeLabel = (taskType) => {
-        const labels = {
-            'NORMAL': 'Normal',
-            'VACATION': 'Vacation',
-            'SICK_LEAVE': 'Sick Leave',
-            'PARENTAL_LEAVE': 'Parental Leave'
-        };
-        return labels[taskType] || taskType;
-    };
-
     const getBillableLabel = (isBillable) => {
-        return isBillable ? 'Billable' : 'Non-billable';
+        return isBillable ? t('reports.billable.billable') : t('reports.billable.nonBillable');
     };
 
     // Calculate totals
@@ -86,14 +78,14 @@ const BillableTaskTypeReportTable = ({ report }) => {
 
     // Prepare chart data
     const getBarChartData = () => {
-        const labels = sortedReportData.map(item => `${getTaskTypeLabel(item.taskType)} (${getBillableLabel(item.isBillable)})`);
+        const labels = sortedReportData.map(item => `${formatTaskType(item.taskType, t)} (${getBillableLabel(item.isBillable)})`);
         const data = sortedReportData.map(item => item.totalHours);
 
         return {
             labels,
             datasets: [
                 {
-                    label: 'Hours',
+                    label: t('reports.cardHours'),
                     data,
                     backgroundColor: sortedReportData.map(item =>
                         item.isBillable ? 'rgba(40, 167, 69, 0.8)' : 'rgba(108, 117, 125, 0.8)'
@@ -109,7 +101,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
 
     const getDoughnutChartData = () => {
         return {
-            labels: ['Billable Hours', 'Non-billable Hours'],
+            labels: [t('reports.billable.billableHours'), t('reports.billable.nonBillableHours')],
             datasets: [
                 {
                     data: [billableHours, nonBillableHours],
@@ -135,7 +127,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
             },
             title: {
                 display: true,
-                text: 'Billable vs Non-billable Hours by Task Type',
+                text: t('reports.billable.hoursByTaskTypeChart'),
             },
         },
         scales: {
@@ -158,7 +150,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
             },
             title: {
                 display: true,
-                text: 'Total Billable vs Non-billable Hours',
+                text: t('reports.billable.totalBillableChart'),
             },
             tooltip: {
                 callbacks: {
@@ -175,9 +167,9 @@ const BillableTaskTypeReportTable = ({ report }) => {
             <div className="col-12">
                 <div className="text-center py-4">
                     <div className="spinner-border text-success" role="status">
-                        <span className="visually-hidden">Loading...</span>
+                        <span className="visually-hidden">{t('common.loading.default')}</span>
                     </div>
-                    <p className="mt-2">Loading billable task type report...</p>
+                    <p className="mt-2">{t('reports.loadingBillableReport')}</p>
                 </div>
             </div>
         );
@@ -189,7 +181,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                 <Card.Header className="bg-success text-white">
                     <Row className="align-items-center">
                         <Col>
-                            <h5 className="mb-0 fw-bold text-white">Billable & Task Type Analysis</h5>
+                            <h5 className="mb-0 fw-bold text-white">{t('reports.billableTaskTypeAnalysis')}</h5>
                         </Col>
                         <Col xs="auto">
                             <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
@@ -202,25 +194,25 @@ const BillableTaskTypeReportTable = ({ report }) => {
                         <Col md={3}>
                             <div className="text-center p-3 bg-light rounded">
                                 <h5 className="text-success mb-1">{totalHours.toFixed(2)}h</h5>
-                                <small className="text-muted">Total Hours</small>
+                                <small className="text-muted">{t('reports.billable.totalHoursColumn')}</small>
                             </div>
                         </Col>
                         <Col md={3}>
                             <div className="text-center p-3 bg-success text-white rounded">
                                 <h5 className="mb-1">{billableHours.toFixed(2)}h</h5>
-                                <small>Billable Hours</small>
+                                <small>{t('reports.billable.billableHours')}</small>
                             </div>
                         </Col>
                         <Col md={3}>
                             <div className="text-center p-3 bg-secondary text-white rounded">
                                 <h5 className="mb-1">{nonBillableHours.toFixed(2)}h</h5>
-                                <small>Non-billable Hours</small>
+                                <small>{t('reports.billable.nonBillableHours')}</small>
                             </div>
                         </Col>
                         <Col md={3}>
                             <div className="text-center p-3 bg-info text-white rounded">
                                 <h5 className="mb-1">{totalTasks}</h5>
-                                <small>Total Tasks</small>
+                                <small>{t('reports.cardTasks')}</small>
                             </div>
                         </Col>
                     </Row>
@@ -228,9 +220,9 @@ const BillableTaskTypeReportTable = ({ report }) => {
                     {/* Table or Chart View */}
                     {viewMode === 'table' ? (
                         <>
-                            <h5>Detailed Breakdown</h5>
+                            <h5>{t('reports.detailedBreakdown')}</h5>
                             {sortedReportData.length === 0 ? (
-                                <p className="text-muted">No data available for the selected date range.</p>
+                                <p className="text-muted">{t('reports.billable.noDataForRange')}</p>
                             ) : (
                                 <Table striped bordered hover responsive>
                                     <thead className="bg-success text-white">
@@ -241,7 +233,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >
-                                                Task Type
+                                                {t('reports.billable.taskTypeColumn')}
                                             </SortableTableHeader>
                                             <SortableTableHeader
                                                 field="isBillable"
@@ -249,34 +241,31 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >
-                                                Billable Status
+                                                {t('reports.billable.billableStatusColumn')}
                                             </SortableTableHeader>
                                             <SortableTableHeader
                                                 field="totalHours"
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
-                                                className="text-white text-end"
-                                                contentAlign="end"
+                                                className="text-white col-num"
                                             >
-                                                Total Hours
+                                                {t('reports.billable.totalHoursColumn')}
                                             </SortableTableHeader>
                                             <SortableTableHeader
                                                 field="taskCount"
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
-                                                className="text-white text-end"
-                                                contentAlign="end"
+                                                className="text-white col-num"
                                             >
-                                                Number of Tasks
+                                                {t('reports.billable.numberOfTasksColumn')}
                                             </SortableTableHeader>
                                             <SortableTableHeader
                                                 field="percentage"
                                                 onSort={requestSort}
                                                 getSortIcon={getSortIcon}
-                                                className="text-white text-end"
-                                                contentAlign="end"
+                                                className="text-white col-num"
                                             >
-                                                % of Total
+                                                {t('reports.billable.percentOfTotal')}
                                             </SortableTableHeader>
                                             <SortableTableHeader
                                                 field="description"
@@ -284,32 +273,32 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                                 getSortIcon={getSortIcon}
                                                 className="text-white"
                                             >
-                                                Description
+                                                {t('common.labels.description')}
                                             </SortableTableHeader>
                                         </tr>
                                     </thead>
                                     <tbody>
                                         {sortedReportData.map((item, index) => (
                                             <tr key={index}>
-                                                <td className="fw-medium">{getTaskTypeLabel(item.taskType)}</td>
+                                                <td className="fw-medium">{formatTaskType(item.taskType, t)}</td>
                                                 <td>
                                                     <span className={`badge ${item.isBillable ? 'bg-success' : 'bg-secondary'}`}>
                                                         {getBillableLabel(item.isBillable)}
                                                     </span>
                                                 </td>
-                                                <td className="text-end">{item.totalHours.toFixed(2)}</td>
-                                                <td className="text-end">{item.taskCount}</td>
-                                                <td className="text-end">{totalHours > 0 ? ((item.totalHours / totalHours) * 100).toFixed(1) : 0}%</td>
+                                                <td className="col-num">{item.totalHours.toFixed(2)}</td>
+                                                <td className="col-num">{item.taskCount}</td>
+                                                <td className="col-num">{totalHours > 0 ? ((item.totalHours / totalHours) * 100).toFixed(1) : 0}%</td>
                                                 <td>{item.description}</td>
                                             </tr>
                                         ))}
                                     </tbody>
                                     <tfoot className="bg-light">
                                         <tr>
-                                            <td colSpan={2}><strong>Total</strong></td>
-                                            <td className="text-end"><strong>{totalHours.toFixed(2)}</strong></td>
-                                            <td className="text-end"><strong>{totalTasks}</strong></td>
-                                            <td className="text-end"><strong>100%</strong></td>
+                                            <td colSpan={2}><strong>{t('reports.billable.total')}</strong></td>
+                                            <td className="col-num"><strong>{totalHours.toFixed(2)}</strong></td>
+                                            <td className="col-num"><strong>{totalTasks}</strong></td>
+                                            <td className="col-num"><strong>100%</strong></td>
                                             <td></td>
                                         </tr>
                                     </tfoot>
@@ -318,15 +307,15 @@ const BillableTaskTypeReportTable = ({ report }) => {
                         </>
                     ) : (
                         <>
-                            <h5>Visual Analysis</h5>
+                            <h5>{t('reports.visualAnalysis')}</h5>
                             {sortedReportData.length === 0 ? (
-                                <p className="text-muted">No data available to display charts.</p>
+                                <p className="text-muted">{t('reports.noChartsData')}</p>
                             ) : (
                                 <Row className="mb-4">
                                     <Col md={8}>
                                         <Card>
                                             <Card.Header>
-                                                <h6>Hours by Task Type & Billability</h6>
+                                                <h6>{t('reports.hoursByTaskTypeBillability')}</h6>
                                             </Card.Header>
                                             <Card.Body>
                                                 <Bar data={getBarChartData()} options={chartOptions} />
@@ -336,7 +325,7 @@ const BillableTaskTypeReportTable = ({ report }) => {
                                     <Col md={4}>
                                         <Card>
                                             <Card.Header>
-                                                <h6>Billable vs Non-billable Distribution</h6>
+                                                <h6>{t('reports.billableDistribution')}</h6>
                                             </Card.Header>
                                             <Card.Body>
                                                 <Doughnut data={getDoughnutChartData()} options={doughnutOptions} />

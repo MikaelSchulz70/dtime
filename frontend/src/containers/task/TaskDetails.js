@@ -3,15 +3,17 @@ import { useParams, useNavigate } from 'react-router';
 import TaskService from '../../service/TaskService';
 import AccountService from '../../service/AccountService';
 import *  as Constants from '../../common/Constants';
-import { TaskType, TaskTypeLabels } from '../../common/TaskType';
+import { TaskType, TaskTypeI18nKeys } from '../../common/TaskType';
 import { useBaseDetails } from '../BaseDetails';
 import { useToast } from '../../components/Toast';
+import { useTranslation } from 'react-i18next';
 
 export default function TaskDetails(props) {
     const { taskId } = useParams();
     const navigate = useNavigate();
     const { handleError, clearError, clearErrors } = useBaseDetails();
     const { showError } = useToast();
+    const { t } = useTranslation();
     
     const [task, setTask] = useState(() => {
         if (taskId === '0') {
@@ -37,7 +39,7 @@ export default function TaskDetails(props) {
                     setTask(fetchedTask);
                 })
                 .catch(error => {
-                    showError?.('Failed to fetch task') || alert('Failed to fetch task');
+                    showError?.(t('tasks.messages.fetchFailed')) || alert(t('tasks.messages.fetchFailed'));
                 });
         }
 
@@ -47,9 +49,9 @@ export default function TaskDetails(props) {
                 setCompanies(response.data);
             })
             .catch(error => {
-                showError?.('Failed to fetch accounts') || alert('Failed to fetch accounts');
+                showError?.(t('tasks.messages.fetchAccountsFailed')) || alert(t('tasks.messages.fetchAccountsFailed'));
             });
-    }, [taskId, showError]);
+    }, [taskId, showError, t]);
 
     const handleCreateUpdate = useCallback((id) => {
         clearErrors();
@@ -117,7 +119,7 @@ export default function TaskDetails(props) {
     if (task == null || companies == null) return null;
 
     var isAdd = (taskId === '0');
-    var buttonText = (isAdd ? "Add" : "Update");
+    var buttonText = (isAdd ? t('common.buttons.add') : t('common.buttons.update'));
 
     let accountOptions = companies.map(c => (
         <option key={c.id} value={c.id}>{c.name}</option>
@@ -135,7 +137,7 @@ export default function TaskDetails(props) {
 
             <div className="container">
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Account name</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.accountName')}</label>
                     <div className="col-sm-6">
                         <select className="form-control" value={task.account.id} name="account.id" onChange={handleChange}>
                             {accountOptions}
@@ -146,7 +148,7 @@ export default function TaskDetails(props) {
                     </div>
                 </div>
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Name</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.name')}</label>
                     <div className="col-sm-6">
                         <input className="form-control" type="text" value={task.name} name="name" maxLength="80" onChange={handleChange} onBlur={validate} />
                     </div>
@@ -155,12 +157,12 @@ export default function TaskDetails(props) {
                     </div>
                 </div>
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Task Type</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.taskType')}</label>
                     <div className="col-sm-6">
                         <select className="form-control" value={task.taskType} name="taskType" onChange={handleChange}>
                             {Object.keys(TaskType).map(key => (
                                 <option key={TaskType[key]} value={TaskType[key]}>
-                                    {TaskTypeLabels[TaskType[key]]}
+                                    {t(TaskTypeI18nKeys[TaskType[key]])}
                                 </option>
                             ))}
                         </select>
@@ -170,11 +172,11 @@ export default function TaskDetails(props) {
                     </div>
                 </div>
                 <div className="form-group row">
-                    <label className="col-sm-2 col-form-label">Status</label>
+                    <label className="col-sm-2 col-form-label">{t('common.labels.status')}</label>
                     <div className="col-sm-6">
                         <select className="form-control" value={task.activationStatus} name="activationStatus" onChange={handleChange}>
-                            <option value={Constants.ACTIVE_STATUS}>Active</option>
-                            <option value={Constants.INACTIVE_STATUS}>Inactive</option>
+                            <option value={Constants.ACTIVE_STATUS}>{t('common.status.active')}</option>
+                            <option value={Constants.INACTIVE_STATUS}>{t('common.status.inactive')}</option>
                         </select>
                     </div>
                     <div className="col-sm-4">
@@ -183,7 +185,7 @@ export default function TaskDetails(props) {
                 </div>
                 <div className="form-group row">
                     <div className="col-sm-8">
-                        <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>Cancel</button>
+                        <button className="btn btn-success float-sm-right" onClick={() => canelAddEdit()}>{t('common.buttons.cancel')}</button>
                         <button className="btn btn-success float-sm-right mr-5" onClick={() => handleCreateUpdate(taskId)}>{buttonText}</button>
                     </div>
                 </div>

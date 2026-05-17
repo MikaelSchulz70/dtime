@@ -1,7 +1,9 @@
 import { useRef, useCallback } from "react";
+import { useTranslation } from 'react-i18next';
 import { useToast } from '../components/Toast';
 
 export function useBaseDetails() {
+    const { t } = useTranslation();
     const { showError } = useToast();
     const fieldErrors = useRef(new Map()); // Track field errors
 
@@ -44,11 +46,11 @@ export function useBaseDetails() {
                 }
             }
         } else if (status === 500) {
-            showError?.("Internal server error: " + error) || alert("Internal server error:\n" + error);
+            showError?.(t('common.messages.internalServerError', { error })) || alert(t('common.messages.internalServerError', { error }));
         } else {
-            showError?.("Error: " + error) || alert("Error:\n" + error);
+            showError?.(t('common.messages.genericError', { error })) || alert(t('common.messages.genericError', { error }));
         }
-    }, [showError]);
+    }, [showError, t]);
     
     return {
         handleError,

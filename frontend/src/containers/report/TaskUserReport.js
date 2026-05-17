@@ -1,5 +1,6 @@
 
 import React from "react";
+import { useTranslation } from 'react-i18next';
 import *  as Constants from '../../common/Constants';
 
 function TimeReportTableEntry({ timeReportDay }) {
@@ -30,6 +31,7 @@ function TimeReportTableEntry({ timeReportDay }) {
 }
 
 function TaskUserReportRow({ taskUserReport }) {
+    const { t } = useTranslation();
     if (taskUserReport == null)
         return null;
 
@@ -44,8 +46,8 @@ function TaskUserReportRow({ taskUserReport }) {
 
     rows.push(<tr className="bg-success text-white">
         <th className="w-25" title={columnName}>{columnNameShortName}</th>
-        <th className="w-25">{taskUserReport.totalHours}</th>
-        <th className="w-50">{taskUserReport.totalDaysScaled} (days)</th>
+        <th className="w-25 col-num">{taskUserReport.totalHours}</th>
+        <th className="w-50 col-num">{taskUserReport.totalDaysScaled} {t('taskUserReport.daysSuffix')}</th>
     </tr>);
 
     taskUserReport.taskUserUserReports.forEach(function (userReport) {
@@ -55,8 +57,8 @@ function TaskUserReportRow({ taskUserReport }) {
         rows.push(
             <tr>
                 <td className="w-25" title={userName}>{userShortName}</td>
-                <td className="w-25">{userReport.totalHours}</td>
-                <td className="w-50">{userReport.totalDaysScaled}</td>
+                <td className="w-25 col-num">{userReport.totalHours}</td>
+                <td className="w-50 col-num">{userReport.totalDaysScaled}</td>
             </tr>);
     });
 

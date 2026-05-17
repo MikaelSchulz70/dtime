@@ -1,5 +1,6 @@
 import { useState, useCallback } from 'react';
-import { useToast } from '../components/ToastProvider';
+import i18n from '../i18n';
+import { useToast } from '../components/Toast';
 
 const useApi = () => {
   const [loading, setLoading] = useState(false);
@@ -31,7 +32,7 @@ const useApi = () => {
 
       return result;
     } catch (err) {
-      const errorMessage = err.response?.data?.message || err.message || 'An unexpected error occurred';
+      const errorMessage = err.response?.data?.message || err.message || i18n.t('errors.unexpected');
       setError(errorMessage);
 
       if (showErrorToast) {

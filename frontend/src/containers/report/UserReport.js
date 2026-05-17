@@ -28,7 +28,7 @@ function UserReportTable({ report }) {
         rows.push(
             <tr key={userReport.userId}>
                 <td className="fw-medium">{userReport.fullName}</td>
-                <td className="text-start fw-bold">{userReport.totalTime}</td>
+                <td className="col-num fw-bold">{userReport.totalTime}</td>
             </tr>);
     });
 
@@ -36,7 +36,7 @@ function UserReportTable({ report }) {
     rows.push(
         <tr key="summary" className="bg-success text-white border-top border-2">
             <td className="fw-bold fs-6">📊 {t('common.labels.totalTime')}</td>
-            <td className="text-start fw-bold fs-6">{totalSum.toFixed(2)}</td>
+            <td className="col-num fw-bold fs-6">{totalSum.toFixed(2)}</td>
         </tr>
     );
 
@@ -67,7 +67,7 @@ function UserReportTable({ report }) {
                                             field="totalTime" 
                                             onSort={requestSort} 
                                             getSortIcon={getSortIcon}
-                                            className="fw-bold text-start"
+                                            className="fw-bold col-num"
                                         >
                                             {t('common.labels.totalHours')}
                                         </SortableTableHeader>

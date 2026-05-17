@@ -5,9 +5,12 @@ import AccountService from '../../service/AccountService';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
+import { useConfirm } from '../../components/ConfirmProvider';
+import { formatActivationStatus, formatTaskType } from '../../common/displayLabels';
 
 const TasksModal = () => {
     const { t } = useTranslation();
+    const confirm = useConfirm();
     const [tasks, setTasks] = useState([]);
     const { sortedData: sortedTasks, requestSort, getSortIcon } = useTableSort(tasks, 'name');
     const [accounts, setAccounts] = useState([]);
@@ -119,7 +122,7 @@ const TasksModal = () => {
             setTasks(serverResponse.content);
         } catch (error) {
             console.error('Error loading tasks:', error);
-            showAlert('Failed to load tasks', 'danger');
+            showAlert(t('tasks.messages.loadTasksFailed'), 'danger');
         } finally {
             setLoading(false);
         }
@@ -132,7 +135,7 @@ const TasksModal = () => {
             setAccounts(response.data.filter(account => account.activationStatus === 'ACTIVE'));
         } catch (error) {
             console.error('Error loading accounts:', error);
-            showAlert('Failed to load accounts', 'danger');
+            showAlert(t('tasks.messages.loadAccountsFailed'), 'danger');
         }
     };
 
@@ -211,7 +214,7 @@ const TasksModal = () => {
         setFieldErrors({});
 
         if (!formData.name || !formData.accountId) {
-            setModalError({ show: true, message: 'Please fill in all required fields' });
+            setModalError({ show: true, message: t('common.messages.fillRequiredFields') });
             return;
         }
 
@@ -225,10 +228,10 @@ const TasksModal = () => {
             if (editingTask) {
                 taskData.id = editingTask.id;
                 await taskService.update(taskData);
-                showAlert('Task updated successfully');
+                showAlert(t('tasks.messages.taskUpdated'));
             } else {
                 await taskService.create(taskData);
-                showAlert('Task created successfully');
+                showAlert(t('tasks.messages.taskCreated'));
             }
 
             setShowModal(false);
@@ -245,25 +248,31 @@ const TasksModal = () => {
                 setFieldErrors(errors);
             } else {
                 // Handle general errors
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to save task';
+                const errorMessage = error.response?.data?.message || error.message || t('tasks.messages.saveFailed');
                 setModalError({ show: true, message: errorMessage });
             }
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this task?')) {
+        const confirmed = await confirm({
+            message: t('tasks.messages.taskDeleteConfirm'),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
         try {
             const taskService = new TaskService();
             await taskService.delete(id);
-            showAlert('Task deleted successfully');
+            showAlert(t('tasks.messages.taskDeleted'));
             loadTasks();
         } catch (error) {
             console.error('Error deleting task:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to delete task';
+            const errorMessage = error.response?.data?.message || error.message || t('tasks.messages.deleteTaskFailed');
             showAlert(errorMessage, 'danger');
         }
     };
@@ -282,7 +291,7 @@ const TasksModal = () => {
 
     const getAccountName = (accountId) => {
         const account = accounts.find(acc => acc.id === accountId);
-        return account ? account.name : 'Unknown';
+        return account ? account.name : t('common.labels.unknownUser');
     };
 
     return (
@@ -291,7 +300,7 @@ const TasksModal = () => {
                 <Card.Header>
                     <Row>
                         <Col sm={6}>
-                            <h4>Tasks</h4>
+                            <h4>{t('tasks.title')}</h4>
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button variant="primary" size="sm" onClick={handleCreate}>
@@ -312,7 +321,7 @@ const TasksModal = () => {
                         <Col md={3}>
                             <Form.Control
                                 type="text"
-                                placeholder="Filter by name"
+                                placeholder={t('tasks.placeholders.filterByName')}
                                 name="name"
                                 value={filters.name}
                                 onChange={handleFilterChange}
@@ -320,14 +329,14 @@ const TasksModal = () => {
                         </Col>
                         <Col md={3}>
                             <Form.Select name="status" value={filters.status} onChange={handleFilterChange}>
-                                <option value="">All Status</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
+                                <option value="">{t('tasks.filters.allStatus')}</option>
+                                <option value="ACTIVE">{t('common.status.active')}</option>
+                                <option value="INACTIVE">{t('common.status.inactive')}</option>
                             </Form.Select>
                         </Col>
                         <Col md={3}>
                             <Form.Select name="account" value={filters.account} onChange={handleFilterChange}>
-                                <option value="">All Accounts</option>
+                                <option value="">{t('tasks.filters.allAccounts')}</option>
                                 {accounts.map(account => (
                                     <option key={account.id} value={account.id}>
                                         {account.name}
@@ -336,7 +345,7 @@ const TasksModal = () => {
                             </Form.Select>
                         </Col>
                         <Col md={3} className="d-flex align-items-center">
-                            <span className="me-2">Show:</span>
+                            <span className="me-2">{t('common.pagination.show')}</span>
                             <Form.Select
                                 size="sm"
                                 style={{ width: 'auto' }}
@@ -347,7 +356,7 @@ const TasksModal = () => {
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                             </Form.Select>
-                            <span className="ms-2">entries</span>
+                            <span className="ms-2">{t('common.pagination.entries')}</span>
                         </Col>
                     </Row>
 
@@ -361,7 +370,7 @@ const TasksModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Name
+                                    {t('tasks.columns.name')}
                                 </SortableTableHeader>
                                 <SortableTableHeader
                                     field="taskType"
@@ -369,7 +378,7 @@ const TasksModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Type
+                                    {t('tasks.columns.type')}
                                 </SortableTableHeader>
                                 <SortableTableHeader
                                     field="account.name"
@@ -377,7 +386,7 @@ const TasksModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Account
+                                    {t('tasks.columns.account')}
                                 </SortableTableHeader>
                                 <SortableTableHeader
                                     field="activationStatus"
@@ -385,7 +394,7 @@ const TasksModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Status
+                                    {t('tasks.columns.status')}
                                 </SortableTableHeader>
                                 <SortableTableHeader
                                     field="isBillable"
@@ -393,32 +402,32 @@ const TasksModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Billable
+                                    {t('tasks.columns.billable')}
                                 </SortableTableHeader>
-                                <th className="text-white">Actions</th>
+                                <th className="text-white">{t('tasks.columns.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">Loading...</td>
+                                    <td colSpan="6" className="text-center">{t('common.loading.default')}</td>
                                 </tr>
                             ) : (sortedTasks || []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">No tasks found</td>
+                                    <td colSpan="6" className="text-center">{t('tasks.messages.noTasksFound')}</td>
                                 </tr>
                             ) : (
                                 (sortedTasks || []).map(task => (
                                     <tr key={task.id}>
                                         <td>{task.name}</td>
-                                        <td>{task.taskType}</td>
-                                        <td>{task.account?.name || 'Unknown'}</td>
-                                        <td>{task.activationStatus}</td>
-                                        <td className="text-center">
+                                        <td>{formatTaskType(task.taskType, t)}</td>
+                                        <td>{task.account?.name || t('common.labels.unknownUser')}</td>
+                                        <td>{formatActivationStatus(task.activationStatus, t)}</td>
+                                        <td>
                                             {task.isBillable ? (
-                                                <span className="text-success">✓ Yes</span>
+                                                <span className="text-success">{t('tasks.billable.yes')}</span>
                                             ) : (
-                                                <span className="text-muted">✗ No</span>
+                                                <span className="text-muted">{t('tasks.billable.no')}</span>
                                             )}
                                         </td>
                                         <td>
@@ -428,14 +437,14 @@ const TasksModal = () => {
                                                 className="me-2"
                                                 onClick={() => handleEdit(task)}
                                             >
-                                                Edit
+                                                {t('common.buttons.edit')}
                                             </Button>
                                             <Button
                                                 variant="outline-danger"
                                                 size="sm"
                                                 onClick={() => handleDelete(task.id)}
                                             >
-                                                Delete
+                                                {t('common.buttons.delete')}
                                             </Button>
                                         </td>
                                     </tr>
@@ -449,7 +458,11 @@ const TasksModal = () => {
                         <Row className="mt-3">
                             <Col className="d-flex justify-content-between align-items-center">
                                 <div className="text-muted">
-                                    Showing {Math.min(startIndex + 1, totalItems)} to {endIndex} of {totalItems} entries
+                                    {t('tasks.pagination.showing', {
+                                        from: Math.min(startIndex + 1, totalItems),
+                                        to: endIndex,
+                                        total: totalItems,
+                                    })}
                                 </div>
                                 <Pagination size="sm">
                                     <Pagination.Prev
@@ -491,13 +504,13 @@ const TasksModal = () => {
                             </Alert>
                         )}
                         <Form.Group className="mb-3">
-                            <Form.Label>Name *</Form.Label>
+                            <Form.Label>{t('common.labels.name')} *</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                placeholder="Enter task name"
+                                placeholder={t('tasks.placeholders.enterTaskName')}
                                 required
                                 isInvalid={!!fieldErrors.name}
                             />
@@ -508,7 +521,7 @@ const TasksModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Type *</Form.Label>
+                            <Form.Label>{t('common.labels.type')} *</Form.Label>
                             <Form.Select
                                 name="taskType"
                                 value={formData.taskType}
@@ -516,10 +529,10 @@ const TasksModal = () => {
                                 required
                                 isInvalid={!!fieldErrors.taskType}
                             >
-                                <option value="NORMAL">Normal</option>
-                                <option value="VACATION">Vacation</option>
-                                <option value="SICK_LEAVE">Sick Leave</option>
-                                <option value="PARENTAL_LEAVE">Parental Leave</option>
+                                <option value="NORMAL">{t('tasks.types.normal')}</option>
+                                <option value="VACATION">{t('tasks.types.vacation')}</option>
+                                <option value="SICK_LEAVE">{t('tasks.types.sickLeave')}</option>
+                                <option value="PARENTAL_LEAVE">{t('tasks.types.parentalLeave')}</option>
                             </Form.Select>
                             {fieldErrors.taskType && (
                                 <Form.Control.Feedback type="invalid">
@@ -528,7 +541,7 @@ const TasksModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Account *</Form.Label>
+                            <Form.Label>{t('common.labels.account')} *</Form.Label>
                             <Form.Select
                                 name="accountId"
                                 value={formData.accountId}
@@ -536,7 +549,7 @@ const TasksModal = () => {
                                 required
                                 isInvalid={!!fieldErrors.accountId}
                             >
-                                <option value="">Select an account</option>
+                                <option value="">{t('tasks.messages.selectAccount')}</option>
                                 {accounts.map(account => (
                                     <option key={account.id} value={account.id}>
                                         {account.name}
@@ -550,7 +563,7 @@ const TasksModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Task is billable *</Form.Label>
+                            <Form.Label>{t('tasks.labels.billable')} *</Form.Label>
                             <Form.Control
                                 className="form-check-input"
                                 type="checkbox"
@@ -567,7 +580,7 @@ const TasksModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Status *</Form.Label>
+                            <Form.Label>{t('common.labels.status')} *</Form.Label>
                             <Form.Select
                                 name="activationStatus"
                                 value={formData.activationStatus}
@@ -575,8 +588,8 @@ const TasksModal = () => {
                                 required
                                 isInvalid={!!fieldErrors.activationStatus}
                             >
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
+                                <option value="ACTIVE">{t('common.status.active')}</option>
+                                <option value="INACTIVE">{t('common.status.inactive')}</option>
                             </Form.Select>
                             {fieldErrors.activationStatus && (
                                 <Form.Control.Feedback type="invalid">
@@ -587,10 +600,10 @@ const TasksModal = () => {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={closeModal}>
-                            Cancel
+                            {t('common.buttons.cancel')}
                         </Button>
                         <Button variant="primary" type="submit">
-                            {editingTask ? 'Update' : 'Create'}
+                            {editingTask ? t('common.buttons.update') : t('common.buttons.create')}
                         </Button>
                     </Modal.Footer>
                 </Form>

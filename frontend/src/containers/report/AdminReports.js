@@ -25,9 +25,9 @@ function AdminReports() {
                 setReportType(type);
             })
             .catch(error => {
-                showError('Failed to load report: ' + (error.response?.data?.message || error.message));
+                showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
             });
-    }, [showError]);
+    }, [showError, t]);
 
     const loadReportForDate = useCallback((view, type, date) => {
         var service = new ReportService();
@@ -93,9 +93,9 @@ function AdminReports() {
                 setReport(response.data);
             })
             .catch(error => {
-                showError('Failed to load previous report: ' + (error.response?.data?.message || error.message));
+                showError(t('reports.messages.loadPreviousFailed', { message: error.response?.data?.message || error.message }));
             });
-    }, [reportView, reportType, showError]);
+    }, [reportView, reportType, showError, t]);
 
     const handleNextReport = useCallback((event) => {
         const date = event.target.name;
@@ -106,9 +106,9 @@ function AdminReports() {
                 setReport(response.data);
             })
             .catch(error => {
-                showError('Failed to load next report: ' + (error.response?.data?.message || error.message));
+                showError(t('reports.messages.loadNextFailed', { message: error.response?.data?.message || error.message }));
             });
-    }, [reportView, reportType, showError]);
+    }, [reportView, reportType, showError, t]);
 
     if (report == null)
         return null;
@@ -120,7 +120,7 @@ function AdminReports() {
                 <div className="card-body">
                     <div className="row mb-3 align-items-center">
                         <div className="col-sm-2">
-                            <div className="d-flex gap-2" role="group" aria-label="Navigation">
+                            <div className="d-flex gap-2" role="group" aria-label={t('accessibility.navigation')}>
                                 <button className="btn btn-success btn-sm" name={report.fromDate} onClick={handlePreviousReport} title={t('reports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>
@@ -143,7 +143,7 @@ function AdminReports() {
                                 <option value={Constants.ACCOUNT_REPORT}>🏢 {t('reports.accountReport')}</option>
                                 <option value={Constants.TASK_REPORT}>📋 {t('reports.taskReport')}</option>
                                 <option value={Constants.USER_REPORT}>👤 {t('reports.userReport')}</option>
-                                <option value={Constants.BILLABLE_TASK_TYPE_REPORT}>📊 Billable & Task Type Report</option>
+                                <option value={Constants.BILLABLE_TASK_TYPE_REPORT}>📊 {t('reports.billableTaskTypeReport')}</option>
                             </select>
                         </div>
                         <div className="col-sm-5">

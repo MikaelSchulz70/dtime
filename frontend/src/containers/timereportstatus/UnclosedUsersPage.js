@@ -5,10 +5,12 @@ import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
+import { useConfirm } from '../../components/ConfirmProvider';
 
 function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }) {
     const [report, setReport] = useState(initialReport);
     const { t } = useTranslation();
+    const confirm = useConfirm();
     const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(
         report?.unclosedUsers, 
         'fullName'
@@ -18,7 +20,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
         setReport(initialReport);
     }, [initialReport]);
 
-    const handleOpenCloseReport = useCallback((event) => {
+    const handleOpenCloseReport = useCallback(async (event) => {
         const userId = parseInt(event.target.id);
         const date = event.target.name;
 
@@ -27,11 +29,14 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
         const user = report.unclosedUsers.find(u => u.userId === userId);
         if (!user) return;
 
-        // Show confirmation dialog when closing a time report
         if (!user.closed) {
             const confirmMessage = t('timeReports.messages.confirmCloseReport', { userName: user.fullName || t('common.labels.user') });
-            if (!window.confirm(confirmMessage)) {
-                // User cancelled, revert the checkbox
+            const confirmed = await confirm({
+                message: confirmMessage,
+                confirmLabel: t('timeReports.actions.close'),
+                variant: 'danger',
+            });
+            if (!confirmed) {
                 event.target.checked = false;
                 return;
             }
@@ -66,7 +71,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 // Revert the checkbox on error
                 event.target.checked = user.closed;
             });
-    }, [report, onReportUpdate, showError]);
+    }, [report, onReportUpdate, showError, confirm, t]);
 
     if (report == null) {
         return (
@@ -104,11 +109,11 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 field="totalTime" 
                 onSort={requestSort} 
                 getSortIcon={getSortIcon}
-                className="text-white fw-bold"
+                className="text-white fw-bold col-num"
             >
                 ⏱️ {t('timeReports.labels.totalHours')}
             </SortableTableHeader>
-            <th className="fw-bold">📊 {t('timeReports.labels.workableHours')}</th>
+            <th className="fw-bold col-num">📊 {t('timeReports.labels.workableHours')}</th>
             <SortableTableHeader 
                 field="closed" 
                 onSort={requestSort} 
@@ -133,8 +138,8 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 <tr key={key}>
                     <td className="fw-medium">{user.fullName || t('common.labels.unknownUser')}</td>
                     <td className="text-muted">{user.email || t('common.labels.noEmail')}</td>
-                    <td className={`fw-bold ${textColor}`}>{totalTime}</td>
-                    <td className="fw-bold text-primary">{workableHours}</td>
+                    <td className={`fw-bold col-num ${textColor}`}>{totalTime}</td>
+                    <td className="fw-bold col-num text-primary">{workableHours}</td>
                     <td>
                         <span className={`badge ${user.closed ? 'bg-success' : 'bg-warning text-dark'} py-1 px-2`}>
                             {user.closed ? `✅ ${t('common.status.closed')}` : `⏳ ${t('common.status.open')}`}
@@ -193,6 +198,7 @@ function UnclosedUsersPage(props) {
     const [report, setReport] = useState(null);
     const [mailEnabled, setMailEnabled] = useState(false);
     const { showError, showSuccess, showWarning } = useToast();
+    const confirm = useConfirm();
     const { t } = useTranslation();
 
     const loadCurrentReport = useCallback(() => {
@@ -260,7 +266,7 @@ function UnclosedUsersPage(props) {
         setReport(updatedReport);
     }, []);
 
-    const handleSendEmailReminder = useCallback(() => {
+    const handleSendEmailReminder = useCallback(async () => {
         const unclosedUsers = report.unclosedUsers || [];
         const unclosedCount = unclosedUsers.length;
 
@@ -270,7 +276,12 @@ function UnclosedUsersPage(props) {
         }
 
         const confirmMessage = t('timeReports.messages.confirmSendReminders', { count: unclosedCount, plural: unclosedCount === 1 ? '' : 's' });
-        if (!window.confirm(confirmMessage)) {
+        const confirmed = await confirm({
+            message: confirmMessage,
+            confirmLabel: t('timeReports.sendReminders'),
+            variant: 'primary',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -284,7 +295,7 @@ function UnclosedUsersPage(props) {
                 const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToSendReminders');
                 showError(t('timeReports.messages.failedToSendReminders') + ': ' + errorMessage);
             });
-    }, [report, showWarning, showSuccess, showError]);
+    }, [report, showWarning, showSuccess, showError, confirm, t]);
 
     if (report == null)
         return (
@@ -305,7 +316,7 @@ function UnclosedUsersPage(props) {
                 <div className="card-body">
                     <div className="row align-items-center mb-3">
                         <div className="col-sm-6">
-                            <div className="d-flex gap-2" role="group" aria-label="Navigation">
+                            <div className="d-flex gap-2" role="group" aria-label={t('accessibility.navigation')}>
                                 <button className="btn btn-success btn-sm" name={fromDate} onClick={handlePreviousReport} title={t('timeReports.previousPeriod')}>
                                     &lt;&lt;
                                 </button>

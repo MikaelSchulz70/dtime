@@ -112,7 +112,7 @@ export const TaskDistributionPieChart = ({ userReports }) => {
         .slice(0, 10); // Top 10 tasks
 
     if (chartData.length === 0) {
-        return <div className="text-center text-muted p-4">No task data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noTaskData')}</div>;
     }
 
     return (
@@ -133,7 +133,7 @@ export const TaskDistributionPieChart = ({ userReports }) => {
                     ))}
                 </Pie>
                 <Tooltip 
-                    formatter={(value) => [`${value}h`, 'Hours']}
+                    formatter={(value) => [`${value}h`, t('charts.labels.hours')]}
                     labelStyle={{ fontSize: '0.9rem', fontWeight: 'bold' }}
                 />
                 <Legend 
@@ -171,7 +171,7 @@ export const AccountHoursChart = ({ userReports }) => {
         .sort((a, b) => b.hours - a.hours);
 
     if (chartData.length === 0) {
-        return <div className="text-center text-muted p-4">No account data available for chart</div>;
+        return <div className="text-center text-muted p-4">{t('charts.noAccountData')}</div>;
     }
 
     return (
@@ -188,7 +188,7 @@ export const AccountHoursChart = ({ userReports }) => {
                 <YAxis fontSize={12} />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend />
-                <Bar dataKey="hours" fill={Constants.BRAND_INFO} name="Hours" radius={[4, 4, 0, 0]} />
+                <Bar dataKey="hours" fill={Constants.BRAND_INFO} name={t('charts.labels.hours')} radius={[4, 4, 0, 0]} />
             </BarChart>
         </ResponsiveContainer>
     );
@@ -255,6 +255,7 @@ export const TimeTrendChart = ({ timeReportTasks, days }) => {
 
 // Chart View Toggle Component
 export const ChartViewToggle = ({ viewMode, onViewChange }) => {
+    const { t } = useTranslation();
     return (
         <div className="btn-group btn-group-sm" role="group">
             <button
@@ -262,14 +263,14 @@ export const ChartViewToggle = ({ viewMode, onViewChange }) => {
                 className={`btn ${viewMode === 'table' ? 'btn-primary' : 'btn-outline-primary'}`}
                 onClick={() => onViewChange('table')}
             >
-                📋 Table
+                {t('charts.tableView')}
             </button>
             <button
                 type="button"
                 className={`btn ${viewMode === 'chart' ? 'btn-primary' : 'btn-outline-primary'}`}
                 onClick={() => onViewChange('chart')}
             >
-                📊 Charts
+                {t('charts.chartsView')}
             </button>
         </div>
     );

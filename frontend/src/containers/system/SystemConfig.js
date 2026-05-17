@@ -6,6 +6,7 @@ import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 
 function SystemPropertyRow({ systemProperty: initialSystemProperty, showError }) {
+    const { t } = useTranslation();
     const [systemProperty, setSystemProperty] = useState(initialSystemProperty);
 
     const handleChange = useCallback((event) => {
@@ -23,9 +24,9 @@ function SystemPropertyRow({ systemProperty: initialSystemProperty, showError })
                 // Property updated successfully
             })
             .catch(error => {
-                showError('Failed to update configuration: ' + (error.response?.data?.error || error.message));
+                showError(t('system.messages.updateFailed', { message: error.response?.data?.error || error.message }));
             });
-    }, [systemProperty, showError]);
+    }, [systemProperty, showError, t]);
 
     if (systemProperty == null) return null;
 
@@ -114,9 +115,9 @@ function SystemConfig(props) {
                 setSystemConfig(response.data);
             })
             .catch(error => {
-                showError('Failed to load configuration: ' + (error.response?.data?.message || error.message));
+                showError(t('system.messages.loadFailed', { message: error.response?.data?.message || error.message }));
             });
-    }, [showError]);
+    }, [showError, t]);
 
     if (systemConfig == null) return null;
 

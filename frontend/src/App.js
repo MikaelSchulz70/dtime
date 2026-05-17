@@ -1,4 +1,5 @@
 import React, { Suspense, useEffect } from 'react';
+import { useTranslation } from 'react-i18next';
 import { Routes, Route, BrowserRouter, Navigate, Link } from 'react-router';
 import axios from 'axios';
 import './App.css';
@@ -6,6 +7,7 @@ import './App.css';
 // Context Providers
 // import { SessionProvider, useSession } from './contexts/SessionContext'; // Temporarily disabled
 import { ToastProvider } from './components/Toast';
+import { ConfirmProvider } from './components/ConfirmProvider';
 import ErrorBoundary from './components/ErrorBoundary';
 import LoadingSpinner from './components/LoadingSpinner';
 
@@ -44,6 +46,7 @@ import SpecialDays from './containers/specialday/SpecialDays';
 
 // Logout component - converted to functional component with hooks
 function Logout() {
+  const { t } = useTranslation();
   useEffect(() => {
     axios.get('/logout')
       .then(_response => {
@@ -56,58 +59,69 @@ function Logout() {
       });
   }, []);
 
-  return <LoadingSpinner fullPage text="Logging out..." />;
+  return <LoadingSpinner fullPage text={t('common.loading.loggingOut')} />;
 }
 
 
-const Main = () => (
-  <main>
-    <div className="container-fluid mr-10" style={{ marginTop: '20px' }}>
-      <ErrorBoundary>
-        <Suspense fallback={<LoadingSpinner fullPage text="Loading page..." />}>
-          <Routes>
-            <Route path='/' element={<Times />} />
-            <Route path='/time' element={<Times />} />
-            <Route path='/users' element={<UsersModal />} />
-            <Route path='/account' element={<AccountsModal />} />
-            <Route path='/account-old' element={<Account />} />
-            <Route path='/account/:accountId' element={<AccountDetails />} />
-            <Route path='/task' element={<TasksModal />} />
-            <Route path='/task-old' element={<Task />} />
-            <Route path='/task/:taskId' element={<TaskDetails />} />
-            <Route path='/tasks/:taskId' element={<TaskDetails />} />
-            <Route path='/taskcontributor' element={<TaskContributor />} />
-            <Route path='/mytasks' element={<MyTaskAssignments />} />
-            <Route path='/reports' element={<AdminReports />} />
-            <Route path='/userreport' element={<UserReports />} />
-            <Route path='/vacations' element={<Vacations />} />
-            <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
-            <Route path='/system/properties' element={<SystemConfig />} />
-            <Route path='/specialdays' element={<SpecialDays />} />
-            <Route path='/logout' element={<Logout />} />
-            <Route path='*' element={<Navigate to="/" replace />} />
-          </Routes>
-        </Suspense>
-      </ErrorBoundary>
-    </div>
-  </main>
-)
+const Main = () => {
+  const { t } = useTranslation();
+  return (
+    <main>
+      <div className="container-fluid mr-10" style={{ marginTop: '20px' }}>
+        <ErrorBoundary>
+          <Suspense fallback={<LoadingSpinner fullPage text={t('common.loading.loadingPage')} />}>
+            <Routes>
+              <Route path='/' element={<Times />} />
+              <Route path='/time' element={<Times />} />
+              <Route path='/users' element={<UsersModal />} />
+              <Route path='/account' element={<AccountsModal />} />
+              <Route path='/account-old' element={<Account />} />
+              <Route path='/account/:accountId' element={<AccountDetails />} />
+              <Route path='/task' element={<TasksModal />} />
+              <Route path='/task-old' element={<Task />} />
+              <Route path='/task/:taskId' element={<TaskDetails />} />
+              <Route path='/tasks/:taskId' element={<TaskDetails />} />
+              <Route path='/taskcontributor' element={<TaskContributor />} />
+              <Route path='/mytasks' element={<MyTaskAssignments />} />
+              <Route path='/reports' element={<AdminReports />} />
+              <Route path='/userreport' element={<UserReports />} />
+              <Route path='/vacations' element={<Vacations />} />
+              <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
+              <Route path='/system/properties' element={<SystemConfig />} />
+              <Route path='/specialdays' element={<SpecialDays />} />
+              <Route path='/logout' element={<Logout />} />
+              <Route path='*' element={<Navigate to="/" replace />} />
+            </Routes>
+          </Suspense>
+        </ErrorBoundary>
+      </div>
+    </main>
+  );
+};
 
-const Footer = () => (
-  <footer className="bg-dark mt-4">
-    <div className="container-fluid py-3 text-center">
-      <div className="row">
-        <div className="col-md-12">
-          <Link className="text-light" to="/time">Dtime</Link>
+const Footer = () => {
+  const { t } = useTranslation();
+  return (
+    <footer className="bg-dark mt-4">
+      <div className="container-fluid py-3 text-center">
+        <div className="row">
+          <div className="col-md-12">
+            <Link className="text-light" to="/time">{t('footer.brand')}</Link>
+          </div>
         </div>
       </div>
-    </div>
-  </footer>
-)
+    </footer>
+  );
+};
 
 
 const AppContent = () => {
+  const { t } = useTranslation();
   const LAST_OIDC_USER_KEY = 'dtime.lastOidcUser';
+
+  useEffect(() => {
+    document.title = t('navigation.appName');
+  }, [t]);
   const [session, setSession] = React.useState(null);
   const [loading, setLoading] = React.useState(true);
   const sanitizeDisplayName = (value) => (value || '').replace(/\s*-\s*$/, '').trim();
@@ -168,7 +182,7 @@ const AppContent = () => {
   }, []);
 
   if (loading) {
-    return <LoadingSpinner fullPage text="Loading session..." />;
+    return <LoadingSpinner fullPage text={t('common.loading.loadingSession')} />;
   }
 
   const isAuthenticated = session && session.loggedInUser;
@@ -191,9 +205,11 @@ const AppContent = () => {
 const App = () => (
   <ErrorBoundary>
     <BrowserRouter>
-      <ToastProvider>
-        <AppContent />
-      </ToastProvider>
+      <ConfirmProvider>
+        <ToastProvider>
+          <AppContent />
+        </ToastProvider>
+      </ConfirmProvider>
     </BrowserRouter>
   </ErrorBoundary>
 )

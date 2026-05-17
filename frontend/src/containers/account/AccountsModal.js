@@ -4,9 +4,12 @@ import AccountService from '../../service/AccountService';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
+import { useConfirm } from '../../components/ConfirmProvider';
+import { formatActivationStatus } from '../../common/displayLabels';
 
 const AccountsModal = () => {
     const { t } = useTranslation();
+    const confirm = useConfirm();
     const [accounts, setAccounts] = useState([]);
     const { sortedData: sortedAccounts, requestSort, getSortIcon } = useTableSort(accounts, 'name');
     const [loading, setLoading] = useState(false);
@@ -105,7 +108,7 @@ const AccountsModal = () => {
             setAccounts(serverResponse.content);
         } catch (error) {
             console.error('Error loading accounts:', error);
-            showAlert('Failed to load accounts', 'danger');
+            showAlert(t('accounts.messages.loadAccountsFailed'), 'danger');
         } finally {
             setLoading(false);
         }
@@ -179,7 +182,7 @@ const AccountsModal = () => {
         setModalError({ show: false, message: '' });
         
         if (!formData.name) {
-            setModalError({ show: true, message: 'Please fill in all required fields' });
+            setModalError({ show: true, message: t('common.messages.fillRequiredFields') });
             return;
         }
 
@@ -188,10 +191,10 @@ const AccountsModal = () => {
             if (editingAccount) {
                 const accountData = { ...formData, id: editingAccount.id };
                 await accountService.update(accountData);
-                showAlert('Account updated successfully');
+                showAlert(t('accounts.messages.accountUpdated'));
             } else {
                 await accountService.create(formData);
-                showAlert('Account created successfully');
+                showAlert(t('accounts.messages.accountCreated'));
             }
 
             setShowModal(false);
@@ -208,25 +211,31 @@ const AccountsModal = () => {
                 setFieldErrors(errors);
             } else {
                 // Handle general errors
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to save account';
+                const errorMessage = error.response?.data?.message || error.message || t('accounts.messages.saveFailed');
                 setModalError({ show: true, message: errorMessage });
             }
         }
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this account?')) {
+        const confirmed = await confirm({
+            message: t('accounts.messages.accountDeleteConfirm'),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
         try {
             const accountService = new AccountService();
             await accountService.delete(id);
-            showAlert('Account deleted successfully');
+            showAlert(t('accounts.messages.accountDeleted'));
             loadAccounts();
         } catch (error) {
             console.error('Error deleting account:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to delete account';
+            const errorMessage = error.response?.data?.message || error.message || t('accounts.messages.deleteAccountFailed');
             showAlert(errorMessage, 'danger');
         }
     };
@@ -249,7 +258,7 @@ const AccountsModal = () => {
                 <Card.Header>
                     <Row>
                         <Col sm={6}>
-                            <h4>Accounts</h4>
+                            <h4>{t('accounts.title')}</h4>
                         </Col>
                         <Col sm={6} className="text-end">
                             <Button variant="primary" size="sm" onClick={handleCreate}>
@@ -270,7 +279,7 @@ const AccountsModal = () => {
                         <Col md={4}>
                             <Form.Control
                                 type="text"
-                                placeholder="Filter by name"
+                                placeholder={t('common.placeholders.filterByName')}
                                 name="name"
                                 value={filters.name}
                                 onChange={handleFilterChange}
@@ -278,13 +287,13 @@ const AccountsModal = () => {
                         </Col>
                         <Col md={4}>
                             <Form.Select name="status" value={filters.status} onChange={handleFilterChange}>
-                                <option value="">All Status</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
+                                <option value="">{t('accounts.filters.allStatus')}</option>
+                                <option value="ACTIVE">{t('common.status.active')}</option>
+                                <option value="INACTIVE">{t('common.status.inactive')}</option>
                             </Form.Select>
                         </Col>
                         <Col md={4} className="d-flex align-items-center">
-                            <span className="me-2">Show:</span>
+                            <span className="me-2">{t('common.pagination.show')}</span>
                             <Form.Select 
                                 size="sm" 
                                 style={{ width: 'auto' }} 
@@ -295,7 +304,7 @@ const AccountsModal = () => {
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
                             </Form.Select>
-                            <span className="ms-2">entries</span>
+                            <span className="ms-2">{t('common.pagination.entries')}</span>
                         </Col>
                     </Row>
 
@@ -309,7 +318,7 @@ const AccountsModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Name
+                                    {t('accounts.columns.name')}
                                 </SortableTableHeader>
                                 <SortableTableHeader 
                                     field="activationStatus" 
@@ -317,25 +326,25 @@ const AccountsModal = () => {
                                     getSortIcon={getSortIcon}
                                     className="text-white"
                                 >
-                                    Status
+                                    {t('accounts.columns.status')}
                                 </SortableTableHeader>
-                                <th className="text-white">Actions</th>
+                                <th className="text-white">{t('accounts.columns.actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="3" className="text-center">Loading...</td>
+                                    <td colSpan="3" className="text-center">{t('common.loading.default')}</td>
                                 </tr>
                             ) : (sortedAccounts || []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="3" className="text-center">No accounts found</td>
+                                    <td colSpan="3" className="text-center">{t('accounts.messages.noAccountsFound')}</td>
                                 </tr>
                             ) : (
                                 (sortedAccounts || []).map(account => (
                                     <tr key={account.id}>
                                         <td>{account.name}</td>
-                                        <td>{account.activationStatus}</td>
+                                        <td>{formatActivationStatus(account.activationStatus, t)}</td>
                                         <td>
                                             <Button
                                                 variant="outline-primary"
@@ -343,14 +352,14 @@ const AccountsModal = () => {
                                                 className="me-2"
                                                 onClick={() => handleEdit(account)}
                                             >
-                                                Edit
+                                                {t('common.buttons.edit')}
                                             </Button>
                                             <Button
                                                 variant="outline-danger"
                                                 size="sm"
                                                 onClick={() => handleDelete(account.id)}
                                             >
-                                                Delete
+                                                {t('common.buttons.delete')}
                                             </Button>
                                         </td>
                                     </tr>
@@ -364,7 +373,11 @@ const AccountsModal = () => {
                         <Row className="mt-3">
                             <Col className="d-flex justify-content-between align-items-center">
                                 <div className="text-muted">
-                                    Showing {Math.min(startIndex + 1, totalItems)} to {endIndex} of {totalItems} entries
+                                    {t('accounts.pagination.showing', {
+                                        from: Math.min(startIndex + 1, totalItems),
+                                        to: endIndex,
+                                        total: totalItems,
+                                    })}
                                 </div>
                                 <Pagination size="sm">
                                     <Pagination.Prev 
@@ -406,13 +419,13 @@ const AccountsModal = () => {
                             </Alert>
                         )}
                         <Form.Group className="mb-3">
-                            <Form.Label>Name *</Form.Label>
+                            <Form.Label>{t('common.labels.name')} *</Form.Label>
                             <Form.Control
                                 type="text"
                                 name="name"
                                 value={formData.name}
                                 onChange={handleInputChange}
-                                placeholder="Enter account name"
+                                placeholder={t('accounts.placeholders.enterAccountName')}
                                 required
                                 isInvalid={!!fieldErrors.name}
                             />
@@ -423,7 +436,7 @@ const AccountsModal = () => {
                             )}
                         </Form.Group>
                         <Form.Group className="mb-3">
-                            <Form.Label>Status *</Form.Label>
+                            <Form.Label>{t('common.labels.status')} *</Form.Label>
                             <Form.Select
                                 name="activationStatus"
                                 value={formData.activationStatus}
@@ -431,8 +444,8 @@ const AccountsModal = () => {
                                 required
                                 isInvalid={!!fieldErrors.activationStatus}
                             >
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
+                                <option value="ACTIVE">{t('common.status.active')}</option>
+                                <option value="INACTIVE">{t('common.status.inactive')}</option>
                             </Form.Select>
                             {fieldErrors.activationStatus && (
                                 <Form.Control.Feedback type="invalid">
@@ -443,10 +456,10 @@ const AccountsModal = () => {
                     </Modal.Body>
                     <Modal.Footer>
                         <Button variant="secondary" onClick={closeModal}>
-                            Cancel
+                            {t('common.buttons.cancel')}
                         </Button>
                         <Button variant="primary" type="submit">
-                            {editingAccount ? 'Update' : 'Create'}
+                            {editingAccount ? t('common.buttons.update') : t('common.buttons.create')}
                         </Button>
                     </Modal.Footer>
                 </Form>

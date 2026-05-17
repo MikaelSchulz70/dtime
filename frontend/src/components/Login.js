@@ -61,7 +61,7 @@ const Login = () => {
               <div className="text-center mb-4">
                 <img
                   src="/logo.png"
-                  alt="D-Time"
+                  alt={t('navigation.appName')}
                   style={{ maxWidth: '60%', height: 'auto' }}
                   className="mb-3"
                 />
@@ -72,7 +72,7 @@ const Login = () => {
               {hasError && (
                 <Alert variant="danger" className="mb-3">
                   {hasError === 'oauth'
-                    ? 'Failed to login.'
+                    ? t('auth.login.errors.oauthLoginFailed')
                     : t('auth.login.errors.invalidCredentials')}
                 </Alert>
               )}
@@ -94,8 +94,8 @@ const Login = () => {
                   {loading
                     ? t('common.loading.loggingIn')
                     : rememberedUser
-                      ? `Continue as ${rememberedUser}`
-                      : 'Sign in with Authentik'}
+                      ? t('auth.login.continueAs', { name: rememberedUser })
+                      : t('auth.login.signInWithAuthentik')}
                 </Button>
               </div>
               <div className="d-grid mt-2">
@@ -105,12 +105,12 @@ const Login = () => {
                   className="rounded-3"
                   disabled={loading || !oidcEnabled}
                 >
-                  Sign in as another user
+                  {t('auth.login.signInAsAnotherUser')}
                 </Button>
               </div>
               {!loading && !oidcEnabled && (
                 <Alert variant="warning" className="mt-3 mb-0">
-                  OIDC login is not enabled in backend configuration.
+                  {t('auth.login.oidcNotEnabled')}
                 </Alert>
               )}
             </Card.Body>

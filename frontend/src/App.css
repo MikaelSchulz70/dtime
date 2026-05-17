@@ -233,7 +233,7 @@ td .btn {
   border: none;
   font-weight: 600;
   padding: 1rem 0.75rem;
-  text-align: center;
+  text-align: left;
   vertical-align: middle;
   position: sticky;
   top: 0;
@@ -253,27 +253,18 @@ td .btn {
   padding: 0.75rem;
   border-top: 1px solid var(--border-color);
   vertical-align: middle;
-  text-align: center;
+  text-align: left;
   word-wrap: break-word;
 }
 
-/* Left-align text content columns */
-.table td:first-child, 
-.table th:first-child,
-.table td:nth-child(2),
-.table th:nth-child(2) {
-  text-align: left;
+/* Hours, counts, and other numeric columns (left-aligned for readability) */
+.table th.col-num,
+.table td.col-num {
+  text-align: left !important;
 }
 
 .table-sm td, .table-sm th {
   padding: 0.5rem;
-  text-align: center;
-}
-
-.table-sm td:first-child,
-.table-sm th:first-child,
-.table-sm td:nth-child(2),
-.table-sm th:nth-child(2) {
   text-align: left;
 }
 
@@ -355,12 +346,12 @@ td .btn {
   max-width: 100px;
 }
 
-/* Time column (third column) */
+/* Row total hours column (third column) */
 .time-report-table th:nth-child(3),
 .time-report-table td:nth-child(3) {
   min-width: 60px;
   max-width: 65px;
-  text-align: center;
+  text-align: left;
 }
 
 /* Day columns should have consistent width */
@@ -379,6 +370,43 @@ td .btn {
   margin: 0 auto;
   display: block;
   font-size: 0.85rem;
+}
+
+/* Vacation calendar grid (same alignment rules as time report) */
+.vacation-table {
+  table-layout: fixed;
+}
+
+.vacation-table th,
+.vacation-table td {
+  text-align: center;
+  vertical-align: middle;
+  padding: 0.25rem !important;
+  font-size: 0.9rem;
+}
+
+.vacation-table th:first-child,
+.vacation-table td:first-child,
+.vacation-table th:nth-child(2),
+.vacation-table td:nth-child(2) {
+  text-align: left;
+  min-width: 80px;
+  max-width: 100px;
+}
+
+.vacation-table th:nth-child(3),
+.vacation-table td:nth-child(3) {
+  min-width: 60px;
+  max-width: 65px;
+  text-align: left;
+}
+
+.vacation-table th:nth-child(n+4),
+.vacation-table td:nth-child(n+4) {
+  min-width: 45px;
+  max-width: 50px;
+  text-align: center;
+  padding: 0.25rem !important;
 }
 
 /* Professional Form Controls & Dropdown Styling */

@@ -8,11 +8,26 @@ import Login from '../Login';
 jest.mock('axios');
 const mockedAxios = axios;
 
-jest.mock('react-i18next', () => ({
-  useTranslation: () => ({
-    t: (key) => key,
-  }),
-}));
+jest.mock('react-i18next', () => {
+  const en = require('../../locales/en.json');
+  const resolve = (key) => {
+    const value = key.split('.').reduce((obj, part) => obj?.[part], en);
+    return typeof value === 'string' ? value : key;
+  };
+  return {
+    useTranslation: () => ({
+      t: (key, options) => {
+        let text = resolve(key);
+        if (options && typeof options === 'object') {
+          Object.entries(options).forEach(([name, val]) => {
+            text = text.replace(new RegExp(`{{${name}}}`, 'g'), String(val));
+          });
+        }
+        return text;
+      },
+    }),
+  };
+});
 
 const renderLoginAt = (search = '') => {
   const path = search ? `/login${search}` : '/login';
@@ -115,7 +130,7 @@ describe('Login (OIDC / Authentik)', () => {
     renderLoginAt('?error=true');
 
     await waitFor(() => {
-      expect(screen.getByText('auth.login.errors.invalidCredentials')).toBeInTheDocument();
+      expect(screen.getByText('Invalid username or password.')).toBeInTheDocument();
     });
   });
 
@@ -124,7 +139,7 @@ describe('Login (OIDC / Authentik)', () => {
     renderLoginAt('?logout=1');
 
     await waitFor(() => {
-      expect(screen.getByText('auth.login.logoutMessage')).toBeInTheDocument();
+      expect(screen.getByText('You have been logged out.')).toBeInTheDocument();
     });
   });
 
@@ -143,7 +158,7 @@ describe('Login (OIDC / Authentik)', () => {
     renderLoginAt();
     expect(screen.getByAltText('D-Time')).toHaveAttribute('src', '/logo.png');
     await waitFor(() => {
-      expect(screen.getByText('auth.login.title')).toBeInTheDocument();
+      expect(screen.getByText('Login')).toBeInTheDocument();
     });
   });
 });

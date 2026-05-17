@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { 
     TaskDistributionPieChart,
     AccountHoursChart,
@@ -8,6 +9,7 @@ import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 
 function TaskReportTable({ report }) {
+    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState('table');
     const { sortedData: sortedTaskReports, requestSort, getSortIcon } = useTableSort(
         report?.taskReports, 
@@ -28,22 +30,22 @@ function TaskReportTable({ report }) {
             <tr key={taskReport.taskId}>
                 <td className="fw-medium">{taskReport.accountName}</td>
                 <td className="fw-medium">{taskReport.taskName}</td>
-                <td className="text-start">{taskReport.totalHours}</td>
+                <td className="col-num">{taskReport.totalHours}</td>
             </tr>);
     });
 
     // Add summary row
     rows.push(
         <tr key="summary" className="bg-success text-white border-top border-2">
-            <td className="fw-bold fs-6">📊 Total Time</td>
+            <td className="fw-bold fs-6">{t('reports.totalTime')}</td>
             <td></td>
-            <td className="text-start fw-bold fs-6">{totalSum.toFixed(2)}</td>
+            <td className="col-num fw-bold fs-6">{totalSum.toFixed(2)}</td>
         </tr>
     );
 
     // Transform data for chart components
     const userReports = [{
-        fullName: "All Users",
+        fullName: t('reports.allUsers'),
         totalTime: totalSum,
         taskReports: report.taskReports.map(taskReport => ({
             accountName: taskReport.accountName,
@@ -57,7 +59,7 @@ function TaskReportTable({ report }) {
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 fw-bold text-white">📋 Task Time Summary</h5>
+                        <h5 className="mb-0 fw-bold text-white">{t('reports.taskTimeSummary')}</h5>
                         <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
                     </div>
                 </div>
@@ -73,7 +75,7 @@ function TaskReportTable({ report }) {
                                             getSortIcon={getSortIcon}
                                             className="fw-bold"
                                         >
-                                            🏢 Account
+                                            {t('reports.tableAccount')}
                                         </SortableTableHeader>
                                         <SortableTableHeader 
                                             field="taskName" 
@@ -81,15 +83,15 @@ function TaskReportTable({ report }) {
                                             getSortIcon={getSortIcon}
                                             className="fw-bold"
                                         >
-                                            📋 Task
+                                            {t('reports.tableTask')}
                                         </SortableTableHeader>
                                         <SortableTableHeader 
                                             field="totalHours" 
                                             onSort={requestSort} 
                                             getSortIcon={getSortIcon}
-                                            className="fw-bold text-start"
+                                            className="fw-bold col-num"
                                         >
-                                            ⏱️ Total Hours
+                                            {t('reports.tableTotalHours')}
                                         </SortableTableHeader>
                                     </tr>
                                     {rows}
@@ -100,11 +102,11 @@ function TaskReportTable({ report }) {
                         <div className="p-3">
                             <div className="row">
                                 <div className="col-lg-6 mb-4">
-                                    <h6 className="mb-3 fw-bold text-success">📋 Task Distribution</h6>
+                                    <h6 className="mb-3 fw-bold text-success">{t('reports.taskDistribution')}</h6>
                                     <TaskDistributionPieChart userReports={userReports} />
                                 </div>
                                 <div className="col-lg-6 mb-4">
-                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
                                     <AccountHoursChart userReports={userReports} />
                                 </div>
                             </div>

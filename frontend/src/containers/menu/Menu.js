@@ -17,7 +17,7 @@ const NavigationMenu = ({ session }) => {
         <Navbar.Brand href="/" className="d-flex align-items-center">
           <img
             src={logo}
-            alt="D-Time"
+            alt={t('navigation.appName')}
             style={{ height: "40px", marginRight: "10px" }}
           />
           <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>{t('navigation.appName')}</span>
@@ -55,7 +55,7 @@ const NavigationMenu = ({ session }) => {
       <Navbar.Brand href="/" className="d-flex align-items-center">
         <img
           src={logo}
-          alt="D-Time"
+          alt={t('navigation.appName')}
           style={{ height: "40px", marginRight: "10px" }}
         />
         <span style={{ fontWeight: "600", fontSize: "1.25rem" }}>{t('navigation.appName')}</span>

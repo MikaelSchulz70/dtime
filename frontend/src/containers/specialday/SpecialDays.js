@@ -5,9 +5,11 @@ import SpecialDayService from '../../service/SpecialDayService';
 import * as Constants from '../../common/Constants';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
+import { useConfirm } from '../../components/ConfirmProvider';
 
 const SpecialDays = () => {
     const { t } = useTranslation();
+    const confirm = useConfirm();
     const [specialDays, setSpecialDays] = useState([]);
     const { sortedData: sortedSpecialDays, requestSort, getSortIcon } = useTableSort(specialDays, 'date');
     const [availableYears, setAvailableYears] = useState([]);
@@ -47,7 +49,7 @@ const SpecialDays = () => {
             }
         } catch (error) {
             console.error('Error loading available years:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to load available years';
+            const errorMessage = error.response?.data?.message || error.message || t('specialDays.messages.loadYearsFailed');
             showAlert(errorMessage, 'danger');
         }
     };
@@ -59,7 +61,7 @@ const SpecialDays = () => {
             setSpecialDays(data);
         } catch (error) {
             console.error('Error loading special days:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to load special days';
+            const errorMessage = error.response?.data?.message || error.message || t('specialDays.messages.loadFailed');
             showAlert(errorMessage, 'danger');
         } finally {
             setLoading(false);
@@ -89,7 +91,13 @@ const SpecialDays = () => {
     };
 
     const handleDelete = async (id) => {
-        if (!window.confirm(t('specialDays.messages.specialDayDeleteConfirm'))) {
+        const confirmed = await confirm({
+            message: t('specialDays.messages.specialDayDeleteConfirm'),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -102,13 +110,19 @@ const SpecialDays = () => {
             loadAvailableYears(); // Refresh years in case last day of a year was deleted
         } catch (error) {
             console.error('Error deleting special day:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to delete special day';
+            const errorMessage = error.response?.data?.message || error.message || t('specialDays.messages.deleteFailed');
             showAlert(errorMessage, 'danger');
         }
     };
 
     const handleDeleteYear = async (year) => {
-        if (!window.confirm(t('specialDays.messages.yearDeleteConfirm', { year }))) {
+        const confirmed = await confirm({
+            message: t('specialDays.messages.yearDeleteConfirm', { year }),
+            title: t('common.messages.confirmDelete'),
+            confirmLabel: t('common.buttons.delete'),
+            variant: 'danger',
+        });
+        if (!confirmed) {
             return;
         }
 
@@ -121,7 +135,7 @@ const SpecialDays = () => {
                 setSelectedYear(availableYears.find(y => y !== year) || null);
             }
         } catch (error) {
-            showAlert('Failed to delete special days for year', 'danger');
+            showAlert(t('specialDays.messages.deleteYearFailed'), 'danger');
         }
     };
 
@@ -130,7 +144,7 @@ const SpecialDays = () => {
         setModalError({ show: false, message: '' });
 
         if (!formData.name || !formData.date || !formData.dayType) {
-            setModalError({ show: true, message: 'Please fill in all required fields' });
+            setModalError({ show: true, message: t('common.messages.fillRequiredFields') });
             return;
         }
 
@@ -154,7 +168,7 @@ const SpecialDays = () => {
             loadAvailableYears();
         } catch (error) {
             console.error('Error saving special day:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to save special day';
+            const errorMessage = error.response?.data?.message || error.message || t('specialDays.messages.saveFailed');
             setModalError({ show: true, message: errorMessage });
         }
     };
@@ -177,7 +191,7 @@ const SpecialDays = () => {
             }
         } catch (error) {
             console.error('Error uploading special days:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to upload special days';
+            const errorMessage = error.response?.data?.message || error.message || t('specialDays.messages.uploadFailed');
             showAlert(errorMessage, 'danger');
         }
 

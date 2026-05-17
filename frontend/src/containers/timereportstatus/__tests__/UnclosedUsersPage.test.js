@@ -11,14 +11,12 @@ jest.mock('../../../service/TimeReportStatusService');
 jest.mock('../../../service/SystemService');
 jest.mock('../../../components/Toast');
 
-// Mock window.confirm and window.location.reload
-const mockConfirm = jest.fn();
+const mockConfirm = jest.fn(() => Promise.resolve(true));
 const mockReload = jest.fn();
 
-Object.defineProperty(window, 'confirm', {
-  value: mockConfirm,
-  writable: true,
-});
+jest.mock('../../../components/ConfirmProvider', () => ({
+  useConfirm: () => mockConfirm,
+}));
 
 Object.defineProperty(window, 'location', {
   value: { reload: mockReload },
@@ -67,7 +65,7 @@ describe('UnclosedUsersPage', () => {
     // Default mocks
     TimeReportStatusService.getCurrentUnclosedUsers.mockResolvedValue(mockReport);
     mockSystemService.isMailEnabled.mockResolvedValue({ data: true });
-    mockConfirm.mockReturnValue(true);
+    mockConfirm.mockResolvedValue(true);
   });
 
   afterEach(() => {
@@ -232,8 +230,12 @@ describe('UnclosedUsersPage', () => {
       const checkbox = document.getElementById('1');
       fireEvent.click(checkbox);
 
-      expect(mockConfirm).toHaveBeenCalledWith('Do you really want to close the time report for John Doe?');
-      
+      await waitFor(() => {
+        expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({
+          message: 'Do you really want to close the time report for John Doe?',
+        }));
+      });
+
       await waitFor(() => {
         expect(TimeReportStatusService.closeUserTimeReport).toHaveBeenCalledWith(1, '2023-01-01');
       });
@@ -269,8 +271,8 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should cancel action when user refuses confirmation', async () => {
-      mockConfirm.mockReturnValue(false);
-      
+      mockConfirm.mockResolvedValue(false);
+
       render(<UnclosedUsersPage />);
 
       await waitFor(() => {
@@ -280,7 +282,9 @@ describe('UnclosedUsersPage', () => {
       const checkbox = document.getElementById('1');
       fireEvent.click(checkbox);
 
-      expect(mockConfirm).toHaveBeenCalled();
+      await waitFor(() => {
+        expect(mockConfirm).toHaveBeenCalled();
+      });
       expect(TimeReportStatusService.closeUserTimeReport).not.toHaveBeenCalled();
       expect(checkbox.checked).toBe(false);
     });
@@ -440,7 +444,9 @@ describe('UnclosedUsersPage', () => {
       const sendButton = screen.getByText('📧 Send Reminders');
       fireEvent.click(sendButton);
 
-      expect(mockConfirm).toHaveBeenCalledWith('Send email reminders to 2 users who have unclosed time reports for this month?');
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'Send email reminders to 2 users who have unclosed time reports for this month?',
+      }));
       
       await waitFor(() => {
         expect(mockSystemService.sendEmailReminderToUnclosedUsers).toHaveBeenCalled();
@@ -465,7 +471,9 @@ describe('UnclosedUsersPage', () => {
       const sendButton = screen.getByText('📧 Send Reminders');
       fireEvent.click(sendButton);
 
-      expect(mockConfirm).toHaveBeenCalledWith('Send email reminders to 1 user who have unclosed time reports for this month?');
+      expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({
+        message: 'Send email reminders to 1 user who have unclosed time reports for this month?',
+      }));
       
       await waitFor(() => {
         expect(mockToast.showSuccess).toHaveBeenCalledWith('Email reminders sent successfully to 1 user with unclosed time reports');
@@ -490,7 +498,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should cancel email sending when user refuses confirmation', async () => {
-      mockConfirm.mockReturnValue(false);
+      mockConfirm.mockResolvedValue(false);
 
       render(<UnclosedUsersPage />);
 

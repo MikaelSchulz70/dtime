@@ -1,3 +1,5 @@
+import i18n from '../i18n';
+
 // Remove jQuery dependency for header management
 export function Headers() {
     const headerContentType = { 'Content-Type': 'application/json' };
@@ -49,11 +51,11 @@ export function handleApiError(error, customMessage = null) {
         }
         
         if (status === 403) {
-            return 'You do not have permission to perform this action.';
+            return i18n.t('errors.forbidden');
         }
         
         if (status >= 500) {
-            return customMessage || 'A server error occurred. Please try again later.';
+            return customMessage || i18n.t('errors.serverError');
         }
         
         // Try to extract message from response
@@ -65,16 +67,16 @@ export function handleApiError(error, customMessage = null) {
             return data.error;
         }
         
-        return customMessage || `Request failed with status ${status}`;
+        return customMessage || i18n.t('errors.requestFailed', { status });
     }
     
     if (error.request) {
         // Network error
-        return 'Network error. Please check your connection and try again.';
+        return i18n.t('errors.networkError');
     }
     
     // Something else happened
-    return customMessage || error.message || 'An unexpected error occurred.';
+    return customMessage || error.message || i18n.t('errors.unexpected');
 }
 
 // Utility for making consistent API calls

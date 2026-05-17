@@ -1,6 +1,7 @@
 import React from 'react';
+import { useTranslation } from 'react-i18next';
 
-/** contentAlign 'end': label + sort icon grouped right (use with text-end body cells). */
+/** contentAlign 'end': label + sort icon grouped right (optional; numeric columns use col-num). */
 const SortableTableHeader = ({ 
     field, 
     onSort, 
@@ -12,9 +13,15 @@ const SortableTableHeader = ({
     contentAlign = 'between',
     ...props 
 }) => {
+    const { t } = useTranslation();
     const handleClick = () => {
         onSort(field);
     };
+
+    const defaultTitle =
+        typeof children === 'string' || typeof children === 'number'
+            ? t('accessibility.sortBy', { column: children })
+            : t('accessibility.sortColumn');
 
     return (
         <th 
@@ -26,7 +33,7 @@ const SortableTableHeader = ({
                 ...style
             }}
             onClick={handleClick}
-            title={title || `Click to sort by ${children}`}
+            title={title || defaultTitle}
             {...props}
         >
             <div

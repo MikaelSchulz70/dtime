@@ -9,6 +9,7 @@
       "update": "Update",
       "add": "Add",
       "close": "Close",
+      "done": "Done",
       "tryAgain": "Try Again",
       "reloadPage": "Reload Page",
       "previous": "<<",
@@ -20,8 +21,6 @@
       "active": "Active",
       "inactive": "Inactive",
       "all": "All Status",
-      "open": "⏳ Open",
-      "closed": "✅ Closed",
       "open": "Open",
       "closed": "Closed"
     },
@@ -69,17 +68,23 @@
       "totalTime": "Total Time",
       "value": "Value",
       "unknownUser": "Unknown User",
-      "noEmail": "No Email"
+      "noEmail": "No Email",
+      "description": "Description"
+    },
+    "confirm": {
+      "title": "Confirm",
+      "confirm": "Confirm"
     },
     "messages": {
       "noDataFound": "No data found",
+      "internalServerError": "Internal server error: {{error}}",
+      "genericError": "Error: {{error}}",
       "confirmDelete": "Are you really sure you want to delete?",
       "deleteSuccess": "Deleted successfully",
       "createSuccess": "Created successfully",
       "updateSuccess": "Updated successfully",
       "saveFailed": "Failed to save",
       "loadFailed": "Failed to load",
-      "internalServerError": "Internal server error",
       "fillRequiredFields": "Please fill in all required fields",
       "passwordChanged": "Password changed successfully!",
       "entries": "entries",
@@ -121,13 +126,42 @@
         "username": "Username",
         "password": "Password"
       },
+      "continueAs": "Continue as {{name}}",
+      "signInWithAuthentik": "Sign in with Authentik",
+      "signInAsAnotherUser": "Sign in as another user",
+      "oidcNotEnabled": "OIDC login is not enabled in backend configuration.",
       "errors": {
         "invalidCredentials": "Invalid username or password.",
         "loginFailed": "Login failed. Please try again.",
+        "oauthLoginFailed": "Failed to login.",
         "googleLoginFailed": "Google login failed. Please ensure your account exists in the system."
       },
       "logoutMessage": "You have been logged out."
     }
+  },
+  "errors": {
+    "boundary": {
+      "heading": "Oops! Something went wrong",
+      "message": "We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.",
+      "devDetails": "Error Details (Development Only)",
+      "errorLabel": "Error:",
+      "errorInfoLabel": "Error Info:",
+      "noAdditionalInfo": "No additional error information available"
+    },
+    "forbidden": "You do not have permission to perform this action.",
+    "serverError": "A server error occurred. Please try again later.",
+    "requestFailed": "Request failed with status {{status}}",
+    "networkError": "Network error. Please check your connection and try again.",
+    "unexpected": "An unexpected error occurred.",
+    "toast": {
+      "success": "Success",
+      "error": "Error",
+      "warning": "Warning",
+      "info": "Info"
+    }
+  },
+  "footer": {
+    "brand": "Dtime"
   },
   "navigation": {
     "appName": "D-Time",
@@ -154,6 +188,45 @@
     "addUser": "Add User",
     "createUser": "Create User",
     "editUser": "Edit User",
+    "deactivate": "Deactivate",
+    "activate": "Activate",
+    "deactivateConfirm": "Deactivate {{name}} ({{email}})? They will no longer be able to sign in.",
+    "activateConfirm": "Activate {{name}} ({{email}})? They will be able to sign in again.",
+    "deactivateSuccess": "User deactivated successfully",
+    "activateSuccess": "User activated successfully",
+    "authentikHint": "Users are created when they sign in via Authentik. You can activate or deactivate users here.",
+    "empty": "No users found",
+    "filters": {
+      "firstName": "Filter by first name",
+      "lastName": "Filter by last name",
+      "allStatus": "All Status"
+    },
+    "status": {
+      "active": "Active",
+      "inactive": "Inactive"
+    },
+    "pagination": {
+      "show": "Show",
+      "entries": "entries",
+      "showing": "Showing {{from}} to {{to}} of {{total}} entries"
+    },
+    "columns": {
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "email": "Email",
+      "role": "Role",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "roles": {
+      "USER": "User",
+      "ADMIN": "Admin"
+    },
+    "errors": {
+      "loadFailed": "Failed to load users",
+      "deactivateFailed": "Failed to deactivate user",
+      "activateFailed": "Failed to activate user"
+    },
     "placeholders": {
       "firstName": "First Name",
       "lastName": "Last name",
@@ -172,10 +245,6 @@
       "email": "Email",
       "role": "Role",
       "status": "Status"
-    },
-    "roles": {
-      "user": "User",
-      "admin": "Admin"
     },
     "messages": {
       "noUsersFound": "No users found",
@@ -196,6 +265,17 @@
     "placeholders": {
       "enterAccountName": "Enter account name"
     },
+    "filters": {
+      "allStatus": "All Status"
+    },
+    "columns": {
+      "name": "Name",
+      "status": "Status",
+      "actions": "Actions"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} entries"
+    },
     "messages": {
       "noAccountsFound": "No accounts found",
       "accountDeleteConfirm": "Are you sure you want to delete this account?",
@@ -203,7 +283,9 @@
       "accountCreated": "Account created successfully",
       "accountUpdated": "Account updated successfully",
       "loadAccountsFailed": "Failed to load accounts",
-      "deleteAccountFailed": "Failed to delete account"
+      "deleteAccountFailed": "Failed to delete account",
+      "saveFailed": "Failed to save account",
+      "fetchFailed": "Failed to fetch account"
     }
   },
   "tasks": {
@@ -223,6 +305,28 @@
       "sickLeave": "Sick Leave",
       "parentalLeave": "Parental Leave"
     },
+    "labels": {
+      "billable": "Task is billable"
+    },
+    "columns": {
+      "name": "Name",
+      "type": "Type",
+      "account": "Account",
+      "status": "Status",
+      "billable": "Billable",
+      "actions": "Actions"
+    },
+    "filters": {
+      "allStatus": "All Status",
+      "allAccounts": "All Accounts"
+    },
+    "pagination": {
+      "showing": "Showing {{from}} to {{to}} of {{total}} entries"
+    },
+    "billable": {
+      "yes": "✓ Yes",
+      "no": "✗ No"
+    },
     "messages": {
       "noTasksFound": "No tasks found",
       "taskDeleteConfirm": "Are you sure you want to delete this task?",
@@ -230,11 +334,12 @@
       "taskCreated": "Task created successfully",
       "taskUpdated": "Task updated successfully",
       "loadTasksFailed": "Failed to load tasks",
+      "loadAccountsFailed": "Failed to load accounts",
       "deleteTaskFailed": "Failed to delete task",
-      "selectAccount": "Select an account"
-    },
-    "filters": {
-      "allAccounts": "All Accounts"
+      "saveFailed": "Failed to save task",
+      "selectAccount": "Select an account",
+      "fetchFailed": "Failed to fetch task",
+      "fetchAccountsFailed": "Failed to fetch accounts"
     }
   },
   "time": {
@@ -249,7 +354,7 @@
       "workableHours": "Workable hours"
     },
     "messages": {
-      "closeConfirm": "Are you really sure you want close this month?\\nYou will not be able to open it again.",
+      "closeConfirm": "Are you really sure you want close this month?\nYou will not be able to open it again.",
       "reportClosed": "Report closed successfully",
       "loadFailed": "Failed to load time report",
       "closeFailed": "Failed to close report"
@@ -275,7 +380,68 @@
     "userReport": "User Report",
     "taskTimeBreakdown": "📋 Task Time Breakdown",
     "taskDistribution": "📋 Task Distribution", 
-    "hoursByAccount": "🏢 Hours by Account"
+    "hoursByAccount": "🏢 Hours by Account",
+    "totalTime": "📊 Total Time",
+    "tableAccount": "🏢 Account",
+    "tableTask": "📋 Task",
+    "tableTotalHours": "⏱️ Total Hours",
+    "accountNameColumn": "🏢 Account Name",
+    "noChartsData": "No data available to display charts.",
+    "taskTimeSummary": "📋 Task Time Summary",
+    "accountTimeSummary": "🏢 Account Time Summary",
+    "userTaskTimeSummary": "👥 User Task Time Summary",
+    "timeReportDetails": "Time Report Details",
+    "billableTaskTypeReport": "Billable & Task Type Report",
+    "reportSummary": "Report Summary",
+    "visualAnalysis": "Visual Analysis",
+    "detailedBreakdown": "Detailed Breakdown",
+    "billableTaskTypeAnalysis": "Billable & Task Type Analysis",
+    "loadingBillableReport": "Loading billable task type report...",
+    "hoursByTaskTypeBillability": "Hours by Task Type & Billability",
+    "billableDistribution": "Billable vs Non-billable Distribution",
+    "cardHours": "Hours",
+    "cardTasks": "Tasks",
+    "cardDays": "Days",
+    "cardAvgPerDay": "Avg/Day",
+    "dailyTimeDistribution": "📊 Daily Time Distribution",
+    "detailedTimeEntries": "📊 Detailed Time Entries",
+    "timeVisualization": "📈 Time Visualization",
+    "truncatedNamesTip": "Hover over truncated names to see full text",
+    "summary": {
+      "title": "Summary",
+      "workableHoursMonth": "Workable Hours (Month)",
+      "totalWorkableHours": "Total Workable Hours",
+      "totalHoursWorked": "Total Hours Worked",
+      "totals": "Totals"
+    },
+    "viewDetails": "📋 View Details",
+    "closeModal": "✕ Close",
+    "billable": {
+      "billable": "Billable",
+      "nonBillable": "Non-billable",
+      "billableHours": "Billable Hours",
+      "nonBillableHours": "Non-billable Hours",
+      "hoursByTaskTypeChart": "Billable vs Non-billable Hours by Task Type",
+      "totalBillableChart": "Total Billable vs Non-billable Hours",
+      "generateReport": "Generate Report",
+      "fromDate": "From Date",
+      "toDate": "To Date",
+      "tableView": "📊 Table",
+      "chartsView": "📈 Charts",
+      "noDataForRange": "No data available for the selected date range.",
+      "taskTypeColumn": "Task Type",
+      "billableStatusColumn": "Billable Status",
+      "totalHoursColumn": "Total Hours",
+      "numberOfTasksColumn": "Number of Tasks",
+      "total": "Total",
+      "percentOfTotal": "% of Total"
+    },
+    "messages": {
+      "loadFailed": "Failed to load report: {{message}}",
+      "loadPreviousFailed": "Failed to load previous report: {{message}}",
+      "loadNextFailed": "Failed to load next report: {{message}}",
+      "loadUserReportFailed": "Failed to load user report: {{message}}"
+    }
   },
   "specialDays": {
     "title": "Special Days",
@@ -304,15 +470,21 @@
       "specialDayCreated": "Special day created successfully",
       "specialDayUpdated": "Special day updated successfully",
       "uploadSuccess": "Special days uploaded successfully",
+      "loadYearsFailed": "Failed to load available years",
       "loadFailed": "Failed to load special days",
       "saveFailed": "Failed to save special day",
       "deleteFailed": "Failed to delete special day",
+      "deleteYearFailed": "Failed to delete special days for year",
       "uploadFailed": "Failed to upload special days",
       "pleaseSelectJson": "Please select a JSON file"
     }
   },
   "system": {
-    "title": "System Properties"
+    "title": "System Properties",
+    "messages": {
+      "loadFailed": "Failed to load configuration: {{message}}",
+      "updateFailed": "Failed to update configuration: {{message}}"
+    }
   },
   "timeReports": {
     "title": "Unclosed Time Reports",
@@ -388,22 +560,6 @@
     },
     "changePasswordButton": "Change password"
   },
-  "errors": {
-    "boundary": {
-      "title": "Oops! Something went wrong",
-      "description": "We're sorry, but something unexpected happened. Please try refreshing the page or contact support if the problem persists.",
-      "errorDetails": "Error Details (Development Only)",
-      "error": "Error:",
-      "errorInfo": "Error Info:",
-      "noAdditionalInfo": "No additional error information available"
-    },
-    "toast": {
-      "success": "Success",
-      "error": "Error",
-      "warning": "Warning",
-      "info": "Info"
-    }
-  },
   "charts": {
     "labels": {
       "hours": "Hours",
@@ -416,7 +572,20 @@
       "hours": "{{value}} hours",
       "percentage": "{{value}}%"
     },
-    "noDataAvailable": "No data available for chart"
+    "noDataAvailable": "No data available for chart",
+    "noTaskData": "No task data available for chart",
+    "noAccountData": "No account data available for chart",
+    "tableView": "📋 Table",
+    "chartsView": "📊 Charts"
+  },
+  "taskUserReport": {
+    "daysSuffix": "(days)"
+  },
+  "accessibility": {
+    "navigation": "Navigation",
+    "close": "Close",
+    "sortBy": "Sort by {{column}}",
+    "sortColumn": "Click to sort this column"
   },
   "tables": {
     "noData": "No data available",

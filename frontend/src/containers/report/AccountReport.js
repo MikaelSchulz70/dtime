@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useTranslation } from 'react-i18next';
 import { 
     AccountHoursChart,
     ChartViewToggle 
@@ -7,6 +8,7 @@ import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 
 function AccountReportTable({ report }) {
+    const { t } = useTranslation();
     const [viewMode, setViewMode] = useState('table');
     const { sortedData: sortedAccountReports, requestSort, getSortIcon } = useTableSort(
         report?.accountReports, 
@@ -26,25 +28,25 @@ function AccountReportTable({ report }) {
         rows.push(
             <tr key={accountReport.accountId}>
                 <td className="fw-medium">{accountReport.accountName}</td>
-                <td className="text-start">{accountReport.totalHours}</td>
+                <td className="col-num">{accountReport.totalHours}</td>
             </tr>);
     });
 
     // Add summary row
     rows.push(
         <tr key="summary" className="bg-success text-white border-top border-2">
-            <td className="fw-bold fs-6">📊 Total Time</td>
-            <td className="text-start fw-bold fs-6">{totalSum.toFixed(2)}</td>
+            <td className="fw-bold fs-6">{t('reports.totalTime')}</td>
+            <td className="col-num fw-bold fs-6">{totalSum.toFixed(2)}</td>
         </tr>
     );
 
     // Transform data for chart components
     const userReports = [{
-        fullName: "All Users",
+        fullName: t('reports.allUsers'),
         totalTime: totalSum,
         taskReports: report.accountReports.map(accountReport => ({
             accountName: accountReport.accountName,
-            taskName: "All Tasks",
+            taskName: t('reports.allTasks'),
             totalHours: parseFloat(accountReport.totalHours) || 0
         }))
     }];
@@ -54,7 +56,7 @@ function AccountReportTable({ report }) {
             <div className="card shadow-sm">
                 <div className="card-header bg-success text-white">
                     <div className="d-flex justify-content-between align-items-center">
-                        <h5 className="mb-0 fw-bold text-white">🏢 Account Time Summary</h5>
+                        <h5 className="mb-0 fw-bold text-white">{t('reports.accountTimeSummary')}</h5>
                         <ChartViewToggle viewMode={viewMode} onViewChange={setViewMode} />
                     </div>
                 </div>
@@ -70,15 +72,15 @@ function AccountReportTable({ report }) {
                                             getSortIcon={getSortIcon}
                                             className="fw-bold"
                                         >
-                                            🏢 Account Name
+                                            {t('reports.accountNameColumn')}
                                         </SortableTableHeader>
                                         <SortableTableHeader 
                                             field="totalHours" 
                                             onSort={requestSort} 
                                             getSortIcon={getSortIcon}
-                                            className="fw-bold text-start"
+                                            className="fw-bold col-num"
                                         >
-                                            ⏱️ Total Hours
+                                            {t('reports.tableTotalHours')}
                                         </SortableTableHeader>
                                     </tr>
                                     {rows}
@@ -89,7 +91,7 @@ function AccountReportTable({ report }) {
                         <div className="p-3">
                             <div className="row">
                                 <div className="col-12">
-                                    <h6 className="mb-3 fw-bold text-info">🏢 Hours by Account</h6>
+                                    <h6 className="mb-3 fw-bold text-info">{t('reports.hoursByAccount')}</h6>
                                     <AccountHoursChart userReports={userReports} />
                                 </div>
                             </div>
