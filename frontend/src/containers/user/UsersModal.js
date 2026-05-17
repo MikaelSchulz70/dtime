@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Container, Card, Table, Button, Modal, Form, Alert, Row, Col, Pagination } from 'react-bootstrap';
+import { Container, Card, Table, Button, Alert, Row, Col, Pagination } from 'react-bootstrap';
 import UserService from '../../service/UserService';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
@@ -10,19 +10,8 @@ const UsersModal = () => {
     const [users, setUsers] = useState([]);
     const { sortedData: sortedUsers, requestSort, getSortIcon } = useTableSort(users, 'firstName');
     const [loading, setLoading] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [editingUser, setEditingUser] = useState(null);
+    const [pendingActionId, setPendingActionId] = useState(null);
     const [alert, setAlert] = useState({ show: false, message: '', type: 'success' });
-    const [modalError, setModalError] = useState({ show: false, message: '' });
-    const [fieldErrors, setFieldErrors] = useState({});
-    const [formData, setFormData] = useState({
-        firstName: '',
-        lastName: '',
-        email: '',
-        password: '',
-        userRole: 'USER',
-        activationStatus: 'ACTIVE'
-    });
     const [filters, setFilters] = useState({
         firstName: '',
         lastName: '',
@@ -34,38 +23,33 @@ const UsersModal = () => {
         totalPages: 0,
         totalElements: 0
     });
-    
+
     const searchTimeoutRef = useRef(null);
 
     useEffect(() => {
         loadUsers();
     }, [pagination.currentPage, pagination.itemsPerPage]);
-    
-    // Handle filter changes with debouncing
+
     useEffect(() => {
         if (searchTimeoutRef.current) {
             clearTimeout(searchTimeoutRef.current);
         }
-        
+
         searchTimeoutRef.current = setTimeout(() => {
-            console.log('Filter effect triggered, loading users with filters:', filters);
             loadUsers();
         }, 300);
-        
+
         return () => {
             if (searchTimeoutRef.current) {
                 clearTimeout(searchTimeoutRef.current);
             }
         };
     }, [filters.firstName, filters.lastName]);
-    
-    // Status filter changes should be immediate
+
     useEffect(() => {
-        console.log('Status filter changed, loading users immediately');
         loadUsers();
     }, [filters.status]);
-    
-    // Cleanup timeout on component unmount
+
     useEffect(() => {
         return () => {
             if (searchTimeoutRef.current) {
@@ -76,22 +60,12 @@ const UsersModal = () => {
 
     const loadUsers = async () => {
         setLoading(true);
-        console.log('Loading users with filters:', filters, 'pagination:', pagination);
         try {
             const userService = new UserService();
             const activeFilter = filters.status === '' ? null : (filters.status === 'ACTIVE');
-            console.log('API call parameters:', {
-                page: pagination.currentPage - 1,
-                size: pagination.itemsPerPage,
-                sort: 'firstName',
-                direction: 'asc',
-                active: activeFilter,
-                firstName: filters.firstName,
-                lastName: filters.lastName
-            });
-            
+
             const response = await userService.getAllPaged(
-                pagination.currentPage - 1, // Backend uses 0-based indexing
+                pagination.currentPage - 1,
                 pagination.itemsPerPage,
                 'firstName',
                 'asc',
@@ -99,20 +73,19 @@ const UsersModal = () => {
                 filters.firstName,
                 filters.lastName
             );
-            
-            // Update pagination info from server response
+
             const serverResponse = response.data;
             setPagination(prev => ({
                 ...prev,
-                currentPage: serverResponse.currentPage + 1, // Convert to 1-based for UI
+                currentPage: serverResponse.currentPage + 1,
                 totalPages: serverResponse.totalPages,
                 totalElements: serverResponse.totalElements
             }));
-            
+
             setUsers(serverResponse.content);
         } catch (error) {
             console.error('Error loading users:', error);
-            showAlert('Failed to load users', 'danger');
+            showAlert(t('users.errors.loadFailed', 'Failed to load users'), 'danger');
         } finally {
             setLoading(false);
         }
@@ -123,54 +96,12 @@ const UsersModal = () => {
         setTimeout(() => setAlert({ show: false, message: '', type: 'success' }), 5000);
     };
 
-    const handleCreate = () => {
-        setEditingUser(null);
-        setFormData({
-            firstName: '',
-            lastName: '',
-            email: '',
-            password: '',
-            userRole: 'USER',
-            activationStatus: 'ACTIVE'
-        });
-        setModalError({ show: false, message: '' });
-        setFieldErrors({});
-        setShowModal(true);
-    };
-
-    const handleEdit = (user) => {
-        setEditingUser(user);
-        setFormData({
-            firstName: user.firstName,
-            lastName: user.lastName,
-            email: user.email,
-            password: user.password, // Use the dummy password from backend
-            userRole: user.userRole,
-            activationStatus: user.activationStatus
-        });
-        setModalError({ show: false, message: '' });
-        setFieldErrors({});
-        setShowModal(true);
-    };
-
-    const handleInputChange = (e) => {
-        const { name, value } = e.target;
-        setFormData(prev => ({
-            ...prev,
-            [name]: value
-        }));
-    };
-
     const handleFilterChange = (e) => {
         const { name, value } = e.target;
-        console.log('Filter changed:', { name, value });
-        
         setFilters(prev => ({
             ...prev,
             [name]: value
         }));
-        
-        // Reset to first page when filters change
         setPagination(prev => ({ ...prev, currentPage: 1 }));
     };
 
@@ -189,93 +120,79 @@ const UsersModal = () => {
         }));
     };
 
-    const handleSubmit = async (e) => {
-        e.preventDefault();
-        setModalError({ show: false, message: '' });
-        setFieldErrors({});
-        
-        if (!formData.firstName || !formData.lastName || !formData.email) {
-            setModalError({ show: true, message: 'Please fill in all required fields' });
+    const handleDeactivate = async (user) => {
+        const confirmMessage = t(
+            'users.deactivateConfirm',
+            { name: `${user.firstName} ${user.lastName}`.trim(), email: user.email },
+            `Deactivate ${user.firstName} ${user.lastName} (${user.email})? They will no longer be able to sign in.`
+        );
+
+        if (!window.confirm(confirmMessage)) {
             return;
         }
 
-        if (!editingUser && !formData.password) {
-            setModalError({ show: true, message: 'Password is required for new users' });
-            return;
-        }
-
+        setPendingActionId(user.id);
         try {
             const userService = new UserService();
-            if (editingUser) {
-                const userData = { ...formData, id: editingUser.id };
-                await userService.update(userData);
-                showAlert('User updated successfully');
-            } else {
-                await userService.create(formData);
-                showAlert('User created successfully');
-            }
-
-            setShowModal(false);
+            await userService.deactivate(user.id);
+            showAlert(t('users.deactivateSuccess', 'User deactivated successfully'));
             loadUsers();
         } catch (error) {
-            console.error('Error saving user:', error);
-            
-            if (error.response?.status === 400 && error.response?.data?.fieldErrors) {
-                // Handle field-level validation errors
-                const errors = {};
-                error.response.data.fieldErrors.forEach(fieldError => {
-                    errors[fieldError.fieldName] = fieldError.fieldError;
-                });
-                setFieldErrors(errors);
-            } else {
-                // Handle general errors
-                const errorMessage = error.response?.data?.message || error.message || 'Failed to save user';
-                setModalError({ show: true, message: errorMessage });
-            }
-        }
-    };
-
-    const handleDelete = async (id) => {
-        if (!window.confirm('Are you sure you want to delete this user?')) {
-            return;
-        }
-
-        try {
-            const userService = new UserService();
-            await userService.delete(id);
-            showAlert('User deleted successfully');
-            loadUsers();
-        } catch (error) {
-            console.error('Error deleting user:', error);
-            const errorMessage = error.response?.data?.message || error.message || 'Failed to delete user';
+            console.error('Error deactivating user:', error);
+            const errorMessage = error.response?.data?.error
+                || error.response?.data?.message
+                || error.message
+                || t('users.errors.deactivateFailed', 'Failed to deactivate user');
             showAlert(errorMessage, 'danger');
+        } finally {
+            setPendingActionId(null);
         }
     };
 
-    // Server handles filtering and pagination, so we use users directly
+    const handleActivate = async (user) => {
+        const confirmMessage = t(
+            'users.activateConfirm',
+            { name: `${user.firstName} ${user.lastName}`.trim(), email: user.email },
+            `Activate ${user.firstName} ${user.lastName} (${user.email})? They will be able to sign in again.`
+        );
+
+        if (!window.confirm(confirmMessage)) {
+            return;
+        }
+
+        setPendingActionId(user.id);
+        try {
+            const userService = new UserService();
+            await userService.activate(user.id);
+            showAlert(t('users.activateSuccess', 'User activated successfully'));
+            loadUsers();
+        } catch (error) {
+            console.error('Error activating user:', error);
+            const errorMessage = error.response?.data?.error
+                || error.response?.data?.message
+                || error.message
+                || t('users.errors.activateFailed', 'Failed to activate user');
+            showAlert(errorMessage, 'danger');
+        } finally {
+            setPendingActionId(null);
+        }
+    };
+
     const totalItems = pagination.totalElements;
     const totalPages = pagination.totalPages;
     const startIndex = (pagination.currentPage - 1) * pagination.itemsPerPage;
     const endIndex = Math.min(startIndex + pagination.itemsPerPage, totalItems);
-
-    const closeModal = () => {
-        setShowModal(false);
-        setModalError({ show: false, message: '' });
-        setFieldErrors({});
-    };
 
     return (
         <Container fluid className="mt-4">
             <Card>
                 <Card.Header>
                     <Row>
-                        <Col sm={6}>
-                            <h4>Users</h4>
-                        </Col>
-                        <Col sm={6} className="text-end">
-                            <Button variant="primary" size="sm" onClick={handleCreate}>
-                                + {t('users.addUser')}
-                            </Button>
+                        <Col>
+                            <h4 className="mb-0">{t('users.title', 'Users')}</h4>
+                            <small className="text-muted">
+                                {t('users.authentikHint', 'Users are created when they sign in via Authentik. You can activate or deactivate users here.')}
+                            </small>
                         </Col>
                     </Row>
                 </Card.Header>
@@ -286,104 +203,79 @@ const UsersModal = () => {
                         </Alert>
                     )}
 
-                    {/* Filters */}
                     <Row className="mb-3">
                         <Col md={3}>
-                            <Form.Control
+                            <input
+                                className="form-control"
                                 type="text"
-                                placeholder="Filter by first name"
+                                placeholder={t('users.filters.firstName', 'Filter by first name')}
                                 name="firstName"
                                 value={filters.firstName}
                                 onChange={handleFilterChange}
                             />
                         </Col>
                         <Col md={3}>
-                            <Form.Control
+                            <input
+                                className="form-control"
                                 type="text"
-                                placeholder="Filter by last name"
+                                placeholder={t('users.filters.lastName', 'Filter by last name')}
                                 name="lastName"
                                 value={filters.lastName}
                                 onChange={handleFilterChange}
                             />
                         </Col>
                         <Col md={3}>
-                            <Form.Select name="status" value={filters.status} onChange={handleFilterChange}>
-                                <option value="">All Status</option>
-                                <option value="ACTIVE">Active</option>
-                                <option value="INACTIVE">Inactive</option>
-                            </Form.Select>
+                            <select className="form-select" name="status" value={filters.status} onChange={handleFilterChange}>
+                                <option value="">{t('users.filters.allStatus', 'All Status')}</option>
+                                <option value="ACTIVE">{t('users.status.active', 'Active')}</option>
+                                <option value="INACTIVE">{t('users.status.inactive', 'Inactive')}</option>
+                            </select>
                         </Col>
                         <Col md={3} className="d-flex align-items-center">
-                            <span className="me-2">Show:</span>
-                            <Form.Select 
-                                size="sm" 
-                                style={{ width: 'auto' }} 
-                                value={pagination.itemsPerPage} 
+                            <span className="me-2">{t('users.pagination.show', 'Show')}:</span>
+                            <select
+                                className="form-select form-select-sm"
+                                style={{ width: 'auto' }}
+                                value={pagination.itemsPerPage}
                                 onChange={handlePageSizeChange}
                             >
                                 <option value={10}>10</option>
                                 <option value={50}>50</option>
                                 <option value={100}>100</option>
-                            </Form.Select>
-                            <span className="ms-2">entries</span>
+                            </select>
+                            <span className="ms-2">{t('users.pagination.entries', 'entries')}</span>
                         </Col>
                     </Row>
 
-                    {/* Users Table */}
                     <Table striped bordered hover responsive>
                         <thead className="bg-success">
                             <tr>
-                                <SortableTableHeader 
-                                    field="firstName" 
-                                    onSort={requestSort} 
-                                    getSortIcon={getSortIcon}
-                                    className="text-white"
-                                >
-                                    First Name
+                                <SortableTableHeader field="firstName" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
+                                    {t('users.columns.firstName', 'First Name')}
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="lastName" 
-                                    onSort={requestSort} 
-                                    getSortIcon={getSortIcon}
-                                    className="text-white"
-                                >
-                                    Last Name
+                                <SortableTableHeader field="lastName" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
+                                    {t('users.columns.lastName', 'Last Name')}
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="email" 
-                                    onSort={requestSort} 
-                                    getSortIcon={getSortIcon}
-                                    className="text-white"
-                                >
-                                    Email
+                                <SortableTableHeader field="email" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
+                                    {t('users.columns.email', 'Email')}
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="userRole" 
-                                    onSort={requestSort} 
-                                    getSortIcon={getSortIcon}
-                                    className="text-white"
-                                >
-                                    Role
+                                <SortableTableHeader field="userRole" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
+                                    {t('users.columns.role', 'Role')}
                                 </SortableTableHeader>
-                                <SortableTableHeader 
-                                    field="activationStatus" 
-                                    onSort={requestSort} 
-                                    getSortIcon={getSortIcon}
-                                    className="text-white"
-                                >
-                                    Status
+                                <SortableTableHeader field="activationStatus" onSort={requestSort} getSortIcon={getSortIcon} className="text-white">
+                                    {t('users.columns.status', 'Status')}
                                 </SortableTableHeader>
-                                <th className="text-white">Actions</th>
+                                <th className="text-white">{t('users.columns.actions', 'Actions')}</th>
                             </tr>
                         </thead>
                         <tbody>
                             {loading ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">Loading...</td>
+                                    <td colSpan="6" className="text-center">{t('common.loading', 'Loading...')}</td>
                                 </tr>
                             ) : (sortedUsers || []).length === 0 ? (
                                 <tr>
-                                    <td colSpan="6" className="text-center">No users found</td>
+                                    <td colSpan="6" className="text-center">{t('users.empty', 'No users found')}</td>
                                 </tr>
                             ) : (
                                 (sortedUsers || []).map(user => (
@@ -394,37 +286,48 @@ const UsersModal = () => {
                                         <td>{user.userRole}</td>
                                         <td>{user.activationStatus}</td>
                                         <td>
-                                            <Button
-                                                variant="outline-primary"
-                                                size="sm"
-                                                className="me-2"
-                                                onClick={() => handleEdit(user)}
-                                            >
-                                                Edit
-                                            </Button>
-                                            <Button
-                                                variant="outline-danger"
-                                                size="sm"
-                                                onClick={() => handleDelete(user.id)}
-                                            >
-                                                Delete
-                                            </Button>
+                                            {user.activationStatus === 'ACTIVE' ? (
+                                                <Button
+                                                    variant="outline-warning"
+                                                    size="sm"
+                                                    disabled={pendingActionId === user.id}
+                                                    onClick={() => handleDeactivate(user)}
+                                                >
+                                                    {pendingActionId === user.id
+                                                        ? t('common.loading', 'Loading...')
+                                                        : t('users.deactivate', 'Deactivate')}
+                                                </Button>
+                                            ) : (
+                                                <Button
+                                                    variant="outline-success"
+                                                    size="sm"
+                                                    disabled={pendingActionId === user.id}
+                                                    onClick={() => handleActivate(user)}
+                                                >
+                                                    {pendingActionId === user.id
+                                                        ? t('common.loading', 'Loading...')
+                                                        : t('users.activate', 'Activate')}
+                                                </Button>
+                                            )}
                                         </td>
                                     </tr>
                                 ))
                             )}
                         </tbody>
                     </Table>
-                    
-                    {/* Pagination */}
+
                     {totalPages > 1 && (
                         <Row className="mt-3">
                             <Col className="d-flex justify-content-between align-items-center">
                                 <div className="text-muted">
-                                    Showing {Math.min(startIndex + 1, totalItems)} to {endIndex} of {totalItems} entries
+                                    {t('users.pagination.showing', {
+                                        from: Math.min(startIndex + 1, totalItems),
+                                        to: endIndex,
+                                        total: totalItems
+                                    }, `Showing ${Math.min(startIndex + 1, totalItems)} to ${endIndex} of ${totalItems} entries`)}
                                 </div>
                                 <Pagination size="sm">
-                                    <Pagination.Prev 
+                                    <Pagination.Prev
                                         disabled={pagination.currentPage === 1}
                                         onClick={() => handlePageChange(pagination.currentPage - 1)}
                                     />
@@ -437,7 +340,7 @@ const UsersModal = () => {
                                             {index + 1}
                                         </Pagination.Item>
                                     ))}
-                                    <Pagination.Next 
+                                    <Pagination.Next
                                         disabled={pagination.currentPage === totalPages}
                                         onClick={() => handlePageChange(pagination.currentPage + 1)}
                                     />
@@ -447,152 +350,6 @@ const UsersModal = () => {
                     )}
                 </Card.Body>
             </Card>
-
-            {/* Add/Edit User Modal */}
-            <Modal show={showModal} onHide={closeModal} size="lg">
-                <Modal.Header closeButton>
-                    <Modal.Title>
-                        {editingUser ? t('users.editUser') : t('users.createUser')}
-                    </Modal.Title>
-                </Modal.Header>
-                <Form onSubmit={handleSubmit}>
-                    <Modal.Body>
-                        {modalError.show && (
-                            <Alert variant="danger" className="mb-3">
-                                {modalError.message}
-                            </Alert>
-                        )}
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>First Name *</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="firstName"
-                                        value={formData.firstName}
-                                        onChange={handleInputChange}
-                                        placeholder="Enter first name"
-                                        maxLength="30"
-                                        required
-                                        isInvalid={!!fieldErrors.firstName}
-                                    />
-                                    {fieldErrors.firstName && (
-                                        <Form.Control.Feedback type="invalid">
-                                            {fieldErrors.firstName}
-                                        </Form.Control.Feedback>
-                                    )}
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Last Name *</Form.Label>
-                                    <Form.Control
-                                        type="text"
-                                        name="lastName"
-                                        value={formData.lastName}
-                                        onChange={handleInputChange}
-                                        placeholder="Enter last name"
-                                        maxLength="30"
-                                        required
-                                        isInvalid={!!fieldErrors.lastName}
-                                    />
-                                    {fieldErrors.lastName && (
-                                        <Form.Control.Feedback type="invalid">
-                                            {fieldErrors.lastName}
-                                        </Form.Control.Feedback>
-                                    )}
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Email *</Form.Label>
-                            <Form.Control
-                                type="email"
-                                name="email"
-                                value={formData.email}
-                                onChange={handleInputChange}
-                                placeholder="Enter email address"
-                                maxLength="60"
-                                required
-                                isInvalid={!!fieldErrors.email}
-                            />
-                            {fieldErrors.email && (
-                                <Form.Control.Feedback type="invalid">
-                                    {fieldErrors.email}
-                                </Form.Control.Feedback>
-                            )}
-                        </Form.Group>
-                        <Form.Group className="mb-3">
-                            <Form.Label>Password {!editingUser && '*'}</Form.Label>
-                            <Form.Control
-                                type="password"
-                                name="password"
-                                value={formData.password}
-                                onChange={handleInputChange}
-                                placeholder={editingUser ? "Change password or leave as-is to keep current" : "Enter password"}
-                                maxLength="80"
-                                required={!editingUser}
-                                isInvalid={!!fieldErrors.password}
-                            />
-                            {fieldErrors.password && (
-                                <Form.Control.Feedback type="invalid">
-                                    {fieldErrors.password}
-                                </Form.Control.Feedback>
-                            )}
-                        </Form.Group>
-                        <Row>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Role *</Form.Label>
-                                    <Form.Select
-                                        name="userRole"
-                                        value={formData.userRole}
-                                        onChange={handleInputChange}
-                                        required
-                                        isInvalid={!!fieldErrors.userRole}
-                                    >
-                                        <option value="USER">User</option>
-                                        <option value="ADMIN">Admin</option>
-                                    </Form.Select>
-                                    {fieldErrors.userRole && (
-                                        <Form.Control.Feedback type="invalid">
-                                            {fieldErrors.userRole}
-                                        </Form.Control.Feedback>
-                                    )}
-                                </Form.Group>
-                            </Col>
-                            <Col md={6}>
-                                <Form.Group className="mb-3">
-                                    <Form.Label>Status *</Form.Label>
-                                    <Form.Select
-                                        name="activationStatus"
-                                        value={formData.activationStatus}
-                                        onChange={handleInputChange}
-                                        required
-                                        isInvalid={!!fieldErrors.activationStatus}
-                                    >
-                                        <option value="ACTIVE">Active</option>
-                                        <option value="INACTIVE">Inactive</option>
-                                    </Form.Select>
-                                    {fieldErrors.activationStatus && (
-                                        <Form.Control.Feedback type="invalid">
-                                            {fieldErrors.activationStatus}
-                                        </Form.Control.Feedback>
-                                    )}
-                                </Form.Group>
-                            </Col>
-                        </Row>
-                    </Modal.Body>
-                    <Modal.Footer>
-                        <Button variant="secondary" onClick={closeModal}>
-                            Cancel
-                        </Button>
-                        <Button variant="primary" type="submit">
-                            {editingUser ? 'Update' : 'Create'}
-                        </Button>
-                    </Modal.Footer>
-                </Form>
-            </Modal>
         </Container>
     );
 };

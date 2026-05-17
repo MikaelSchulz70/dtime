@@ -7,23 +7,15 @@ import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.data.domain.Sort;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContext;
-import org.springframework.security.core.context.SecurityContextHolder;
-import se.dtime.common.CommonData;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.User;
-import se.dtime.model.UserPwd;
+import se.dtime.model.UserRole;
 import se.dtime.model.error.NotFoundException;
-import se.dtime.model.error.ValidationException;
-import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.TaskContributorRepository;
-import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
@@ -48,15 +40,7 @@ class UserServiceTest {
     @Mock
     private UserValidator userValidator;
     @Mock
-    private TimeEntryRepository timeEntryRepository;
-    @Mock
     private TaskContributorRepository taskContributorRepository;
-    @Mock
-    private CloseDateRepository closeDateRepository;
-    @Mock
-    private SecurityContext securityContext;
-    @Mock
-    private Authentication authentication;
 
     private User testUser;
     private UserPO testUserPO;
@@ -69,6 +53,7 @@ class UserServiceTest {
                 .lastName("Doe")
                 .email("john.doe@example.com")
                 .activationStatus(ActivationStatus.ACTIVE)
+                .userRole(UserRole.USER)
                 .build();
 
         testUserPO = new UserPO();
@@ -77,99 +62,57 @@ class UserServiceTest {
         testUserPO.setLastName("Doe");
         testUserPO.setEmail("john.doe@example.com");
         testUserPO.setActivationStatus(ActivationStatus.ACTIVE);
+        testUserPO.setUserRole(UserRole.USER);
         testUserPO.setExternalId("external-john-doe");
     }
 
     @Test
-    void add_ValidUser_ShouldReturnSavedUser() {
-        // Given
-        when(userConverter.toPO(testUser)).thenReturn(testUserPO);
-        when(userRepository.save(testUserPO)).thenReturn(testUserPO);
-        when(userConverter.toModel(testUserPO)).thenReturn(testUser);
-
-        // When
-        User result = userService.add(testUser);
-
-        // Then
-        assertThat(result).isEqualTo(testUser);
-        verify(userValidator).validateAdd(testUser);
-        verify(userRepository).save(testUserPO);
-    }
-
-    @Test
-    void update_ValidUser_ShouldUpdateUser() {
-        // Given
-        UserPO currentUserPO = new UserPO();
-        currentUserPO.setActivationStatus(ActivationStatus.ACTIVE);
-
-        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUserPO));
-        when(userConverter.toPO(testUser, currentUserPO)).thenReturn(testUserPO);
-
-        // When
-        assertDoesNotThrow(() -> userService.update(testUser));
-
-        // Then
-        verify(userValidator).validateUpdate(testUser);
-        verify(userRepository).findById(1L);
-        verify(userRepository).save(testUserPO);
-    }
-
-    @Test
-    void update_UserNotFound_ShouldThrowNotFoundException() {
-        // Given
-        when(userRepository.findById(1L)).thenReturn(Optional.empty());
-
-        // When/Then
-        assertThrows(NotFoundException.class, () -> userService.update(testUser));
-        verify(userValidator).validateUpdate(testUser);
-    }
-
-    @Test
-    void update_UserBecomesInactive_ShouldDeactivateTaskContributors() {
-        // Given
-        testUser.setActivationStatus(ActivationStatus.INACTIVE);
-
-        UserPO currentUserPO = new UserPO();
-        currentUserPO.setActivationStatus(ActivationStatus.ACTIVE);
-
-        UserPO updatedUserPO = new UserPO();
-        updatedUserPO.setActivationStatus(ActivationStatus.INACTIVE);
-
+    void deactivate_ActiveUser_ShouldSetInactiveAndDeactivateTaskContributors() {
         TaskContributorPO taskContributor = new TaskContributorPO();
         taskContributor.setActivationStatus(ActivationStatus.ACTIVE);
 
-        when(userRepository.findById(1L)).thenReturn(Optional.of(currentUserPO));
-        when(userConverter.toPO(testUser, currentUserPO)).thenReturn(updatedUserPO);
-        when(taskContributorRepository.findByUser(updatedUserPO))
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUserPO));
+        when(taskContributorRepository.findByUser(testUserPO))
                 .thenReturn(Collections.singletonList(taskContributor));
 
-        // When
-        userService.update(testUser);
+        assertDoesNotThrow(() -> userService.deactivate(1L));
 
-        // Then
+        verify(userValidator).validateDeactivate(1L);
+        assertThat(testUserPO.getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
         assertThat(taskContributor.getActivationStatus()).isEqualTo(ActivationStatus.INACTIVE);
-        verify(userRepository).save(updatedUserPO);
+        verify(userRepository).save(testUserPO);
     }
 
     @Test
-    void getAll_WithoutFilter_ShouldReturnAllUsersExceptSystem() {
-        // Given
-        UserPO systemUser = new UserPO();
-        systemUser.setId(CommonData.SYSTEM_USER_ID);
+    void deactivate_UserNotFound_ShouldThrowNotFoundException() {
+        when(userRepository.findById(1L)).thenReturn(Optional.empty());
 
-        UserPO regularUser = new UserPO();
-        regularUser.setId(1L);
+        assertThrows(NotFoundException.class, () -> userService.deactivate(1L));
+        verify(userValidator).validateDeactivate(1L);
+    }
 
-        List<UserPO> allUsers = Arrays.asList(systemUser, regularUser);
+    @Test
+    void activate_InactiveUser_ShouldSetActive() {
+        testUserPO.setActivationStatus(ActivationStatus.INACTIVE);
+        when(userRepository.findById(1L)).thenReturn(Optional.of(testUserPO));
+
+        assertDoesNotThrow(() -> userService.activate(1L));
+
+        verify(userValidator).validateActivate(1L);
+        assertThat(testUserPO.getActivationStatus()).isEqualTo(ActivationStatus.ACTIVE);
+        verify(userRepository).save(testUserPO);
+    }
+
+    @Test
+    void getAll_WithoutFilter_ShouldReturnAllUsers() {
+        List<UserPO> allUsers = Collections.singletonList(testUserPO);
         User[] expectedUsers = {testUser};
 
         when(userRepository.findAll(any(Sort.class))).thenReturn(allUsers);
-        when(userConverter.toModel(Collections.singletonList(regularUser))).thenReturn(expectedUsers);
+        when(userConverter.toModel(allUsers)).thenReturn(expectedUsers);
 
-        // When
         User[] result = userService.getAll(null);
 
-        // Then
         assertThat(result).hasSize(1);
         assertThat(result[0]).isEqualTo(testUser);
         verify(userRepository).findAll(any(Sort.class));
@@ -177,7 +120,6 @@ class UserServiceTest {
 
     @Test
     void getAll_ActiveUsersOnly_ShouldReturnActiveUsers() {
-        // Given
         List<UserPO> activeUsers = Collections.singletonList(testUserPO);
         User[] expectedUsers = {testUser};
 
@@ -185,129 +127,27 @@ class UserServiceTest {
                 .thenReturn(activeUsers);
         when(userConverter.toModel(activeUsers)).thenReturn(expectedUsers);
 
-        // When
         User[] result = userService.getAll(true);
 
-        // Then
         assertThat(result).hasSize(1);
         assertThat(result[0]).isEqualTo(testUser);
-        verify(userRepository).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.ACTIVE);
-    }
-
-    @Test
-    void getAll_InactiveUsersOnly_ShouldReturnInactiveUsers() {
-        // Given
-        List<UserPO> inactiveUsers = Collections.singletonList(testUserPO);
-        User[] expectedUsers = {testUser};
-
-        when(userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE))
-                .thenReturn(inactiveUsers);
-        when(userConverter.toModel(inactiveUsers)).thenReturn(expectedUsers);
-
-        // When
-        User[] result = userService.getAll(false);
-
-        // Then
-        assertThat(result).hasSize(1);
-        assertThat(result[0]).isEqualTo(testUser);
-        verify(userRepository).findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE);
     }
 
     @Test
     void get_ValidUserId_ShouldReturnUser() {
-        // Given
         when(userRepository.findById(1L)).thenReturn(Optional.of(testUserPO));
         when(userConverter.toModel(testUserPO)).thenReturn(testUser);
 
-        // When
         User result = userService.get(1L);
 
-        // Then
         assertThat(result).isEqualTo(testUser);
         verify(userRepository).findById(1L);
     }
 
     @Test
-    void get_SystemUserId_ShouldThrowNotFoundException() {
-        // When/Then
-        assertThrows(NotFoundException.class,
-                () -> userService.get(CommonData.SYSTEM_USER_ID));
-    }
-
-    @Test
     void get_NonExistentUserId_ShouldThrowNotFoundException() {
-        // Given
         when(userRepository.findById(999L)).thenReturn(Optional.empty());
 
-        // When/Then
         assertThrows(NotFoundException.class, () -> userService.get(999L));
-    }
-
-    @Test
-    void delete_ValidUserId_ShouldDeleteUserAndRelatedData() {
-        // Given
-        when(timeEntryRepository.findByUser(1L)).thenReturn(Collections.emptyList());
-        when(taskContributorRepository.findByUser(any(UserPO.class))).thenReturn(Collections.emptyList());
-        when(closeDateRepository.findByUser(any(UserPO.class))).thenReturn(Collections.emptyList());
-
-        // When
-        assertDoesNotThrow(() -> userService.delete(1L));
-
-        // Then
-        verify(userValidator).validateDelete(1L);
-        verify(timeEntryRepository).deleteAll(any());
-        verify(taskContributorRepository).deleteAll(any());
-        verify(closeDateRepository).deleteAll(any());
-        verify(userRepository).deleteById(1L);
-    }
-
-    @Test
-    void changePwd_ValidPasswordInput_ShouldThrowOidcNotSupportedException() {
-        // Given
-        UserPwd userPwd = UserPwd.builder()
-                .currentPassword("oldPassword")
-                .newPassword1("newPassword")
-                .newPassword2("newPassword")
-                .build();
-
-        // When/Then
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> userService.changePwd(userPwd));
-        assertThat(exception.getFieldName()).isEqualTo("currentPassword");
-        assertThat(exception.getMessage()).isEqualTo("user.password.change.not.supported.with.oidc");
-    }
-
-    @Test
-    void changePwd_InvalidCurrentPassword_ShouldStillThrowOidcNotSupportedException() {
-        // Given
-        UserPwd userPwd = UserPwd.builder()
-                .currentPassword("wrongPassword")
-                .newPassword1("newPassword")
-                .newPassword2("newPassword")
-                .build();
-
-        // When/Then
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> userService.changePwd(userPwd));
-
-        assertThat(exception.getFieldName()).isEqualTo("currentPassword");
-        assertThat(exception.getMessage()).isEqualTo("user.password.change.not.supported.with.oidc");
-    }
-
-    @Test
-    void changePwd_PasswordsDoNotMatch_ShouldThrowValidationException() {
-        // Given
-        UserPwd userPwd = UserPwd.builder()
-                .currentPassword("oldPassword")
-                .newPassword1("newPassword1")
-                .newPassword2("newPassword2")
-                .build();
-
-        // When/Then
-        ValidationException exception = assertThrows(ValidationException.class,
-                () -> userService.changePwd(userPwd));
-
-        assertThat(exception.getFieldName()).isEqualTo("newPassword1");
-        assertThat(exception.getMessage()).isEqualTo("user.new.pwd.do.not.match");
     }
 }

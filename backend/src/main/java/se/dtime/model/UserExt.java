@@ -1,49 +1,75 @@
 package se.dtime.model;
 
 import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 
-public class UserExt extends User {
-    private long id;
-    private String firstName;
-    private String lastName;
+public class UserExt implements UserDetails {
 
-    public UserExt(String username, String password, Collection<? extends GrantedAuthority> authorities) {
-        super(username, password, authorities);
-    }
+  private final String username;
+  private final Collection<? extends GrantedAuthority> authorities;
+  private final long id;
+  private final String firstName;
+  private final String lastName;
 
-    public UserExt(String username, String password, Collection<? extends GrantedAuthority> authorities,
-                   long id, String firstName, String lastName) {
-        super(username, password, authorities);
+  public UserExt(
+      String username,
+      Collection<? extends GrantedAuthority> authorities,
+      long id,
+      String firstName,
+      String lastName) {
+    this.username = username;
+    this.authorities = authorities;
+    this.id = id;
+    this.firstName = firstName;
+    this.lastName = lastName;
+  }
 
-        this.id = id;
-        this.firstName = firstName;
-        this.lastName = lastName;
-    }
+  public long getId() {
+    return id;
+  }
 
-    public long getId() {
-        return id;
-    }
+  public String getFirstName() {
+    return firstName;
+  }
 
-    public void setId(long id) {
-        this.id = id;
-    }
+  public String getLastName() {
+    return lastName;
+  }
 
-    public String getFirstName() {
-        return firstName;
-    }
+  @Override
+  public String getUsername() {
+    return username;
+  }
 
-    public void setFirstName(String firstName) {
-        this.firstName = firstName;
-    }
+  @Override
+  public String getPassword() {
+    return "";
+  }
 
-    public String getLastName() {
-        return lastName;
-    }
+  @Override
+  public Collection<? extends GrantedAuthority> getAuthorities() {
+    return authorities;
+  }
 
-    public void setLastName(String lastName) {
-        this.lastName = lastName;
-    }
+  @Override
+  public boolean isAccountNonExpired() {
+    return true;
+  }
+
+  @Override
+  public boolean isAccountNonLocked() {
+    return true;
+  }
+
+  @Override
+  public boolean isCredentialsNonExpired() {
+    return true;
+  }
+
+  @Override
+  public boolean isEnabled() {
+    return true;
+  }
 }

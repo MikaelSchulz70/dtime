@@ -34,6 +34,25 @@ class AuthentikMachineJwtPropertiesBindingTest {
     }
 
     @Test
+    void mcpOAuthClientIdUsedWhenAllowlistEnvAndYamlEmpty() {
+        runner.withPropertyValues("MCP_OAUTH_CLIENT_ID=mcp-client-uuid").run(ctx -> {
+            AuthentikMachineJwtProperties p = ctx.getBean(AuthentikMachineJwtProperties.class);
+            assertThat(p.getAuthorizedClientIds()).containsExactly("mcp-client-uuid");
+        });
+    }
+
+    @Test
+    void explicitAllowlistEnvTakesPrecedenceOverMcpOAuthClientId() {
+        runner.withPropertyValues(
+                        "OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS=explicit-id",
+                        "MCP_OAUTH_CLIENT_ID=mcp-client-uuid")
+                .run(ctx -> {
+                    AuthentikMachineJwtProperties p = ctx.getBean(AuthentikMachineJwtProperties.class);
+                    assertThat(p.getAuthorizedClientIds()).containsExactly("explicit-id");
+                });
+    }
+
+    @Test
     void machineJwtJwkSetUriBindsFromProperty() {
         runner.withPropertyValues(
                         "oauth.authentik.machine-jwt.jwk-set-uri=http://localhost:9000/application/o/dtmcp/jwks/")

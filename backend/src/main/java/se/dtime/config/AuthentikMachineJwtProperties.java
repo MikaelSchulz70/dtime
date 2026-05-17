@@ -18,6 +18,8 @@ import java.util.stream.Collectors;
 public class AuthentikMachineJwtProperties implements EnvironmentAware {
 
     private static final String AUTHORIZED_CLIENT_IDS_ENV = "OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS";
+    /** Dev convenience: same Authentik client as dtime-mcp when allowlist env/YAML are empty. */
+    private static final String MCP_OAUTH_CLIENT_ID_ENV = "MCP_OAUTH_CLIENT_ID";
 
     private Environment environment;
 
@@ -73,6 +75,13 @@ public class AuthentikMachineJwtProperties implements EnvironmentAware {
             }
         }
         authorizedClientIds = flattened;
+        if (!authorizedClientIds.isEmpty()) {
+            return;
+        }
+        String mcpClientId = environment.getProperty(MCP_OAUTH_CLIENT_ID_ENV);
+        if (mcpClientId != null && !mcpClientId.isBlank()) {
+            authorizedClientIds = List.of(mcpClientId.trim());
+        }
     }
 
     private static List<String> splitCsv(String csv) {

@@ -29,8 +29,6 @@ const NavigationMenu = ({ session }) => {
             <NavDropdown title={t('navigation.menu.admin')} id="basic-nav-dropdown" className="nav-dropdown-professional">
               <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/userreport" eventKey={2}>{t('navigation.menu.report')}</Nav.Link>
               <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/mytasks" eventKey={21}>{t('navigation.menu.myTasks')}</Nav.Link>
-              <NavDropdown.Divider />
-              <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={3}>{t('navigation.menu.changePassword')}</Nav.Link>
             </NavDropdown>
             <Nav.Link as={Link} to="/logout" eventKey={15} className="nav-link-professional">{t('navigation.menu.logout')}</Nav.Link>
           </Nav>
@@ -76,8 +74,6 @@ const NavigationMenu = ({ session }) => {
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/vacations" eventKey={7}>{t('navigation.menu.vacations')}</Nav.Link>
             <NavDropdown.Divider />
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/timereportstatus" eventKey={16}>{t('navigation.menu.timeReportStatus')}</Nav.Link>
-            <NavDropdown.Divider />
-            <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/changepwd" eventKey={12}>{t('navigation.menu.changePassword')}</Nav.Link>
             <NavDropdown.Divider />
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/system/properties" eventKey={13}>{t('navigation.menu.systemProperties')}</Nav.Link>
             <Nav.Link className="text-dark dropdown-item-professional" as={Link} to="/specialdays" eventKey={14}>{t('navigation.menu.specialDays')}</Nav.Link>

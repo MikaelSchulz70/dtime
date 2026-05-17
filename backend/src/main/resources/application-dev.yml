@@ -44,24 +44,22 @@ server:
 security:
   enable-csrf: false
 
-# Local Authentik OIDC defaults for development
+# Local Authentik OIDC — set client id/secret and machine JWT allowlist via .env (see .env.example).
 oauth:
   authentik:
-    enabled: true
-    client-id: sPiKspX0VVag2RIrtYh1p9WecpIhLrFv9IfxGY9I
+    enabled: ${OAUTH_AUTHENTIK_ENABLED:true}
+    client-id: ${OAUTH_AUTHENTIK_CLIENT_ID:}
     client-secret: ${OAUTH_AUTHENTIK_CLIENT_SECRET:}
-    authorization-uri: http://localhost:9000/application/o/authorize/
-    end-session-uri: http://localhost:9000/application/o/dtime/end-session/
-    token-uri: http://localhost:9000/application/o/token/
-    user-info-uri: http://localhost:9000/application/o/userinfo/
-    jwk-set-uri: http://localhost:9000/application/o/dtime/jwks/
+    authorization-uri: ${OAUTH_AUTHENTIK_AUTHORIZATION_URI:http://localhost:9000/application/o/authorize/}
+    end-session-uri: ${OAUTH_AUTHENTIK_END_SESSION_URI:http://localhost:9000/application/o/dtime/end-session/}
+    token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:http://localhost:9000/application/o/token/}
+    user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:http://localhost:9000/application/o/userinfo/}
+    jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:http://localhost:9000/application/o/dtime/jwks/}
     machine-jwt:
-      # Bearer JWT for dtime-mcp (Authentik provider slug dtmcp — separate from browser provider dtime).
       enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:true}
       jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:http://localhost:9000/application/o/dtmcp/jwks/}
-      # Overridden by OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS when set (see .env.example).
-      authorized-client-ids:
-        - ncFDhaBcHjh5jzwUdrmxzj08oDDuMSivl2Ai5Mvi
+      # Allowlist: OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS, YAML list below, or (if both empty) MCP_OAUTH_CLIENT_ID.
+      authorized-client-ids: []
 
 # Frontend Development Server Configuration
 app:

@@ -1,5 +1,6 @@
 import React from 'react';
 import '@testing-library/jest-dom';
+import './i18n';
 
 // Polyfill Web APIs required by React Router 7
 import { TextEncoder, TextDecoder } from 'util';

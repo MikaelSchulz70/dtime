@@ -1,6 +1,5 @@
 package se.dtime.restcontroller;
 
-import jakarta.validation.Valid;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -8,37 +7,18 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
-import se.dtime.model.Attribute;
 import se.dtime.model.PagedResponse;
 import se.dtime.model.User;
-import se.dtime.model.UserPwd;
 import se.dtime.service.user.UserService;
-import se.dtime.service.user.UserValidator;
 
 @RestController
 @RequestMapping("/api/users")
 public class UserRestController {
 
     private final UserService userService;
-    private final UserValidator userValidator;
 
-    public UserRestController(UserService userService, UserValidator userValidator) {
+    public UserRestController(UserService userService) {
         this.userService = userService;
-        this.userValidator = userValidator;
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping(path = "")
-    public ResponseEntity<Void> create(@Valid @RequestBody User user) {
-        userService.add(user);
-        return new ResponseEntity<>(HttpStatus.CREATED);
-    }
-
-    @PreAuthorize("hasRole('ADMIN')")
-    @PutMapping(path = "")
-    public ResponseEntity<Void> update(@Valid @RequestBody User user) {
-        userService.update(user);
-        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
@@ -57,11 +37,11 @@ public class UserRestController {
             @RequestParam(value = "active", required = false) Boolean active,
             @RequestParam(value = "firstName", required = false) String firstName,
             @RequestParam(value = "lastName", required = false) String lastName) {
-        
+
         Sort.Direction sortDirection = Sort.Direction.fromString(direction);
         String sortProperty = mapSortProperty(sort);
         Pageable pageable = PageRequest.of(page, size, Sort.by(sortDirection, sortProperty));
-        
+
         PagedResponse<User> response = userService.getAllPaged(pageable, active, firstName, lastName);
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
@@ -84,20 +64,16 @@ public class UserRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping(path = "/validate")
-    public void validate(@RequestBody Attribute attribute) {
-        userValidator.validate(attribute);
+    @PostMapping(path = "/{id}/deactivate")
+    public ResponseEntity<Void> deactivate(@PathVariable long id) {
+        userService.deactivate(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @DeleteMapping(path = "/{id}")
-    public void delete(@PathVariable long id) {
-        userService.delete(id);
-    }
-
-    @PreAuthorize("hasRole('USER')")
-    @PostMapping(path = "/changepwd")
-    public void changePwd(@Valid @RequestBody UserPwd userPwd) {
-        userService.changePwd(userPwd);
+    @PostMapping(path = "/{id}/activate")
+    public ResponseEntity<Void> activate(@PathVariable long id) {
+        userService.activate(id);
+        return new ResponseEntity<>(HttpStatus.OK);
     }
 }

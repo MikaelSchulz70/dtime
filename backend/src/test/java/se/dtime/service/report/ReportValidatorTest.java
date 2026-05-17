@@ -58,7 +58,7 @@ public class ReportValidatorTest {
     public void validateOpenTimeReportOk() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_ADMIN"));
-        UserExt userExt = new UserExt("name", "pwd", authorities, 1, "", "");
+        UserExt userExt = new UserExt("name", authorities, 1, "", "");
         SecurityContextHolder.setContext(createSecurityContext(userExt));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(new UserPO()));
@@ -83,7 +83,7 @@ public class ReportValidatorTest {
     public void validateOpenTimeReportUserNotAdmin() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        UserExt userExt = new UserExt("name", "pwd", authorities, 1, "", "");
+        UserExt userExt = new UserExt("name", authorities, 1, "", "");
         SecurityContextHolder.setContext(createSecurityContext(userExt));
 
         when(userRepository.findById(1L)).thenReturn(Optional.of(new UserPO()));

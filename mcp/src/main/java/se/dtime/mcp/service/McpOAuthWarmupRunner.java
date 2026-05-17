@@ -32,8 +32,8 @@ public class McpOAuthWarmupRunner implements ApplicationRunner {
             throw new IllegalStateException(
                     "dtime-mcp: Backend rejected Bearer token (401/403). On dtime-backend enable machine JWT and allowlist the MCP client: "
                             + "OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED=true, "
-                            + "OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS=<client_id from mcp/scripts/print-access-token-claims.sh>. "
-                            + "Restart backend, then restart MCP.");
+                            + "OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS=<same as MCP_OAUTH_CLIENT_ID or azp from mcp/scripts/print-access-token-claims.sh>. "
+                            + "Restart backend with repo .env loaded (./start-backend.sh), then restart MCP.");
         }
         log.info("dtime-mcp: Backend Bearer API access OK");
     }

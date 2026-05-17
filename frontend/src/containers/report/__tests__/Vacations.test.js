@@ -75,7 +75,7 @@ describe('Vacations', () => {
     render(<Vacations />);
 
     await waitFor(() => {
-      expect(screen.getByText('🏖️ Vacation Calendar')).toBeInTheDocument();
+      expect(screen.getByText('Vacation Calendar')).toBeInTheDocument();
     });
   });
 
@@ -119,8 +119,8 @@ describe('Vacations', () => {
     render(<Vacations />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument();
-      expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
+      expect(screen.getByTitle('Previous Month')).toBeInTheDocument();
+      expect(screen.getByTitle('Next Month')).toBeInTheDocument();
     });
   });
 
@@ -130,7 +130,7 @@ describe('Vacations', () => {
     render(<Vacations />);
 
     await waitFor(() => {
-      expect(screen.getByText('Vacation')).toBeInTheDocument();
+      expect(screen.getAllByText('Vacation').length).toBeGreaterThan(0);
       expect(screen.getByText('Holiday')).toBeInTheDocument();
       expect(screen.getByText('Weekend')).toBeInTheDocument();
     });
@@ -144,10 +144,10 @@ describe('Vacations', () => {
     render(<Vacations />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /previous/i })).toBeInTheDocument();
+      expect(screen.getByTitle('Previous Month')).toBeInTheDocument();
     });
 
-    const previousButton = screen.getByRole('button', { name: /previous/i });
+    const previousButton = screen.getByTitle('Previous Month');
     await user.click(previousButton);
 
     expect(mockTimeService.getPreviousVacations).toHaveBeenCalledWith('2023-01-01');
@@ -161,10 +161,10 @@ describe('Vacations', () => {
     render(<Vacations />);
 
     await waitFor(() => {
-      expect(screen.getByRole('button', { name: /next/i })).toBeInTheDocument();
+      expect(screen.getByTitle('Next Month')).toBeInTheDocument();
     });
 
-    const nextButton = screen.getByRole('button', { name: /next/i });
+    const nextButton = screen.getByTitle('Next Month');
     await user.click(nextButton);
 
     expect(mockTimeService.getNextVacations).toHaveBeenCalledWith('2023-01-31');

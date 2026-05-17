@@ -14,10 +14,6 @@ public class User {
     private Long id;
 
     @NotNull
-    @Size(min = 6, max = 80, message = "Password should have between 6-80 characters")
-    private String password;
-
-    @NotNull
     @Size(min = 1, max = 30, message = "First name should have between 1-30 characters")
     private String firstName;
 
@@ -45,14 +41,6 @@ public class User {
 
     public void setId(Long id) {
         this.id = id;
-    }
-
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
     }
 
     public String getFirstName() {

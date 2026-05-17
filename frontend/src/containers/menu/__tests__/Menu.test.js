@@ -121,14 +121,12 @@ describe('NavigationMenu', () => {
     });
 
     it('should show limited admin dropdown options for non-admin users', () => {
-      // Non-admin users should see only Report and Change password in the dropdown
-      // But we need to click/expand the dropdown first to see these items
       const adminDropdown = screen.getByRole('button', { name: /admin/i });
       fireEvent.click(adminDropdown);
       
       expect(screen.getByRole('link', { name: 'Report' })).toBeInTheDocument();
       expect(screen.getByRole('link', { name: 'My Tasks' })).toBeInTheDocument();
-      expect(screen.getByRole('link', { name: 'Change password' })).toBeInTheDocument();
+      expect(screen.queryByRole('link', { name: 'Change password' })).not.toBeInTheDocument();
     });
 
     it('should have correct routing for Report link', () => {
@@ -137,14 +135,6 @@ describe('NavigationMenu', () => {
       
       const reportLink = screen.getByRole('link', { name: 'Report' });
       expect(reportLink).toHaveAttribute('href', '/userreport');
-    });
-
-    it('should have correct routing for Change password link', () => {
-      const adminDropdown = screen.getByRole('button', { name: /admin/i });
-      fireEvent.click(adminDropdown);
-      
-      const changePwdLink = screen.getByRole('link', { name: 'Change password' });
-      expect(changePwdLink).toHaveAttribute('href', '/changepwd');
     });
 
     it('should have correct routing for My Tasks link', () => {
@@ -219,12 +209,11 @@ describe('NavigationMenu', () => {
       expect(logoutLink).toHaveAttribute('href', '/logout');
     });
 
-    it('should show Change password option for admin users', () => {
+    it('should not show change password option for admin users', () => {
       const adminDropdown = screen.getByRole('button', { name: /admin/i });
       fireEvent.click(adminDropdown);
       
-      expect(screen.getByText('Change password')).toBeInTheDocument();
-      expect(screen.getByText('Change password').closest('a')).toHaveAttribute('href', '/changepwd');
+      expect(screen.queryByText('Change password')).not.toBeInTheDocument();
     });
   });
 

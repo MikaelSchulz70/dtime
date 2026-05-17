@@ -9,11 +9,12 @@ export default class UserService extends BaseService {
         super(BASE_URL);
     }
 
-    changePwd(entity) {
-        const payLoad = JSON.stringify(entity);
-        return axios.post(BASE_URL + '/changepwd',
-            payLoad,
-            Headers());
+    deactivate(id) {
+        return axios.post(`${BASE_URL}/${id}/deactivate`, null, Headers());
+    }
+
+    activate(id) {
+        return axios.post(`${BASE_URL}/${id}/activate`, null, Headers());
     }
 
     getAllPaged(page, size, sort, direction, active, firstName, lastName) {

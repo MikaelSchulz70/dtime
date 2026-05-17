@@ -79,13 +79,17 @@ else
     print_success "Database is already running"
 fi
 
-# Load environment variables from .env.local if it exists
+# Load environment variables from .env then .env.local (local overrides)
+set -a
+if [ -f ".env" ]; then
+    print_status "Loading environment variables from .env"
+    source .env
+fi
 if [ -f ".env.local" ]; then
     print_status "Loading environment variables from .env.local"
-    set -a  # Automatically export all variables
     source .env.local
-    set +a
 fi
+set +a
 
 # Set required environment variables with defaults
 export DATABASE_URL=${DATABASE_URL:-"jdbc:postgresql://localhost:5432/dtime"}

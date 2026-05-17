@@ -1,22 +1,16 @@
 package se.dtime.service.user;
 
-import org.apache.commons.lang3.StringUtils;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Service;
-import se.dtime.common.CommonData;
 import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.dbmodel.UserPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.PagedResponse;
 import se.dtime.model.User;
-import se.dtime.model.UserPwd;
 import se.dtime.model.error.NotFoundException;
-import se.dtime.model.error.ValidationException;
-import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.TaskContributorRepository;
-import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 
 import java.util.Arrays;
@@ -28,36 +22,29 @@ public class UserService {
     private final UserRepository userRepository;
     private final UserConverter userConverter;
     private final UserValidator userValidator;
-    private final TimeEntryRepository timeEntryRepository;
     private final TaskContributorRepository taskContributorRepository;
-    private final CloseDateRepository closeDateRepository;
 
-    public UserService(UserRepository userRepository, UserConverter userConverter, UserValidator userValidator, TimeEntryRepository timeEntryRepository, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+    public UserService(UserRepository userRepository, UserConverter userConverter, UserValidator userValidator, TaskContributorRepository taskContributorRepository) {
         this.userRepository = userRepository;
         this.userConverter = userConverter;
         this.userValidator = userValidator;
-        this.timeEntryRepository = timeEntryRepository;
         this.taskContributorRepository = taskContributorRepository;
-        this.closeDateRepository = closeDateRepository;
     }
 
-    public User add(User user) {
-        userValidator.validateAdd(user);
-        UserPO userPO = userConverter.toPO(user);
-        UserPO savedPO = userRepository.save(userPO);
-        return userConverter.toModel(savedPO);
+    public void deactivate(long userId) {
+        userValidator.validateDeactivate(userId);
+        UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
+
+        userPO.setActivationStatus(ActivationStatus.INACTIVE);
+        List<TaskContributorPO> taskContributorPOS = taskContributorRepository.findByUser(userPO);
+        taskContributorPOS.forEach(a -> a.setActivationStatus(ActivationStatus.INACTIVE));
+        userRepository.save(userPO);
     }
 
-    public void update(User user) {
-        userValidator.validateUpdate(user);
-        UserPO currentUser = userRepository.findById(user.getId()).orElseThrow(() -> new NotFoundException("user.not.found"));
-        UserPO userPO = userConverter.toPO(user, currentUser);
-
-        if (user.getActivationStatus() == ActivationStatus.INACTIVE && currentUser.getActivationStatus() == ActivationStatus.ACTIVE) {
-            List<TaskContributorPO> taskContributorPOS = taskContributorRepository.findByUser(userPO);
-            taskContributorPOS.forEach(a -> a.setActivationStatus(ActivationStatus.INACTIVE));
-        }
-
+    public void activate(long userId) {
+        userValidator.validateActivate(userId);
+        UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
+        userPO.setActivationStatus(ActivationStatus.ACTIVE);
         userRepository.save(userPO);
     }
 
@@ -70,10 +57,6 @@ public class UserService {
         } else {
             userPOS = userRepository.findByActivationStatusOrderByDisplayNameAsc(ActivationStatus.INACTIVE);
         }
-
-        userPOS = userPOS.stream()
-                .filter(u -> u.getId() != CommonData.SYSTEM_USER_ID)
-                .toList();
 
         return userConverter.toModel(userPOS);
     }
@@ -88,9 +71,7 @@ public class UserService {
             page = userRepository.findAll(pageable);
         }
 
-        // Filter out system user and apply additional filters
         List<UserPO> filteredUserPOS = page.getContent().stream()
-                .filter(u -> u.getId() != CommonData.SYSTEM_USER_ID)
                 .filter(u -> firstName == null || firstName.isEmpty() ||
                         u.getFirstName().toLowerCase().contains(firstName.toLowerCase()))
                 .filter(u -> lastName == null || lastName.isEmpty() ||
@@ -111,29 +92,7 @@ public class UserService {
     }
 
     public User get(long id) {
-        if (id == CommonData.SYSTEM_USER_ID) {
-            throw new NotFoundException("user.not.found");
-        }
-
         UserPO userPO = userRepository.findById(id).orElseThrow(() -> new NotFoundException("user.not.found"));
         return userConverter.toModel(userPO);
     }
-
-    public void delete(long userId) {
-        userValidator.validateDelete(userId);
-
-        UserPO userPO = new UserPO(userId);
-        timeEntryRepository.deleteAll(timeEntryRepository.findByUser(userId));
-        taskContributorRepository.deleteAll(taskContributorRepository.findByUser(userPO));
-        closeDateRepository.deleteAll(closeDateRepository.findByUser(userPO));
-        userRepository.deleteById(userId);
-    }
-
-    public void changePwd(UserPwd userPwd) {
-        if (!StringUtils.equals(userPwd.getNewPassword1(), userPwd.getNewPassword2())) {
-            throw new ValidationException("newPassword1", "user.new.pwd.do.not.match");
-        }
-        throw new ValidationException("currentPassword", "user.password.change.not.supported.with.oidc");
-    }
-
 }

@@ -51,7 +51,7 @@ class CurrentUserResolverTest {
     void resolveCurrentUser_withUserExt_usesId() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        UserExt userExt = new UserExt("u@x.com", "pwd", authorities, 5L, "F", "L");
+        UserExt userExt = new UserExt("u@x.com", authorities, 5L, "F", "L");
         SecurityContextHolder.setContext(createSecurityContext(userExt, null));
 
         UserPO stored = new UserPO(5L);
@@ -109,7 +109,7 @@ class CurrentUserResolverTest {
     void resolveCurrentUser_userExtMissing_throws() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ROLE_USER"));
-        UserExt userExt = new UserExt("u@x.com", "pwd", authorities, 99L, "F", "L");
+        UserExt userExt = new UserExt("u@x.com", authorities, 99L, "F", "L");
         SecurityContextHolder.setContext(createSecurityContext(userExt, null));
         when(userRepository.findById(99L)).thenReturn(Optional.empty());
 

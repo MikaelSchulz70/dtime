@@ -33,7 +33,7 @@ public abstract class BaseConverter {
             if (userPO != null) {
                 userId = userPO.getId();
             } else {
-                userId = 1L; // Fallback to system user
+                userId = 1L; // Fallback when no authenticated user is resolved (e.g. tests)
             }
         }
         

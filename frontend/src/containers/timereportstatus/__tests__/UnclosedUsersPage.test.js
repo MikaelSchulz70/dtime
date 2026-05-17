@@ -91,7 +91,7 @@ describe('UnclosedUsersPage', () => {
         expect(TimeReportStatusService.getCurrentUnclosedUsers).toHaveBeenCalled();
       });
 
-      expect(screen.getByText('⚠️ Unclosed Time Reports')).toBeInTheDocument();
+      expect(screen.getByText('Unclosed Time Reports')).toBeInTheDocument();
       expect(screen.getByText('📅 2023-01-01 - 2023-01-31')).toBeInTheDocument();
     });
 
@@ -125,7 +125,7 @@ describe('UnclosedUsersPage', () => {
         expect(screen.getByText('⏱️ Total Hours')).toBeInTheDocument();
         expect(screen.getByText('📊 Workable Hours')).toBeInTheDocument();
         expect(screen.getByText('📋 Status')).toBeInTheDocument();
-        expect(screen.getByText('⚙️ Action')).toBeInTheDocument();
+        expect(screen.getByText('⚙️ Actions')).toBeInTheDocument();
       });
     });
 
@@ -554,7 +554,7 @@ describe('UnclosedUsersPage', () => {
 
       await waitFor(() => {
         // Just verify the page renders without crashing when dates are missing
-        expect(screen.getByText('⚠️ Unclosed Time Reports')).toBeInTheDocument();
+        expect(screen.getByText('Unclosed Time Reports')).toBeInTheDocument();
         expect(screen.getByText('John Doe')).toBeInTheDocument();
       });
     });

@@ -13,8 +13,6 @@ import LoadingSpinner from './components/LoadingSpinner';
 import NavigationMenu from './containers/menu/Menu';
 import Login from './components/Login';
 import Times from './containers/timereport/Time';
-import Users from './containers/user/Users';
-import UserDetails from './containers/user/UserDetails';
 import UsersModal from './containers/user/UsersModal';
 import Account from './containers/account/Account';
 import AccountDetails from './containers/account/AccountDetails';
@@ -27,7 +25,6 @@ import MyTaskAssignments from './containers/taskcontributor/MyTaskAssignments';
 import AdminReports from './containers/report/AdminReports';
 import UserReports from './containers/report/UserReports';
 import Vacations from './containers/report/Vacations';
-import PasswordChanger from './containers/user/ChangePassword';
 import SystemConfig from './containers/system/SystemConfig';
 import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
 import SpecialDays from './containers/specialday/SpecialDays';
@@ -72,8 +69,6 @@ const Main = () => (
             <Route path='/' element={<Times />} />
             <Route path='/time' element={<Times />} />
             <Route path='/users' element={<UsersModal />} />
-            <Route path='/users-old' element={<Users />} />
-            <Route path='/users/:userId' element={<UserDetails />} />
             <Route path='/account' element={<AccountsModal />} />
             <Route path='/account-old' element={<Account />} />
             <Route path='/account/:accountId' element={<AccountDetails />} />
@@ -87,7 +82,6 @@ const Main = () => (
             <Route path='/userreport' element={<UserReports />} />
             <Route path='/vacations' element={<Vacations />} />
             <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
-            <Route path='/changepwd' element={<PasswordChanger />} />
             <Route path='/system/properties' element={<SystemConfig />} />
             <Route path='/specialdays' element={<SpecialDays />} />
             <Route path='/logout' element={<Logout />} />

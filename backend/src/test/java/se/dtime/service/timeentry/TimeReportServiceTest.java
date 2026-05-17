@@ -56,7 +56,7 @@ public class TimeReportServiceTest {
     public void setUp() {
         Set<GrantedAuthority> authorities = new HashSet<>();
         authorities.add(new SimpleGrantedAuthority("ADMIN"));
-        UserExt userExt = new UserExt("name", "pwd", authorities, 1, "", "");
+        UserExt userExt = new UserExt("name", authorities, 1, "", "");
 
         SecurityContextHolder.setContext(createSecurityContext(userExt));
         lenient().when(currentUserResolver.resolveCurrentUser()).thenReturn(new UserPO(1L));
