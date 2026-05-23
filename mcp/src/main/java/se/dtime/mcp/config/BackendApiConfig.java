@@ -30,6 +30,22 @@ public class BackendApiConfig {
      */
     private boolean trustInsecureSsl;
 
+    /**
+     * Run an initial connectivity probe at startup (non-fatal unless {@link #failOnUnavailable}).
+     */
+    private boolean validateOnStartup = true;
+
+    /** Interval between Authentik/backend connectivity retries. */
+    private long connectivityCheckIntervalMs = 30_000;
+
+    /** Fail fast when OAuth client id/secret/token URI are missing. */
+    private boolean failOnMissingOauthConfig = true;
+
+    /**
+     * When true, startup throws if Authentik or backend is unreachable (legacy fail-fast behavior).
+     */
+    private boolean failOnUnavailable;
+
     public void setUrl(String url) {
         this.url = url;
     }
@@ -60,5 +76,29 @@ public class BackendApiConfig {
 
     public void setTrustInsecureSsl(boolean trustInsecureSsl) {
         this.trustInsecureSsl = trustInsecureSsl;
+    }
+
+    public void setValidateOnStartup(boolean validateOnStartup) {
+        this.validateOnStartup = validateOnStartup;
+    }
+
+    public void setConnectivityCheckIntervalMs(long connectivityCheckIntervalMs) {
+        this.connectivityCheckIntervalMs = connectivityCheckIntervalMs;
+    }
+
+    public void setFailOnMissingOauthConfig(boolean failOnMissingOauthConfig) {
+        this.failOnMissingOauthConfig = failOnMissingOauthConfig;
+    }
+
+    public void setFailOnUnavailable(boolean failOnUnavailable) {
+        this.failOnUnavailable = failOnUnavailable;
+    }
+
+    public boolean isOAuthConfigPresent() {
+        return isNonBlank(tokenUri) && isNonBlank(clientId) && isNonBlank(clientSecret);
+    }
+
+    private static boolean isNonBlank(String value) {
+        return value != null && !value.isBlank();
     }
 }

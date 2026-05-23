@@ -1,6 +1,7 @@
 package se.dtime.mcp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.util.UriComponentsBuilder;
 import se.dtime.mcp.client.BackendApiClient;
 
@@ -10,6 +11,7 @@ import java.util.Map;
 /**
  * Shared helpers for read-only MCP tools backed by {@link BackendApiClient} GET calls.
  */
+@Slf4j
 abstract class McpToolsSupport {
 
     private final BackendApiClient backendApiClient;
@@ -21,6 +23,7 @@ abstract class McpToolsSupport {
     }
 
     String getJson(String path) throws Exception {
+        log.info("MCP tool backend GET {}", path);
         return objectMapper.writerWithDefaultPrettyPrinter()
                 .writeValueAsString(backendApiClient.get(path, Object.class));
     }

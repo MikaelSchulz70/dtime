@@ -51,10 +51,16 @@ mcp:
     client-secret: ${MCP_OAUTH_CLIENT_SECRET:}
     scope: ${MCP_OAUTH_SCOPE:}
     validate-on-startup: ${MCP_VALIDATE_ON_STARTUP:true}
+    connectivity-check-interval-ms: ${MCP_BACKEND_CONNECTIVITY_CHECK_INTERVAL_MS:30000}
+    fail-on-missing-oauth-config: ${MCP_FAIL_ON_MISSING_OAUTH_CONFIG:true}
+    fail-on-unavailable: ${MCP_FAIL_ON_UNAVAILABLE:false}
     connect-timeout-ms: 5000
     read-timeout-ms: 30000
     # When true + HTTPS backend URL: trust any server cert (local dev / docker self-signed). Never in real prod.
     trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:false}
+
+  http:
+    log-access: ${MCP_HTTP_LOG_ACCESS:true}
 
 ---
 # Mirrors backend/src/main/resources/application-dev.yml oauth.authentik.token-uri and server HTTPS port.
