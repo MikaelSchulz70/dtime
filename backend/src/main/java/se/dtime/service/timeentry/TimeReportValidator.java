@@ -16,6 +16,7 @@ import se.dtime.repository.TaskContributorRepository;
 import se.dtime.service.calendar.CalendarService;
 
 import java.time.LocalDate;
+import java.time.temporal.WeekFields;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -35,7 +36,7 @@ public class TimeReportValidator extends ValidatorBase<TimeEntry> {
     public static final int MAX_TIME = 24;
     public static final int MAX_NUMBER_OF_DECIMALS = 2;
     public static final int FIRST_WEEK_OF_YEAR = 1;
-    public static final int LAST_WEEK_OF_YEAR = 52;
+    public static final int LAST_WEEK_OF_YEAR = 53;
     public static final int FIRST_MONTH_OF_YEAR = 1;
     public static final int LAST_MONTH_OF_YEAR = 12;
     public static final int FIRST_YEAR = 0;
@@ -86,8 +87,11 @@ public class TimeReportValidator extends ValidatorBase<TimeEntry> {
     }
 
     void validateYearWeek(int year, int week) {
-        checkInvalidInput(year >= FIRST_YEAR, "invalid.year.input");
+        checkInvalidInput(year >= calendarService.getSystemStartDate().getYear(), "invalid.year.input");
         checkInvalidInput(week >= FIRST_WEEK_OF_YEAR && week <= LAST_WEEK_OF_YEAR, "invalid.week.input");
+        int maxWeek = (int) WeekFields.ISO.weekOfWeekBasedYear().rangeRefinedBy(
+                LocalDate.of(year, 12, 28)).getMaximum();
+        checkInvalidInput(week <= maxWeek, "invalid.week.input");
     }
 
     void validateYearMouth(int year, int month) {

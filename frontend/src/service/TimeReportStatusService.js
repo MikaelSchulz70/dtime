@@ -9,12 +9,13 @@ class TimeReportStatusService extends BaseService {
         super(BASE_URL);
     }
 
-    /**
-     * Unclosed users for the month containing date (omit date for current month).
-     */
-    async getUnclosedUsers(date) {
-        const query = date ? `?date=${date}` : '';
-        const response = await axios.get(BASE_URL + query, Headers());
+    async getUnclosedUsersForMonth(year, month) {
+        const response = await axios.get(`${BASE_URL}/year/${year}/month/${month}`, Headers());
+        return response.data;
+    }
+
+    async getClosedUsersForMonth(year, month) {
+        const response = await axios.get(`${BASE_URL}/year/${year}/month/${month}?closed=true`, Headers());
         return response.data;
     }
 

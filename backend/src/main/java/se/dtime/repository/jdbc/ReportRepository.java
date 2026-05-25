@@ -124,7 +124,7 @@ public class ReportRepository {
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
         for (Map<String, Object> row : rows) {
-            long userId = (Long) row.get("userId");
+            long userId = toLong(row.get("userId"));
             UserReport userReport = userReportMap.get(userId);
             if (userReport == null) {
                 userReport = new UserReport();
@@ -201,7 +201,7 @@ public class ReportRepository {
         List<UserReport> userReports = new ArrayList<>();
         Map<Long, UserReport> userReportMap = new HashMap<>();
         for (Map<String, Object> row : rows) {
-            long userId = (Long) row.get("userId");
+            long userId = toLong(row.get("userId"));
             UserReport userReport = userReportMap.get(userId);
             if (userReport == null) {
                 userReport = new UserReport();
@@ -237,7 +237,7 @@ public class ReportRepository {
 
         List<UserReport> userReports = new ArrayList<>();
         for (Map<String, Object> row : rows) {
-            long userId = (Long) row.get("userId");
+            long userId = toLong(row.get("userId"));
             UserReport userReport = new UserReport();
             userReport.setUserId(userId);
             userReport.setFullName((String) row.get("displayname"));
@@ -248,6 +248,13 @@ public class ReportRepository {
         }
 
         return userReports;
+    }
+
+    private static long toLong(Object value) {
+        if (value instanceof Number number) {
+            return number.longValue();
+        }
+        throw new IllegalStateException("Expected numeric userId but got: " + value);
     }
 
     public List<AccountReport> getAccountReports(LocalDate fromDate, LocalDate toDate) {

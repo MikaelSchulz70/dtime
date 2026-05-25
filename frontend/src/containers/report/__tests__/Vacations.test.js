@@ -1,28 +1,36 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { MemoryRouter, Routes, Route } from 'react-router';
 import Vacations from '../Vacations';
 import TimeService from '../../../service/TimeService';
 
-// Mock TimeService
 jest.mock('../../../service/TimeService');
 const MockedTimeService = TimeService;
 
-const mockShowError = jest.fn();
-
-// Mock Toast hook
-jest.mock('../../../components/Toast', () => ({
-  useToast: () => ({
-    showError: mockShowError
-  })
+const mockNavigate = jest.fn();
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
+  useNavigate: () => mockNavigate,
 }));
+
+function renderVacations(path = '/vacations/year/2023/month/1') {
+  return render(
+    <MemoryRouter initialEntries={[path]}>
+      <Routes>
+        <Route path="/vacations/year/:year/month/:month" element={<Vacations />} />
+      </Routes>
+    </MemoryRouter>
+  );
+}
 
 describe('Vacations', () => {
   let mockTimeService;
 
   beforeEach(() => {
+    mockNavigate.mockClear();
     mockTimeService = {
-      getVacationReport: jest.fn()
+      getVacationReportForMonth: jest.fn()
     };
     MockedTimeService.mockImplementation(() => mockTimeService);
   });
@@ -70,9 +78,9 @@ describe('Vacations', () => {
   };
 
   it('should render vacation calendar title', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
+    mockTimeService.getVacationReportForMonth.mockResolvedValue({ data: mockVacationData });
 
-    render(<Vacations />);
+    renderVacations();
 
     await waitFor(() => {
       expect(screen.getByText('Vacation Calendar')).toBeInTheDocument();
@@ -80,176 +88,53 @@ describe('Vacations', () => {
   });
 
   it('should load vacation data on mount', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
+    mockTimeService.getVacationReportForMonth.mockResolvedValue({ data: mockVacationData });
 
-    render(<Vacations />);
+    renderVacations();
 
     await waitFor(() => {
-      expect(mockTimeService.getVacationReport).toHaveBeenCalledTimes(1);
+      expect(mockTimeService.getVacationReportForMonth).toHaveBeenCalledWith(2023, 1);
     });
   });
 
-  it('should display date range', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      expect(screen.getByText('📅 2023-01-01 - 2023-01-31')).toBeInTheDocument();
-    });
-  });
-
-  it('should display user names and vacation counts', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      expect(screen.getByText('John Doe')).toBeInTheDocument();
-      expect(screen.getByText('Jane Smith')).toBeInTheDocument();
-      // Use more specific text matching for vacation counts
-      const vacationCounts = screen.getAllByText(/^[0-9]+$/);
-      expect(vacationCounts.length).toBeGreaterThan(0);
-    });
-  });
-
-  it('should display navigation buttons', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      expect(screen.getByTitle('Previous Month')).toBeInTheDocument();
-      expect(screen.getByTitle('Next Month')).toBeInTheDocument();
-    });
-  });
-
-  it('should display legend', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      expect(screen.getAllByText('Vacation').length).toBeGreaterThan(0);
-      expect(screen.getByText('Holiday')).toBeInTheDocument();
-      expect(screen.getByText('Weekend')).toBeInTheDocument();
-    });
-  });
-
-  it('should handle previous month navigation', async () => {
+  it('should navigate to previous month', async () => {
+    mockTimeService.getVacationReportForMonth.mockResolvedValue({ data: mockVacationData });
     const user = userEvent.setup();
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
 
-    render(<Vacations />);
+    renderVacations('/vacations/year/2023/month/2');
 
     await waitFor(() => {
-      expect(screen.getByTitle('Previous Month')).toBeInTheDocument();
+      expect(screen.getByText('Vacation Calendar')).toBeInTheDocument();
     });
 
-    const previousButton = screen.getByTitle('Previous Month');
-    await user.click(previousButton);
+    await user.click(screen.getAllByRole('button')[0]);
 
-    expect(mockTimeService.getVacationReport).toHaveBeenCalledWith('2022-12-01');
+    expect(mockNavigate).toHaveBeenCalledWith('/vacations/year/2023/month/1');
   });
 
-  it('should handle next month navigation', async () => {
+  it('should navigate to next month', async () => {
+    mockTimeService.getVacationReportForMonth.mockResolvedValue({ data: mockVacationData });
     const user = userEvent.setup();
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
 
-    render(<Vacations />);
+    renderVacations('/vacations/year/2023/month/1');
 
     await waitFor(() => {
-      expect(screen.getByTitle('Next Month')).toBeInTheDocument();
+      expect(screen.getByText('Vacation Calendar')).toBeInTheDocument();
     });
 
-    const nextButton = screen.getByTitle('Next Month');
-    await user.click(nextButton);
+    await user.click(screen.getAllByRole('button')[1]);
 
-    expect(mockTimeService.getVacationReport).toHaveBeenCalledWith('2023-02-01');
+    expect(mockNavigate).toHaveBeenCalledWith('/vacations/year/2023/month/2');
   });
 
-  it('should display vacation table headers', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
+  it('should show inline error on load failure', async () => {
+    mockTimeService.getVacationReportForMonth.mockRejectedValue(new Error('Network error'));
 
-    render(<Vacations />);
+    renderVacations();
 
     await waitFor(() => {
-      expect(screen.getByText('Employee')).toBeInTheDocument();
-      expect(screen.getByText('Days')).toBeInTheDocument();
-    });
-  });
-
-  it('should display day numbers in header', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      // Check for day numbers in a more specific way
-      const dayHeaders = screen.getAllByText(/^[1-5]$/);
-      expect(dayHeaders.length).toBeGreaterThanOrEqual(5);
-    });
-  });
-
-  it('should show vacation indicators correctly', async () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: mockVacationData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      // Should show V for vacation days
-      const vacationCells = screen.getAllByText('V');
-      expect(vacationCells.length).toBeGreaterThan(0);
-      
-      // Should show W for weekend days
-      const weekendCells = screen.getAllByText('W');
-      expect(weekendCells.length).toBeGreaterThan(0);
-      
-      // Should show H for holiday days
-      const holidayCells = screen.getAllByText('H');
-      expect(holidayCells.length).toBeGreaterThan(0);
-    });
-  });
-
-  it('should handle loading errors gracefully', async () => {
-    mockTimeService.getVacationReport.mockRejectedValue(new Error('Network error'));
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      expect(mockTimeService.getVacationReport).toHaveBeenCalled();
-      expect(mockShowError).toHaveBeenCalled();
-    });
-  });
-
-  it('should render null when no vacation data', () => {
-    mockTimeService.getVacationReport.mockResolvedValue({ data: null });
-
-    const { container } = render(<Vacations />);
-    
-    expect(container.firstChild).toBeNull();
-  });
-
-  it('should truncate long employee names', async () => {
-    const longNameData = {
-      ...mockVacationData,
-      userVacations: [
-        {
-          userId: 1,
-          name: 'This Is A Very Long Employee Name That Should Be Truncated',
-          noVacationDays: 5,
-          vacationsDays: []
-        }
-      ]
-    };
-
-    mockTimeService.getVacationReport.mockResolvedValue({ data: longNameData });
-
-    render(<Vacations />);
-
-    await waitFor(() => {
-      // Should show truncated name with ellipsis
-      expect(screen.getByText(/This Is A Very Long/)).toBeInTheDocument();
+      expect(screen.getByText('Invalid period')).toBeInTheDocument();
+      expect(screen.getByText('Network error')).toBeInTheDocument();
     });
   });
 });

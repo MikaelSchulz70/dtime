@@ -154,6 +154,14 @@
     "requestFailed": "Request failed with status {{status}}",
     "networkError": "Network error. Please check your connection and try again.",
     "unexpected": "An unexpected error occurred.",
+    "period": {
+      "heading": "Invalid period",
+      "invalidMonth": "Month must be between 1 and 12.",
+      "invalidWeek": "Week must be a valid ISO week number for that year (1–52 or 53).",
+      "invalidYear": "Year is not valid for this system.",
+      "invalidPeriod": "The date in the URL is not valid. Check year, month, or week.",
+      "goToCurrent": "Go to current month"
+    },
     "toast": {
       "success": "Success",
       "error": "Error",
@@ -543,9 +551,16 @@
       "reopen": "Reopen",
       "close": "Close"
     },
+    "filters": {
+      "unclosed": "Unclosed reports",
+      "closed": "Closed reports"
+    },
+    "reportStatus": "Report status",
     "messages": {
       "confirmCloseReport": "Do you really want to close the time report for {{userName}}?",
+      "confirmOpenReport": "Do you really want to reopen the time report for {{userName}}?",
       "allUsersClosed": "All users have closed their time reports for this month",
+      "noClosedReports": "No closed time reports for this month",
       "noUnclosedUsers": "No users have unclosed time reports. No emails will be sent.",
       "confirmSendReminders": "Send email reminders to {{count}} user{{plural}} who have unclosed time reports for this month?",
       "remindersSent": "Email reminders sent successfully to {{count}} user{{plural}} with unclosed time reports",

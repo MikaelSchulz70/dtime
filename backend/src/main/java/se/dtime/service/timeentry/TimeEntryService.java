@@ -19,6 +19,7 @@ import se.dtime.repository.TaskContributorRepository;
 import se.dtime.repository.TimeEntryRepository;
 import se.dtime.repository.UserRepository;
 import se.dtime.service.calendar.CalendarService;
+import se.dtime.service.period.PeriodResolver;
 import se.dtime.service.user.CurrentUserResolver;
 import se.dtime.service.user.UserValidator;
 
@@ -39,8 +40,9 @@ public class TimeEntryService {
     private final TimeReportValidator timeReportValidator;
     private final TaskContributorRepository taskContributorRepository;
     private final CloseDateRepository closeDateRepository;
+    private final PeriodResolver periodResolver;
 
-    public TimeEntryService(CalendarService calendarService, CurrentUserResolver currentUserResolver, UserRepository userRepository, TimeEntryRepository timeEntiryRepository, TimeReportConverter timeReportConverter, UserValidator userValidator, TimeReportValidator timeReportValidator, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository) {
+    public TimeEntryService(CalendarService calendarService, CurrentUserResolver currentUserResolver, UserRepository userRepository, TimeEntryRepository timeEntiryRepository, TimeReportConverter timeReportConverter, UserValidator userValidator, TimeReportValidator timeReportValidator, TaskContributorRepository taskContributorRepository, CloseDateRepository closeDateRepository, PeriodResolver periodResolver) {
         this.calendarService = calendarService;
         this.currentUserResolver = currentUserResolver;
         this.userRepository = userRepository;
@@ -50,6 +52,7 @@ public class TimeEntryService {
         this.timeReportValidator = timeReportValidator;
         this.taskContributorRepository = taskContributorRepository;
         this.closeDateRepository = closeDateRepository;
+        this.periodResolver = periodResolver;
     }
 
     public long addOrUpdate(TimeEntry timeEntry) {
@@ -81,20 +84,28 @@ public class TimeEntryService {
         return timeReportDayPO.getId();
     }
 
-    /**
-     * Time sheet for the week/month period containing {@code date}. When null, uses today.
-     */
-    public TimeReport getTimeReport(TimeReportView timeReportView, LocalDate date) {
-        TimeReportView view = timeReportView != null ? timeReportView : TimeReportView.WEEK;
-        LocalDate anchor = date != null ? date : calendarService.getNowDate();
-        return getTimeReportForPeriod(anchor, view);
+    public TimeReport getTimeReportForMonth(int year, int month) {
+        ReportDates reportDates = periodResolver.resolveMonth(year, month);
+        return getTimeReportBetweenDates(reportDates, TimeReportView.MONTH);
     }
 
-    public TimeReport getUserTimeReport(long userId, TimeReportView timeReportView, LocalDate date) {
+    public TimeReport getTimeReportForWeek(int year, int week) {
+        ReportDates reportDates = periodResolver.resolveIsoWeek(year, week);
+        return getTimeReportBetweenDates(reportDates, TimeReportView.WEEK);
+    }
+
+    public TimeReport getUserTimeReportForMonth(long userId, int year, int month) {
         assertCanViewUserTimeReport(userId);
-        ReportDates reportDates = getReportDates(timeReportView, date);
+        ReportDates reportDates = periodResolver.resolveMonth(year, month);
         UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
-        return getTimeReportBetweenDatesForUser(reportDates, userPO, timeReportView);
+        return getTimeReportBetweenDatesForUser(reportDates, userPO, TimeReportView.MONTH);
+    }
+
+    public TimeReport getUserTimeReportForWeek(long userId, int year, int week) {
+        assertCanViewUserTimeReport(userId);
+        ReportDates reportDates = periodResolver.resolveIsoWeek(year, week);
+        UserPO userPO = userRepository.findById(userId).orElseThrow(() -> new NotFoundException("user.not.found"));
+        return getTimeReportBetweenDatesForUser(reportDates, userPO, TimeReportView.WEEK);
     }
 
     private void assertCanViewUserTimeReport(long requestedUserId) {
@@ -108,11 +119,6 @@ public class TimeEntryService {
         if (currentUser.getId() != requestedUserId) {
             throw new AccessDeniedException("Access denied");
         }
-    }
-
-    private TimeReport getTimeReportForPeriod(LocalDate date, TimeReportView timeReportView) {
-        ReportDates reportDates = getReportDates(timeReportView, date);
-        return getTimeReportBetweenDates(reportDates, timeReportView);
     }
 
     private TimeReport getTimeReportBetweenDates(ReportDates reportDates, TimeReportView timeReportView) {
@@ -140,26 +146,6 @@ public class TimeEntryService {
         }
 
         return timeReport;
-    }
-
-    ReportDates getReportDates(TimeReportView timeReportView, LocalDate date) {
-        if (timeReportView == null) {
-            timeReportView = TimeReportView.WEEK;
-        }
-
-        LocalDate fromDate;
-        LocalDate toDate = switch (timeReportView) {
-            case WEEK -> {
-                fromDate = calendarService.getClosestMonday(date);
-                yield fromDate.plusDays(6);
-            }
-            case MONTH -> {
-                fromDate = LocalDate.of(date.getYear(), date.getMonthValue(), 1);
-                yield LocalDate.of(date.getYear(), date.getMonthValue(), fromDate.lengthOfMonth());
-            }
-        };
-
-        return new ReportDates(fromDate, toDate);
     }
 
     void updateClosedDays(TimeReport timeReport, Set<LocalDate> closedMonths) {
@@ -206,16 +192,12 @@ public class TimeEntryService {
         return closedMonths;
     }
 
-    /**
-     * Vacation report for the month containing {@code date}. When null, uses today.
-     */
-    public VacationReport getVacationReport(LocalDate date) {
-        LocalDate anchor = date != null ? date : calendarService.getNowDate();
-        return buildVacationReport(anchor, TimeReportView.MONTH);
+    public VacationReport getVacationReportForMonth(int year, int month) {
+        ReportDates reportDates = periodResolver.resolveMonth(year, month);
+        return buildVacationReport(reportDates);
     }
 
-    private VacationReport buildVacationReport(LocalDate date, TimeReportView timeReportView) {
-        ReportDates reportDates = getReportDates(timeReportView, date);
+    private VacationReport buildVacationReport(ReportDates reportDates) {
         Day[] days = calendarService.getDays(reportDates.getFromDate(), reportDates.getToDate());
 
         // Get users who have vacation tasks (TaskType.VACATION)

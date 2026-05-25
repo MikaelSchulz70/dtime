@@ -140,17 +140,16 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
     const [isOpen, setIsOpen] = useState(false);
     const [viewMode, setViewMode] = useState('table');
 
-    const showDetails = useCallback(() => {
-        loadFromServer();
-    }, []);
-
-    const closeDetails = useCallback(() => {
-        setIsOpen(false);
-    }, []);
-
     const loadFromServer = useCallback(() => {
-        var service = new TimeService();
-        service.getUserTimes(userId, fromDate)
+        const parts = fromDate?.split('-');
+        if (!parts || parts.length < 2) {
+            showError(t('reports.messages.loadUserReportFailed', { message: t('errors.period.invalidPeriod') }));
+            return;
+        }
+        const year = parseInt(parts[0], 10);
+        const month = parseInt(parts[1], 10);
+        const service = new TimeService();
+        service.getUserTimeReportForMonth(userId, year, month)
             .then(response => {
                 setTimeReport(response.data);
                 setIsOpen(true);
@@ -159,6 +158,14 @@ function UserDetailReport({ userId, fromDate, toDate, showError }) {
                 showError(t('reports.messages.loadUserReportFailed', { message: error.response?.data?.message || error.message }));
             });
     }, [userId, fromDate, showError, t]);
+
+    const showDetails = useCallback(() => {
+        loadFromServer();
+    }, [loadFromServer]);
+
+    const closeDetails = useCallback(() => {
+        setIsOpen(false);
+    }, []);
 
     return (
         <div>

@@ -1,72 +1,123 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate, useSearchParams } from 'react-router';
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
-import { shiftPeriodDate } from '../../util/periodNavigation';
+import {
+    parsePeriodFromParams,
+    shiftPeriodPath,
+    buildPeriodUrl,
+    currentMonthPeriod,
+} from '../../util/periodNavigation';
 import TaskReportTable from './TaskReport';
 import AccountReportTable from './AccountReport';
 import UserReportTable from './UserReport';
 import UserTaskReportTable from './UserTaskReport';
 import BillableTaskTypeReportTable from './BillableTaskTypeReportTable';
-import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
+import PeriodLoadError from '../../components/PeriodLoadError';
+import { getApiErrorMessage } from '../../util/apiError';
 
 function AdminReports() {
+    const params = useParams();
+    const navigate = useNavigate();
+    const [searchParams, setSearchParams] = useSearchParams();
+    const period = parsePeriodFromParams(params);
     const [report, setReport] = useState(null);
-    const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
-    const [reportType, setReportType] = useState(Constants.USER_TASK_REPORT);
-    const { showError } = useToast();
+    const [loadError, setLoadError] = useState(null);
+    const reportView = period?.mode === 'year' ? Constants.YEAR_VIEW : Constants.MONTH_VIEW;
+    const [reportType, setReportType] = useState(
+        searchParams.get('type') || Constants.USER_TASK_REPORT
+    );
     const { t } = useTranslation();
 
-    const loadReport = useCallback((view, type, date) => {
+    useEffect(() => {
+        if (!period) {
+            return undefined;
+        }
+        let cancelled = false;
+        setLoadError(null);
+        setReport(null);
         const service = new ReportService();
-        service.getReport(view, type, date)
+        const request = period.mode === 'year'
+            ? service.getReportForYear(period.year, reportType)
+            : service.getReportForMonth(period.year, period.month, reportType);
+        request
             .then(response => {
-                setReport(response.data);
-                setReportView(view);
-                setReportType(type);
+                if (!cancelled) {
+                    setReport(response.data);
+                    setReportType(reportType);
+                    setLoadError(null);
+                }
             })
             .catch(error => {
-                showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
+                if (!cancelled) {
+                    setReport(null);
+                    setLoadError(getApiErrorMessage(error, 'errors.period.invalidPeriod'));
+                }
             });
-    }, [showError, t]);
-
-    useEffect(() => {
-        loadReport(Constants.MONTH_VIEW, Constants.USER_TASK_REPORT);
-    }, [loadReport]);
+        return () => {
+            cancelled = true;
+        };
+    }, [period?.year, period?.month, period?.week, period?.mode, reportType]);
 
     const viewChange = useCallback((event) => {
         const view = event.target.value;
-        if (report && report.fromDate) {
-            loadReport(view, reportType, report.fromDate);
+        if (view === Constants.YEAR_VIEW) {
+            navigate({
+                pathname: buildPeriodUrl('/reports', { mode: 'year', year: period?.year || currentMonthPeriod().year }),
+                search: searchParams.toString(),
+            });
         } else {
-            loadReport(view, reportType);
+            const monthPeriod = period?.mode === 'month'
+                ? period
+                : currentMonthPeriod();
+            navigate({
+                pathname: buildPeriodUrl('/reports', monthPeriod),
+                search: searchParams.toString(),
+            });
         }
-    }, [report, reportType, loadReport]);
+    }, [period, navigate, searchParams]);
 
     const typeChange = useCallback((event) => {
         const type = event.target.value;
-        if (report && report.fromDate) {
-            loadReport(reportView, type, report.fromDate);
-        } else {
-            loadReport(reportView, type);
-        }
-    }, [report, reportView, loadReport]);
+        setReport(null);
+        setSearchParams({ type });
+        setReportType(type);
+    }, [setSearchParams]);
 
     const handlePreviousReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, reportView, -1);
-        loadReport(reportView, reportType, date);
-    }, [report, reportView, reportType, loadReport]);
+        navigate({
+            pathname: buildPeriodUrl('/reports', shiftPeriodPath(period, -1)),
+            search: searchParams.toString(),
+        });
+    }, [period, navigate, searchParams]);
 
     const handleNextReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, reportView, 1);
-        loadReport(reportView, reportType, date);
-    }, [report, reportView, reportType, loadReport]);
+        navigate({
+            pathname: buildPeriodUrl('/reports', shiftPeriodPath(period, 1)),
+            search: searchParams.toString(),
+        });
+    }, [period, navigate, searchParams]);
+
+    if (loadError) {
+        return (
+            <div className="container-fluid ml-2 mr-2">
+                <h2>{t('reports.administrativeReports')}</h2>
+                <PeriodLoadError
+                    message={loadError}
+                    basePath="/reports"
+                    search={searchParams.toString() || 'type=USER_TASK'}
+                    onGoToCurrent={(url) => navigate(url)}
+                />
+            </div>
+        );
+    }
 
     if (report == null)
         return null;
@@ -119,13 +170,13 @@ function AdminReports() {
                     <UserTaskReportTable report={report} reportView={reportView} fromDate={report.fromDate} variant="admin" />
                 ) : reportType === Constants.TASK_REPORT ? (
                     <TaskReportTable report={report} />
-                ) : reportType === Constants.USER_REPORT ? (
-                    <UserReportTable report={report} />
                 ) : reportType === Constants.ACCOUNT_REPORT ? (
                     <AccountReportTable report={report} />
-                ) : reportType === Constants.BILLABLE_TASK_TYPE_REPORT ? (
+                ) : reportType === Constants.USER_REPORT ? (
+                    <UserReportTable report={report} />
+                ) : (
                     <BillableTaskTypeReportTable report={report} />
-                ) : ''}
+                )}
             </div>
         </div>
     );

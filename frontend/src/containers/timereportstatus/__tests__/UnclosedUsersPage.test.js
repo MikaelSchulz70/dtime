@@ -1,6 +1,7 @@
 import React from 'react';
 import { render, screen, fireEvent, waitFor, act } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter, Routes, Route } from 'react-router';
 import UnclosedUsersPage from '../UnclosedUsersPage';
 import TimeReportStatusService from '../../../service/TimeReportStatusService';
 import SystemService from '../../../service/SystemService';
@@ -13,7 +14,13 @@ jest.mock('../../../service/SystemService');
 jest.mock('../../../components/Toast');
 
 const mockConfirm = jest.fn(() => Promise.resolve(true));
+const mockNavigate = jest.fn();
 let locationMock;
+
+jest.mock('react-router', () => ({
+  ...jest.requireActual('react-router'),
+  useNavigate: () => mockNavigate,
+}));
 
 jest.mock('../../../components/ConfirmProvider', () => ({
   useConfirm: () => mockConfirm,
@@ -62,14 +69,29 @@ describe('UnclosedUsersPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
+    mockNavigate.mockClear();
     useToast.mockReturnValue(mockToast);
     SystemService.mockImplementation(() => mockSystemService);
-    
-    // Default mocks
-    TimeReportStatusService.getUnclosedUsers.mockResolvedValue(mockReport);
+
+    TimeReportStatusService.getUnclosedUsersForMonth.mockReset();
+    TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(mockReport);
+    TimeReportStatusService.getClosedUsersForMonth = jest.fn().mockResolvedValue({
+      ...mockReport,
+      unclosedUsers: [{ ...mockReport.unclosedUsers[1], closed: true }],
+    });
     mockSystemService.isMailEnabled.mockResolvedValue({ data: true });
     mockConfirm.mockResolvedValue(true);
   });
+
+  function renderPage(path = '/timereportstatus/year/2023/month/1') {
+    return render(
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route path="/timereportstatus/year/:year/month/:month" element={<UnclosedUsersPage />} />
+        </Routes>
+      </MemoryRouter>
+    );
+  }
 
   afterEach(() => {
     jest.restoreAllMocks();
@@ -77,19 +99,19 @@ describe('UnclosedUsersPage', () => {
 
   describe('Component Loading', () => {
     it('should show loading spinner initially', () => {
-      TimeReportStatusService.getUnclosedUsers.mockImplementation(() => new Promise(() => {})); // Never resolves
+      TimeReportStatusService.getUnclosedUsersForMonth.mockImplementation(() => new Promise(() => {})); // Never resolves
       
-      render(<UnclosedUsersPage />);
+      renderPage();
       
       expect(screen.getByRole('status')).toBeInTheDocument();
       expect(screen.getByText('Loading...')).toBeInTheDocument();
     });
 
     it('should load and display unclosed users report on mount', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalled();
+        expect(TimeReportStatusService.getUnclosedUsersForMonth).toHaveBeenCalled();
       });
 
       expect(screen.getByText('Unclosed Time Reports')).toBeInTheDocument();
@@ -97,7 +119,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should check mail enabled status on mount', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(mockSystemService.isMailEnabled).toHaveBeenCalled();
@@ -106,19 +128,21 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle error when loading current report', async () => {
       const error = new Error('Failed to load report');
-      TimeReportStatusService.getUnclosedUsers.mockRejectedValue(error);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockRejectedValue(error);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
-        expect(mockToast.showError).toHaveBeenCalledWith('Failed to load report');
+        expect(screen.getByText('Invalid period')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load report')).toBeInTheDocument();
       });
+      expect(mockToast.showError).not.toHaveBeenCalled();
     });
   });
 
   describe('UnclosedUsersTable Component', () => {
     it('should render table headers correctly', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('👤 User')).toBeInTheDocument();
@@ -131,7 +155,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should render user data correctly', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -144,7 +168,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should show danger text for hours below workable hours', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         const johnHours = screen.getByText('150');
@@ -153,7 +177,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should not show danger text for hours equal or above workable hours', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         const janeHours = screen.getByText('165');
@@ -162,7 +186,7 @@ describe('UnclosedUsersPage', () => {
     });
 
     it('should show correct status badges', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         // Both users are open in the default mock
@@ -173,9 +197,9 @@ describe('UnclosedUsersPage', () => {
 
     it('should render empty state when no unclosed users', async () => {
       const emptyReport = { ...mockReport, unclosedUsers: [] };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(emptyReport);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(emptyReport);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('All users have closed their time reports for this month')).toBeInTheDocument();
@@ -187,9 +211,9 @@ describe('UnclosedUsersPage', () => {
         ...mockReport,
         unclosedUsers: [mockReport.unclosedUsers[0], null, mockReport.unclosedUsers[1]]
       };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithNullUsers);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithNullUsers);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -207,9 +231,9 @@ describe('UnclosedUsersPage', () => {
           }
         ]
       };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithIncompleteUsers);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithIncompleteUsers);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('Unknown User')).toBeInTheDocument();
@@ -223,7 +247,7 @@ describe('UnclosedUsersPage', () => {
     it('should handle closing user time report', async () => {
       TimeReportStatusService.closeUserTimeReport.mockResolvedValue({ success: true });
       
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -244,39 +268,63 @@ describe('UnclosedUsersPage', () => {
       });
     });
 
-    it('should handle opening user time report', async () => {
-      // Create a specific mock where Jane is closed for this test
-      const reportWithClosedUser = {
+    it('should handle opening user time report from closed view', async () => {
+      const closedUserReport = {
         ...mockReport,
-        unclosedUsers: [
-          mockReport.unclosedUsers[0], // John (open)
-          { ...mockReport.unclosedUsers[1], closed: true } // Jane (closed)
-        ]
+        unclosedUsers: [{ ...mockReport.unclosedUsers[1], closed: true }],
       };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValueOnce(reportWithClosedUser);
+      TimeReportStatusService.getClosedUsersForMonth.mockResolvedValue(closedUserReport);
       TimeReportStatusService.openUserTimeReport.mockResolvedValue({ success: true });
-      
-      render(<UnclosedUsersPage />);
+
+      renderPage();
 
       await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'closed' } });
+
+      await waitFor(() => {
+        expect(TimeReportStatusService.getClosedUsersForMonth).toHaveBeenCalledWith(2023, 1);
         expect(screen.getByText('Jane Smith')).toBeInTheDocument();
       });
 
       const checkbox = screen.getByLabelText('🔓 Reopen');
       fireEvent.click(checkbox);
 
-      // No confirmation should be shown for opening
-      expect(mockConfirm).not.toHaveBeenCalled();
-      
+      await waitFor(() => {
+        expect(mockConfirm).toHaveBeenCalledWith(expect.objectContaining({
+          message: 'Do you really want to reopen the time report for Jane Smith?',
+          confirmLabel: 'Reopen',
+        }));
+      });
+
       await waitFor(() => {
         expect(TimeReportStatusService.openUserTimeReport).toHaveBeenCalledWith(2, '2023-01-01');
+        expect(screen.queryByText('Jane Smith')).not.toBeInTheDocument();
+      });
+    });
+
+    it('should load closed users when closed filter is selected', async () => {
+      renderPage();
+
+      await waitFor(() => {
+        expect(screen.getByText('John Doe')).toBeInTheDocument();
+      });
+
+      fireEvent.change(screen.getByRole('combobox'), { target: { value: 'closed' } });
+
+      await waitFor(() => {
+        expect(TimeReportStatusService.getClosedUsersForMonth).toHaveBeenCalledWith(2023, 1);
+        expect(screen.getByText('Jane Smith')).toBeInTheDocument();
+        expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
       });
     });
 
     it('should cancel action when user refuses confirmation', async () => {
       mockConfirm.mockResolvedValue(false);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -296,7 +344,7 @@ describe('UnclosedUsersPage', () => {
       const error = { response: { data: { message: 'Permission denied' } } };
       TimeReportStatusService.closeUserTimeReport.mockRejectedValue(error);
       
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -313,10 +361,10 @@ describe('UnclosedUsersPage', () => {
       expect(checkbox.checked).toBe(false);
     });
 
-    it('should filter out closed users from unclosed view after closing', async () => {
+    it('should remove user from unclosed view after closing a report', async () => {
       TimeReportStatusService.closeUserTimeReport.mockResolvedValue({ success: true });
       
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -334,11 +382,11 @@ describe('UnclosedUsersPage', () => {
   describe('Navigation', () => {
     it('should load previous report when previous button is clicked', async () => {
       const previousReport = { ...mockReport, fromDate: '2022-12-01', toDate: '2022-12-31' };
-      TimeReportStatusService.getUnclosedUsers
+      TimeReportStatusService.getUnclosedUsersForMonth
         .mockResolvedValueOnce(mockReport)
         .mockResolvedValueOnce(previousReport);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📅 2023-01-01 - 2023-01-31')).toBeInTheDocument();
@@ -348,18 +396,17 @@ describe('UnclosedUsersPage', () => {
       fireEvent.click(previousButton);
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalledWith('2022-12-01');
-        expect(screen.getByText('📅 2022-12-01 - 2022-12-31')).toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith('/timereportstatus/year/2022/month/12');
       });
     });
 
     it('should load next report when next button is clicked', async () => {
       const nextReport = { ...mockReport, fromDate: '2023-02-01', toDate: '2023-02-28' };
-      TimeReportStatusService.getUnclosedUsers
+      TimeReportStatusService.getUnclosedUsersForMonth
         .mockResolvedValueOnce(mockReport)
         .mockResolvedValueOnce(nextReport);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📅 2023-01-01 - 2023-01-31')).toBeInTheDocument();
@@ -369,55 +416,27 @@ describe('UnclosedUsersPage', () => {
       fireEvent.click(nextButton);
 
       await waitFor(() => {
-        expect(TimeReportStatusService.getUnclosedUsers).toHaveBeenCalledWith('2023-02-01');
-        expect(screen.getByText('📅 2023-02-01 - 2023-02-28')).toBeInTheDocument();
+        expect(mockNavigate).toHaveBeenCalledWith('/timereportstatus/year/2023/month/2');
       });
     });
 
-    it('should handle error when loading previous report', async () => {
+    it('should show inline error when loading a period fails', async () => {
       const error = new Error('Failed to load previous report');
-      TimeReportStatusService.getUnclosedUsers
-        .mockResolvedValueOnce(mockReport)
-        .mockRejectedValueOnce(error);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockRejectedValue(error);
 
-      render(<UnclosedUsersPage />);
+      renderPage('/timereportstatus/year/2022/month/12');
 
       await waitFor(() => {
-        expect(screen.getByTitle('Previous Period')).toBeInTheDocument();
+        expect(screen.getByText('Invalid period')).toBeInTheDocument();
+        expect(screen.getByText('Failed to load previous report')).toBeInTheDocument();
       });
-
-      const previousButton = screen.getByTitle('Previous Period');
-      fireEvent.click(previousButton);
-
-      await waitFor(() => {
-        expect(mockToast.showError).toHaveBeenCalledWith('Failed to load previous report');
-      });
-    });
-
-    it('should handle error when loading next report', async () => {
-      const error = new Error('Failed to load next report');
-      TimeReportStatusService.getUnclosedUsers
-        .mockResolvedValueOnce(mockReport)
-        .mockRejectedValueOnce(error);
-
-      render(<UnclosedUsersPage />);
-
-      await waitFor(() => {
-        expect(screen.getByTitle('Next Period')).toBeInTheDocument();
-      });
-
-      const nextButton = screen.getByTitle('Next Period');
-      fireEvent.click(nextButton);
-
-      await waitFor(() => {
-        expect(mockToast.showError).toHaveBeenCalledWith('Failed to load next report');
-      });
+      expect(mockToast.showError).not.toHaveBeenCalled();
     });
   });
 
   describe('Email Reminders', () => {
     it('should show email reminder button when mail is enabled', async () => {
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -427,7 +446,7 @@ describe('UnclosedUsersPage', () => {
     it('should not show email reminder button when mail is disabled', async () => {
       mockSystemService.isMailEnabled.mockResolvedValue({ data: false });
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.queryByText('📧 Send Reminders')).not.toBeInTheDocument();
@@ -437,7 +456,7 @@ describe('UnclosedUsersPage', () => {
     it('should handle error when checking mail enabled status', async () => {
       mockSystemService.isMailEnabled.mockRejectedValue(new Error('Service unavailable'));
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       // Should default to not showing the button
       await waitFor(() => {
@@ -448,7 +467,7 @@ describe('UnclosedUsersPage', () => {
     it('should send email reminders to unclosed users', async () => {
       mockSystemService.sendEmailReminderToUnclosedUsers.mockResolvedValue({ success: true });
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -472,10 +491,10 @@ describe('UnclosedUsersPage', () => {
         ...mockReport,
         unclosedUsers: [mockReport.unclosedUsers[0]]
       };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(singleUserReport);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(singleUserReport);
       mockSystemService.sendEmailReminderToUnclosedUsers.mockResolvedValue({ success: true });
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -495,9 +514,9 @@ describe('UnclosedUsersPage', () => {
 
     it('should show warning when no unclosed users for email reminder', async () => {
       const noUsersReport = { ...mockReport, unclosedUsers: [] };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(noUsersReport);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(noUsersReport);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -513,7 +532,7 @@ describe('UnclosedUsersPage', () => {
     it('should cancel email sending when user refuses confirmation', async () => {
       mockConfirm.mockResolvedValue(false);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -530,7 +549,7 @@ describe('UnclosedUsersPage', () => {
       const error = { response: { data: { message: 'SMTP server unavailable' } } };
       mockSystemService.sendEmailReminderToUnclosedUsers.mockRejectedValue(error);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('📧 Send Reminders')).toBeInTheDocument();
@@ -549,7 +568,7 @@ describe('UnclosedUsersPage', () => {
     it('should update report when user status changes', async () => {
       TimeReportStatusService.closeUserTimeReport.mockResolvedValue({ success: true });
       
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();
@@ -559,7 +578,6 @@ describe('UnclosedUsersPage', () => {
       fireEvent.click(checkbox);
 
       await waitFor(() => {
-        // John should be filtered out since he's now closed (filtered from unclosed view)
         expect(screen.queryByText('John Doe')).not.toBeInTheDocument();
       }, { timeout: 3000 });
 
@@ -569,9 +587,9 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle report with missing fromDate and toDate', async () => {
       const reportWithMissingDates = { ...mockReport, fromDate: undefined, toDate: undefined };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMissingDates);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithMissingDates);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         // Just verify the page renders without crashing when dates are missing
@@ -582,9 +600,9 @@ describe('UnclosedUsersPage', () => {
 
     it('should handle report with missing workableHours', async () => {
       const reportWithMissingHours = { ...mockReport, workableHours: undefined };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMissingHours);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithMissingHours);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         // When workableHours is undefined, it should default to 0 in each row
@@ -596,21 +614,21 @@ describe('UnclosedUsersPage', () => {
 
   describe('Edge Cases', () => {
     it('should handle loading state with null report', () => {
-      TimeReportStatusService.getUnclosedUsers.mockImplementation(() => new Promise(() => {}));
+      TimeReportStatusService.getUnclosedUsersForMonth.mockImplementation(() => new Promise(() => {}));
       
-      render(<UnclosedUsersPage />);
+      renderPage();
       
       expect(screen.getByRole('status')).toBeInTheDocument();
     });
 
-    it('should handle report with undefined unclosedUsers', async () => {
+    it('should treat undefined unclosedUsers as empty list', async () => {
       const reportWithUndefinedUsers = { ...mockReport, unclosedUsers: undefined };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithUndefinedUsers);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithUndefinedUsers);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
-        expect(screen.getByText('Loading users...')).toBeInTheDocument();
+        expect(screen.getByText('All users have closed their time reports for this month')).toBeInTheDocument();
       });
     });
 
@@ -624,9 +642,9 @@ describe('UnclosedUsersPage', () => {
           }
         ]
       };
-      TimeReportStatusService.getUnclosedUsers.mockResolvedValue(reportWithMinimalUserData);
+      TimeReportStatusService.getUnclosedUsersForMonth.mockResolvedValue(reportWithMinimalUserData);
 
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('Unknown User')).toBeInTheDocument();
@@ -639,7 +657,7 @@ describe('UnclosedUsersPage', () => {
       const error = new Error('Network timeout');
       TimeReportStatusService.closeUserTimeReport.mockRejectedValue(error);
       
-      render(<UnclosedUsersPage />);
+      renderPage();
 
       await waitFor(() => {
         expect(screen.getByText('John Doe')).toBeInTheDocument();

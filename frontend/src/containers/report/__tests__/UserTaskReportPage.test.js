@@ -1,9 +1,9 @@
 import React from 'react';
 import { render, screen, waitFor } from '@testing-library/react';
 import '@testing-library/jest-dom';
+import { MemoryRouter, Routes, Route } from 'react-router';
 import UserTaskReportPage from '../UserTaskReportPage';
 import ReportService from '../../../service/ReportService';
-import * as Constants from '../../../common/Constants';
 
 jest.mock('../../../service/ReportService');
 jest.mock('../UserTaskReport', () => {
@@ -20,12 +20,24 @@ jest.mock('../../../components/Toast', () => ({
 
 const MockedReportService = ReportService;
 
+function renderPage(path = '/userreport/year/2025/month/6') {
+    return render(
+        <MemoryRouter initialEntries={[path]}>
+            <Routes>
+                <Route path="/userreport/year/:year/month/:month" element={<UserTaskReportPage />} />
+                <Route path="/userreport/year/:year" element={<UserTaskReportPage />} />
+            </Routes>
+        </MemoryRouter>
+    );
+}
+
 describe('UserTaskReportPage', () => {
     let mockReportService;
 
     beforeEach(() => {
         mockReportService = {
-            getUserReport: jest.fn(),
+            getUserReportForMonth: jest.fn(),
+            getUserReportForYear: jest.fn(),
         };
         MockedReportService.mockImplementation(() => mockReportService);
     });
@@ -35,19 +47,19 @@ describe('UserTaskReportPage', () => {
     });
 
     it('loads the current user report and renders self variant table', async () => {
-        mockReportService.getUserReport.mockResolvedValue({
+        mockReportService.getUserReportForMonth.mockResolvedValue({
             data: {
-                fromDate: '2024-01-01',
-                toDate: '2024-01-31',
+                fromDate: '2025-06-01',
+                toDate: '2025-06-30',
                 workableHours: 160,
                 userReports: [],
             },
         });
 
-        render(<UserTaskReportPage />);
+        renderPage();
 
         await waitFor(() => {
-            expect(mockReportService.getUserReport).toHaveBeenCalledWith(Constants.MONTH_VIEW, undefined);
+            expect(mockReportService.getUserReportForMonth).toHaveBeenCalledWith(2025, 6);
         });
 
         await waitFor(() => {

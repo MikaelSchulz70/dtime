@@ -31,7 +31,7 @@ public class SystemOperationService {
 
     public void sendMailReminderToUnclosedUsers() {
         log.info("Sending email reminders to users with unclosed time reports");
-        UnclosedUserReport report = timeReportStatusService.getUnclosedUsers(null);
+        UnclosedUserReport report = timeReportStatusService.getUnclosedUsersForCurrentMonth();
 
         if (report.getUnclosedUsers() == null || report.getUnclosedUsers().isEmpty()) {
             log.info("No unclosed users found, no emails will be sent");

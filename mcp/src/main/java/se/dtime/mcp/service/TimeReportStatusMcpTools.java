@@ -6,8 +6,6 @@ import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import se.dtime.mcp.client.BackendApiClient;
 
-import java.util.Map;
-
 @Service
 public class TimeReportStatusMcpTools extends McpToolsSupport {
 
@@ -16,15 +14,20 @@ public class TimeReportStatusMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "When: users who have not closed/submitted time reports for a month "
-                    + "('unclosed reports', 'missing timesheets', 'who hasn't reported'). "
-                    + "Returns list of users with open reporting status.")
+            "When: time report status for a month. By default returns users with unclosed/open reports; "
+                    + "set closed=true for users who have closed their report ('reopen report', 'who has submitted').")
     public String getUnclosedUsers(
-            @ToolParam(description =
-                    "Optional YYYY-MM-DD on any day in target month; omit for current month", required = false)
-            String date) throws Exception {
-        Map<String, Object> params = queryMap();
-        putIfPresent(params, "date", date);
-        return getJson(buildPath("/api/timereportstatus", params));
+            @ToolParam(description = "Calendar year, e.g. 2026. Omit for current year.", required = false)
+            Integer year,
+            @ToolParam(description = "Month 1-12 or month name. Omit for current month.", required = false)
+            String month,
+            @ToolParam(description = "If true, return closed reports only. Default false (unclosed only).", required = false)
+            Boolean closed) throws Exception {
+        ReportPeriodParams.MonthPeriod period = ReportPeriodParams.resolveMonthPeriod(year, month);
+        String path = "/api/timereportstatus/year/" + period.year() + "/month/" + period.month();
+        if (Boolean.TRUE.equals(closed)) {
+            path += "?closed=true";
+        }
+        return getJson(path);
     }
 }

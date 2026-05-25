@@ -3,32 +3,30 @@ import TimeReportStatusService from '../TimeReportStatusService';
 
 jest.mock('axios');
 
-const mockedAxios = axios;
-
 describe('TimeReportStatusService', () => {
   beforeEach(() => {
     jest.clearAllMocks();
   });
 
-  describe('getUnclosedUsers', () => {
-    it('should fetch current unclosed users without date', async () => {
-      mockedAxios.get.mockResolvedValue({ data: { unclosedUsers: [] } });
+  describe('getUnclosedUsersForMonth', () => {
+    it('should call path-based endpoint for unclosed users', async () => {
+      axios.get.mockResolvedValue({ data: { unclosedUsers: [] } });
 
-      const result = await TimeReportStatusService.getUnclosedUsers();
+      const result = await TimeReportStatusService.getUnclosedUsersForMonth(2023, 1);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/timereportstatus', expect.any(Object));
+      expect(axios.get).toHaveBeenCalledWith('/api/timereportstatus/year/2023/month/1', expect.any(Object));
       expect(result).toEqual({ unclosedUsers: [] });
     });
+  });
 
-    it('should fetch unclosed users for a specific month', async () => {
-      mockedAxios.get.mockResolvedValue({ data: { unclosedUsers: [] } });
+  describe('getClosedUsersForMonth', () => {
+    it('should call path-based endpoint with closed query param', async () => {
+      axios.get.mockResolvedValue({ data: { unclosedUsers: [] } });
 
-      await TimeReportStatusService.getUnclosedUsers('2023-01-15');
+      const result = await TimeReportStatusService.getClosedUsersForMonth(2023, 1);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith(
-        '/api/timereportstatus?date=2023-01-15',
-        expect.any(Object)
-      );
+      expect(axios.get).toHaveBeenCalledWith('/api/timereportstatus/year/2023/month/1?closed=true', expect.any(Object));
+      expect(result).toEqual({ unclosedUsers: [] });
     });
   });
 });

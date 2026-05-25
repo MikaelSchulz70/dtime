@@ -16,18 +16,20 @@ function buildQuery(params) {
 
 export default class ReportService {
 
-    /**
-     * Admin report for the period containing date (omit date for current period).
-     */
-    getReport(view, type, date) {
-        return axios.get(BASE_URL + buildQuery({ view, type, date }));
+    getReportForMonth(year, month, type) {
+        return axios.get(`${BASE_URL}/year/${year}/month/${month}` + buildQuery({ type }));
     }
 
-    /**
-     * Logged-in user's report for the period containing date (omit date for current period).
-     */
-    getUserReport(view, date) {
-        return axios.get(BASE_URL + '/user' + buildQuery({ view, date }));
+    getReportForYear(year, type) {
+        return axios.get(`${BASE_URL}/year/${year}` + buildQuery({ type }));
+    }
+
+    getUserReportForMonth(year, month) {
+        return axios.get(`${BASE_URL}/user/year/${year}/month/${month}`);
+    }
+
+    getUserReportForYear(year) {
+        return axios.get(`${BASE_URL}/user/year/${year}`);
     }
 
     updateOpenCloseReport(payLoad, path) {

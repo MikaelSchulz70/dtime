@@ -4,17 +4,6 @@ import { Headers } from './ServiceUtil';
 
 const BASE_URL = "/api/timereport";
 
-function buildQuery(params) {
-    const search = new URLSearchParams();
-    Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined && value !== null && value !== '') {
-            search.append(key, value);
-        }
-    });
-    const qs = search.toString();
-    return qs ? `?${qs}` : '';
-}
-
 export default class TimeService {
 
     updateTime(time) {
@@ -24,22 +13,24 @@ export default class TimeService {
             Headers());
     }
 
-    /**
-     * Time sheet for the period containing date (omit date for current period).
-     */
-    getTimeReport(view, date) {
-        return axios.get(BASE_URL + buildQuery({ view, date }));
+    getTimeReportForMonth(year, month) {
+        return axios.get(`${BASE_URL}/year/${year}/month/${month}`);
     }
 
-    getUserTimes(userId, fromDate) {
-        return axios.get(BASE_URL + '/user?view=MONTH&userId=' + userId + '&date=' + fromDate);
+    getTimeReportForWeek(year, week) {
+        return axios.get(`${BASE_URL}/year/${year}/week/${week}`);
     }
 
-    /**
-     * Vacation report for the month containing date (omit date for current month).
-     */
-    getVacationReport(date) {
-        return axios.get(BASE_URL + '/vacations' + buildQuery({ date }));
+    getUserTimeReportForMonth(userId, year, month) {
+        return axios.get(`${BASE_URL}/user/${userId}/year/${year}/month/${month}`);
+    }
+
+    getUserTimeReportForWeek(userId, year, week) {
+        return axios.get(`${BASE_URL}/user/${userId}/year/${year}/week/${week}`);
+    }
+
+    getVacationReportForMonth(year, month) {
+        return axios.get(`${BASE_URL}/vacations/year/${year}/month/${month}`);
     }
 
 }

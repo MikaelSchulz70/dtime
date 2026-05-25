@@ -13,6 +13,7 @@ import se.dtime.model.timereport.Day;
 import se.dtime.repository.CloseDateRepository;
 import se.dtime.repository.jdbc.ReportRepository;
 import se.dtime.service.calendar.CalendarService;
+import se.dtime.service.period.PeriodResolver;
 import se.dtime.service.user.CurrentUserResolver;
 import se.dtime.service.user.UserValidator;
 
@@ -31,8 +32,9 @@ public class ReportService {
     private final CloseDateRepository closeDateRepository;
     private final ReportValidator reportValidator;
     private final ReportConverter reportConverter;
+    private final PeriodResolver periodResolver;
 
-    public ReportService(UserValidator userValidator, CurrentUserResolver currentUserResolver, CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportValidator reportValidator, ReportConverter reportConverter) {
+    public ReportService(UserValidator userValidator, CurrentUserResolver currentUserResolver, CalendarService calendarService, ReportRepository reportRepository, CloseDateRepository closeDateRepository, ReportValidator reportValidator, ReportConverter reportConverter, PeriodResolver periodResolver) {
         this.userValidator = userValidator;
         this.currentUserResolver = currentUserResolver;
         this.calendarService = calendarService;
@@ -40,25 +42,31 @@ public class ReportService {
         this.closeDateRepository = closeDateRepository;
         this.reportValidator = reportValidator;
         this.reportConverter = reportConverter;
+        this.periodResolver = periodResolver;
     }
 
-    /**
-     * Admin report for the week/month/year period that contains {@code date}.
-     * When {@code date} is null, uses the server's current date.
-     */
-    public Report getReport(ReportView reportView, ReportType reportType, LocalDate date) {
-        LocalDate anchor = date != null ? date : calendarService.getNowDate();
-        ReportDates reportDates = ReportUtil.getReportDates(reportView, anchor);
+    public Report getReportForMonth(int year, int month, ReportType reportType) {
+        ReportDates reportDates = periodResolver.resolveMonth(year, month);
         return getReportBetweenDates(reportType, reportDates);
     }
 
-    /**
-     * Logged-in user's task report for the period that contains {@code date}.
-     * When {@code date} is null, uses the server's current date.
-     */
-    public Report getUserReport(ReportView reportView, LocalDate date) {
-        LocalDate anchor = date != null ? date : calendarService.getNowDate();
-        return getUserReportForPeriod(reportView, anchor);
+    public Report getReportForYear(int year, ReportType reportType) {
+        ReportDates reportDates = periodResolver.resolveYear(year);
+        return getReportBetweenDates(reportType, reportDates);
+    }
+
+    public Report getUserReportForMonth(int year, int month) {
+        ReportDates reportDates = periodResolver.resolveMonth(year, month);
+        userValidator.validateLoggedIn();
+        long userId = currentUserResolver.resolveCurrentUser().getId();
+        return buildUserTaskReport(reportDates, userId);
+    }
+
+    public Report getUserReportForYear(int year) {
+        ReportDates reportDates = periodResolver.resolveYear(year);
+        userValidator.validateLoggedIn();
+        long userId = currentUserResolver.resolveCurrentUser().getId();
+        return buildUserTaskReport(reportDates, userId);
     }
 
     public void closeTimeReport(CloseDate closeDate) {
@@ -71,13 +79,6 @@ public class ReportService {
         reportValidator.validateOpenTimeReport(closeDate);
         CloseDatePO closeDatePO = reportConverter.toPO(closeDate);
         closeDateRepository.deleteByUserAndDate(closeDatePO.getUser(), closeDatePO.getDate());
-    }
-
-    private Report getUserReportForPeriod(ReportView reportView, LocalDate date) {
-        userValidator.validateLoggedIn();
-        long userId = currentUserResolver.resolveCurrentUser().getId();
-        ReportDates reportDates = ReportUtil.getReportDates(reportView, date);
-        return buildUserTaskReport(reportDates, userId);
     }
 
     private Report buildUserTaskReport(ReportDates reportDates, Long scopedUserIdOrNull) {

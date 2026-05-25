@@ -3,8 +3,6 @@ import TimeService from '../TimeService';
 
 jest.mock('axios');
 
-const mockedAxios = axios;
-
 describe('TimeService', () => {
   let timeService;
 
@@ -13,31 +11,33 @@ describe('TimeService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getTimeReport', () => {
-    it('should fetch time report with view', async () => {
-      mockedAxios.get.mockResolvedValue({ data: {} });
+  describe('getTimeReportForMonth', () => {
+    it('should call monthly path endpoint', async () => {
+      axios.get.mockResolvedValue({ data: {} });
 
-      await timeService.getTimeReport('MONTH');
+      await timeService.getTimeReportForMonth(2023, 1);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/timereport?view=MONTH');
-    });
-
-    it('should fetch time report with view and date', async () => {
-      mockedAxios.get.mockResolvedValue({ data: {} });
-
-      await timeService.getTimeReport('WEEK', '2023-01-15');
-
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/timereport?view=WEEK&date=2023-01-15');
+      expect(axios.get).toHaveBeenCalledWith('/api/timereport/year/2023/month/1');
     });
   });
 
-  describe('getVacationReport', () => {
-    it('should fetch vacation report for a month', async () => {
-      mockedAxios.get.mockResolvedValue({ data: {} });
+  describe('getTimeReportForWeek', () => {
+    it('should call weekly path endpoint', async () => {
+      axios.get.mockResolvedValue({ data: {} });
 
-      await timeService.getVacationReport('2023-01-15');
+      await timeService.getTimeReportForWeek(2023, 36);
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/timereport/vacations?date=2023-01-15');
+      expect(axios.get).toHaveBeenCalledWith('/api/timereport/year/2023/week/36');
+    });
+  });
+
+  describe('getVacationReportForMonth', () => {
+    it('should call vacation path endpoint', async () => {
+      axios.get.mockResolvedValue({ data: {} });
+
+      await timeService.getVacationReportForMonth(2023, 1);
+
+      expect(axios.get).toHaveBeenCalledWith('/api/timereport/vacations/year/2023/month/1');
     });
   });
 });

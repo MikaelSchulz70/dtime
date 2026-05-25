@@ -16,33 +16,52 @@ public class ReportMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "When: org-wide or per-user aggregated hours for a month or year "
-                    + "('hours per user in May', 'report for April 2026'). "
-                    + "view=MONTH|YEAR only; type=USER|USER_TASK|TASK|ACCOUNT only. "
-                    + "For a specific month use view=MONTH and date=YYYY-MM-DD (e.g. 2026-04-15 for April). "
-                    + "Returns period report JSON.")
+            "When: admin org-wide monthly report — all users in one call (preferred over getUserTimeReportForMonth). "
+                    + "type=USER_TASK: richest (per-user task breakdown, closed flags, org totals). "
+                    + "type=USER: per-user totals only. type=TASK|ACCOUNT: org aggregates by task or account. "
+                    + "type=BILLABLE_TASK_TYPE: billable vs non-billable hours by task type for the month. "
+                    + "For one person's totals, use type=USER and filter userReports. "
+                    + "Use getUserTimeReportForMonth only for day-by-day entry grids.")
     public String getReport(
+            @ToolParam(description = "Calendar year, e.g. 2026. Omit for current year.", required = false)
+            Integer year,
+            @ToolParam(description = "Month 1-12 or month name (e.g. 4 or APRIL). Omit for current month.", required = false)
+            String month,
             @ToolParam(description =
-                    "ReportView ONLY: MONTH or YEAR. Not month names — use date for April/May (e.g. 2026-04-15).")
-            String view,
-            @ToolParam(description =
-                    "ReportType ONLY: USER, USER_TASK, TASK, or ACCOUNT.")
-            String type,
-            @ToolParam(description =
-                    "Target period: YYYY-MM-DD (any day in month/year), or YYYY-MM. "
-                            + "Example April 2026: 2026-04-15. Omit for current period.", required = false)
-            String date) throws Exception {
-        ReportQueryParams.Normalized args = ReportQueryParams.normalize(view, type, date);
+                    "ReportType: USER_TASK, USER, TASK, ACCOUNT, or BILLABLE_TASK_TYPE. Prefer USER_TASK for analysis.")
+            String type) throws Exception {
+        ReportPeriodParams.MonthPeriod period = ReportPeriodParams.resolveMonthPeriod(year, month);
+        String reportType = ReportPeriodParams.normalizeType(type);
+        if ("BILLABLE_TASK_TYPE".equals(reportType)) {
+            return getBillableTaskTypeReport(period.fromDate().toString(), period.toDate().toString());
+        }
         Map<String, Object> params = queryMap();
-        putIfPresent(params, "view", args.view());
-        putIfPresent(params, "type", args.type());
-        putIfPresent(params, "date", args.date());
-        return getJson(buildPath("/api/report", params));
+        params.put("type", reportType);
+        return getJson(buildPath("/api/report/year/" + period.year() + "/month/" + period.month(), params));
     }
 
     @Tool(description =
-            "When: billable hours grouped by task type between two dates. "
-                    + "Not for org monthly reports (getReport). Returns billable breakdown JSON.")
+            "When: admin org-wide yearly report — same type semantics as getReport "
+                    + "(USER_TASK, USER, TASK, ACCOUNT, BILLABLE_TASK_TYPE).")
+    public String getYearlyReport(
+            @ToolParam(description = "Calendar year, e.g. 2026. Omit for current year.", required = false)
+            Integer year,
+            @ToolParam(description =
+                    "ReportType: USER_TASK, USER, TASK, ACCOUNT, or BILLABLE_TASK_TYPE. Prefer USER_TASK for analysis.")
+            String type) throws Exception {
+        ReportPeriodParams.YearPeriod period = ReportPeriodParams.resolveYearPeriod(year);
+        String reportType = ReportPeriodParams.normalizeType(type);
+        if ("BILLABLE_TASK_TYPE".equals(reportType)) {
+            return getBillableTaskTypeReport(period.fromDate().toString(), period.toDate().toString());
+        }
+        Map<String, Object> params = queryMap();
+        params.put("type", reportType);
+        return getJson(buildPath("/api/report/year/" + period.year(), params));
+    }
+
+    @Tool(description =
+            "When: billable hours grouped by task type for an arbitrary date range. "
+                    + "For a calendar month or year, prefer getReport/getYearlyReport with type=BILLABLE_TASK_TYPE.")
     public String getBillableTaskTypeReport(
             @ToolParam(description = "Range start YYYY-MM-DD (inclusive)") String fromDate,
             @ToolParam(description = "Range end YYYY-MM-DD (inclusive)") String toDate) throws Exception {

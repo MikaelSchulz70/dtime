@@ -1,57 +1,94 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { useParams, useNavigate } from 'react-router';
 import ReportService from '../../service/ReportService';
 import * as Constants from '../../common/Constants';
-import { shiftPeriodDate } from '../../util/periodNavigation';
-import { useToast } from '../../components/Toast';
+import {
+    parsePeriodFromParams,
+    shiftPeriodPath,
+    buildPeriodUrl,
+    currentMonthPeriod,
+} from '../../util/periodNavigation';
 import { useTranslation } from 'react-i18next';
 import UserTaskReportTable from './UserTaskReport';
+import PeriodLoadError from '../../components/PeriodLoadError';
+import { getApiErrorMessage } from '../../util/apiError';
 
 function UserTaskReportPage() {
+    const params = useParams();
+    const navigate = useNavigate();
+    const period = parsePeriodFromParams(params);
     const [report, setReport] = useState(null);
-    const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
-    const { showError } = useToast();
+    const [loadError, setLoadError] = useState(null);
+    const reportView = period?.mode === 'year' ? Constants.YEAR_VIEW : Constants.MONTH_VIEW;
     const { t } = useTranslation();
 
-    const loadUserReport = useCallback((view, date) => {
+    useEffect(() => {
+        if (!period) {
+            return undefined;
+        }
+        let cancelled = false;
+        setLoadError(null);
+        setReport(null);
         const service = new ReportService();
-        service.getUserReport(view, date)
+        const request = period.mode === 'year'
+            ? service.getUserReportForYear(period.year)
+            : service.getUserReportForMonth(period.year, period.month);
+        request
             .then(response => {
-                setReport(response.data);
-                setReportView(view);
+                if (!cancelled) {
+                    setReport(response.data);
+                    setLoadError(null);
+                }
             })
             .catch(error => {
-                showError(t('reports.messages.loadFailed', { message: error.response?.data?.message || error.message }));
+                if (!cancelled) {
+                    setReport(null);
+                    setLoadError(getApiErrorMessage(error, 'errors.period.invalidPeriod'));
+                }
             });
-    }, [showError, t]);
-
-    useEffect(() => {
-        loadUserReport(Constants.MONTH_VIEW);
-    }, [loadUserReport]);
+        return () => {
+            cancelled = true;
+        };
+    }, [period?.year, period?.month, period?.week, period?.mode]);
 
     const viewChange = useCallback((event) => {
         const view = event.target.value;
-        if (report?.fromDate) {
-            loadUserReport(view, report.fromDate);
+        if (view === Constants.YEAR_VIEW) {
+            navigate(buildPeriodUrl('/userreport', { mode: 'year', year: period?.year || currentMonthPeriod().year }));
         } else {
-            loadUserReport(view);
+            const monthPeriod = period?.mode === 'month'
+                ? period
+                : currentMonthPeriod();
+            navigate(buildPeriodUrl('/userreport', monthPeriod));
         }
-    }, [report, loadUserReport]);
+    }, [period, navigate]);
 
     const handlePreviousReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, reportView, -1);
-        loadUserReport(reportView, date);
-    }, [report, reportView, loadUserReport]);
+        navigate(buildPeriodUrl('/userreport', shiftPeriodPath(period, -1)));
+    }, [period, navigate]);
 
     const handleNextReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, reportView, 1);
-        loadUserReport(reportView, date);
-    }, [report, reportView, loadUserReport]);
+        navigate(buildPeriodUrl('/userreport', shiftPeriodPath(period, 1)));
+    }, [period, navigate]);
+
+    if (loadError) {
+        return (
+            <div className="container-fluid ml-2 mr-2">
+                <h2>{t('reports.myTimeReport')}</h2>
+                <PeriodLoadError
+                    message={loadError}
+                    basePath="/userreport"
+                    onGoToCurrent={(url) => navigate(url)}
+                />
+            </div>
+        );
+    }
 
     if (report == null) {
         return null;

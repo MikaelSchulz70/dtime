@@ -3,8 +3,6 @@ import ReportService from '../ReportService';
 
 jest.mock('axios');
 
-const mockedAxios = axios;
-
 describe('ReportService', () => {
   let reportService;
 
@@ -13,33 +11,25 @@ describe('ReportService', () => {
     jest.clearAllMocks();
   });
 
-  describe('getReport', () => {
-    it('should fetch report with view, type, and date', async () => {
-      const mockResponse = { data: { fromDate: '2023-01-01', toDate: '2023-01-31' } };
-      mockedAxios.get.mockResolvedValue(mockResponse);
-
-      const result = await reportService.getReport('MONTH', 'USER', '2023-01-15');
-
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/report?view=MONTH&type=USER&date=2023-01-15');
-      expect(result).toEqual(mockResponse);
-    });
-
-    it('should fetch report without date for current period', async () => {
+  describe('getReportForMonth', () => {
+    it('should call monthly path endpoint with type', async () => {
       mockedAxios.get.mockResolvedValue({ data: {} });
 
-      await reportService.getReport('MONTH', 'USER');
+      await reportService.getReportForMonth(2023, 1, 'USER');
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/report?view=MONTH&type=USER');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/report/year/2023/month/1?type=USER');
     });
   });
 
-  describe('getUserReport', () => {
-    it('should fetch user report with view and date', async () => {
+  describe('getReportForYear', () => {
+    it('should call yearly path endpoint with type', async () => {
       mockedAxios.get.mockResolvedValue({ data: {} });
 
-      await reportService.getUserReport('WEEK', '2023-01-15');
+      await reportService.getReportForYear(2023, 'USER');
 
-      expect(mockedAxios.get).toHaveBeenCalledWith('/api/report/user?view=WEEK&date=2023-01-15');
+      expect(mockedAxios.get).toHaveBeenCalledWith('/api/report/year/2023?type=USER');
     });
   });
 });
+
+const mockedAxios = axios;

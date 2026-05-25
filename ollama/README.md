@@ -180,16 +180,16 @@ curl -s http://127.0.0.1:8082/health   # expect tools: 8
 
 The bridge calls **dtime-mcp** read-only tools on each chat turn. Factual answers must come from tool JSON, not invented numbers.
 
-**Period rule:** pass `date` as any ISO day inside the target week/month (e.g. `2026-05-15` for May 2026). Omit `date` for the current period.
+**Period rule:** pass `year` and `month` (or omit for current month). Example: `year=2026`, `month=5` for May 2026.
 
 | Use case | MCP tool | Typical args |
 |----------|----------|--------------|
 | How many users | `getUserCount` | no args → read `totalElements` |
-| Org-wide monthly per-user hours | `getReport` | `view=MONTH`, `type=USER`, `date` in that month |
+| Org-wide monthly per-user hours | `getReport` | `year=2026`, `month=5`, `type=USER` |
 | One user's total hours in a month | `getReport` | `type=USER`, find user in `userReports` |
-| Vacations / unclosed users | `getVacationReport`, `getUnclosedUsers` | optional `date` in target month |
+| Vacations / unclosed users | `getVacationReport`, `getUnclosedUsers` | `year`, `month` for target month |
 
-Admin Chat omits **`getUserTimeReport`** (day-by-day grid) to reduce tool confusion — full MCP / Cursor only. See [mcp/README.md](../mcp/README.md).
+Admin Chat omits **user timesheet tools** (day-by-day grid) to reduce tool confusion — full MCP / Cursor only. See [mcp/README.md](../mcp/README.md).
 
 ## Environment variables
 

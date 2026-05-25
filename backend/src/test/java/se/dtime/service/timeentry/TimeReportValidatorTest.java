@@ -42,6 +42,10 @@ public class TimeReportValidatorTest {
         timeReportValidator.init();
     }
 
+    private void stubSystemStartDate() {
+        when(calendarService.getSystemStartDate()).thenReturn(LocalDate.of(2020, 1, 1));
+    }
+
     @Test
     public void validateOk() {
         Attribute time = Attribute.builder().id(1).name("time").value("1").build();
@@ -105,20 +109,23 @@ public class TimeReportValidatorTest {
 
     @Test
     public void testValidateYearWeekOk() {
-        timeReportValidator.validateYearWeek(2018, 44);
+        stubSystemStartDate();
+        timeReportValidator.validateYearWeek(2025, 44);
     }
 
     @Test
     public void testValidateYearWeekInvalidYear() {
+        stubSystemStartDate();
         assertThrows(InvalidInputException.class, () -> {
-            timeReportValidator.validateYearWeek(-1, 10);
+            timeReportValidator.validateYearWeek(2019, 10);
         });
     }
 
     @Test
     public void testValidateYearWeekInvalidWeek() {
+        stubSystemStartDate();
         assertThrows(InvalidInputException.class, () -> {
-            timeReportValidator.validateYearMouth(2018, 53);
+            timeReportValidator.validateYearWeek(2025, 54);
         });
     }
 

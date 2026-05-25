@@ -1,7 +1,6 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,10 +8,10 @@ import org.springframework.web.bind.annotation.*;
 import se.dtime.model.report.BillableTaskTypeReport;
 import se.dtime.model.report.Report;
 import se.dtime.model.report.ReportType;
-import se.dtime.model.report.ReportView;
 import se.dtime.model.timereport.CloseDate;
 import se.dtime.service.report.ReportService;
 import se.dtime.repository.jdbc.ReportRepository;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDate;
 import java.util.List;
@@ -30,23 +29,37 @@ public class ReportRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "")
-    public ResponseEntity<Report> getReport(
-            @RequestParam(value = "view", required = false) ReportView reportView,
-            @RequestParam(value = "type", required = false) ReportType reportType,
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getReport(reportView, reportType, date);
+    @GetMapping(path = "/year/{year}/month/{month}")
+    public ResponseEntity<Report> getReportForMonth(
+            @PathVariable int year,
+            @PathVariable int month,
+            @RequestParam(value = "type", required = false) ReportType reportType) {
+        Report report = reportService.getReportForMonth(year, month, reportType);
+        return new ResponseEntity<>(report, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN')")
+    @GetMapping(path = "/year/{year}")
+    public ResponseEntity<Report> getReportForYear(
+            @PathVariable int year,
+            @RequestParam(value = "type", required = false) ReportType reportType) {
+        Report report = reportService.getReportForYear(year, reportType);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "/user")
-    public ResponseEntity<Report> getUserReport(
-            @RequestParam(value = "view", required = false) ReportView reportView,
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        Report report = reportService.getUserReport(reportView, date);
+    @GetMapping(path = "/user/year/{year}/month/{month}")
+    public ResponseEntity<Report> getUserReportForMonth(
+            @PathVariable int year,
+            @PathVariable int month) {
+        Report report = reportService.getUserReportForMonth(year, month);
+        return new ResponseEntity<>(report, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping(path = "/user/year/{year}")
+    public ResponseEntity<Report> getUserReportForYear(@PathVariable int year) {
+        Report report = reportService.getUserReportForYear(year);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 

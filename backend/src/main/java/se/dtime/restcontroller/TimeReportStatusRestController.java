@@ -1,6 +1,5 @@
 package se.dtime.restcontroller;
 
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -9,8 +8,6 @@ import se.dtime.model.report.UnclosedUserReport;
 import se.dtime.model.timereport.CloseDate;
 import se.dtime.service.report.TimeReportStatusService;
 import jakarta.validation.Valid;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/timereportstatus")
@@ -23,11 +20,13 @@ public class TimeReportStatusRestController {
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "")
-    public ResponseEntity<UnclosedUserReport> getUnclosedUsers(
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        UnclosedUserReport report = timeReportStatusService.getUnclosedUsers(date);
+    @GetMapping(path = "/year/{year}/month/{month}")
+    public ResponseEntity<UnclosedUserReport> getUnclosedUsersForMonth(
+            @PathVariable int year,
+            @PathVariable int month,
+            @RequestParam(name = "closed", required = false) Boolean closedOnly) {
+        boolean closedFilter = Boolean.TRUE.equals(closedOnly);
+        UnclosedUserReport report = timeReportStatusService.getUsersForMonth(year, month, closedFilter);
         return new ResponseEntity<>(report, HttpStatus.OK);
     }
 

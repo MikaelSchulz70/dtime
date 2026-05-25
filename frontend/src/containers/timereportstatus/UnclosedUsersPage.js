@@ -1,14 +1,22 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from 'react-router';
 import TimeReportStatusService from '../../service/TimeReportStatusService';
-import { shiftPeriodDate } from '../../util/periodNavigation';
+import {
+    parsePeriodFromParams,
+    shiftPeriodPath,
+    buildPeriodUrl,
+} from '../../util/periodNavigation';
 import SystemService from '../../service/SystemService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 import { useTableSort } from '../../hooks/useTableSort';
 import SortableTableHeader from '../../components/SortableTableHeader';
 import { useConfirm } from '../../components/ConfirmProvider';
+import PeriodLoadError from '../../components/PeriodLoadError';
+import { getApiErrorMessage } from '../../util/apiError';
+import { normalizeTimeReportStatusReport } from '../../util/timeReportStatus';
 
-function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }) {
+function UnclosedUsersTable({ report: initialReport, showClosedOnly, onReportUpdate, showError }) {
     const [report, setReport] = useState(initialReport);
     const { t } = useTranslation();
     const confirm = useConfirm();
@@ -30,17 +38,19 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
         const user = report.unclosedUsers.find(u => u.userId === userId);
         if (!user) return;
 
-        if (!user.closed) {
-            const confirmMessage = t('timeReports.messages.confirmCloseReport', { userName: user.fullName || t('common.labels.user') });
-            const confirmed = await confirm({
-                message: confirmMessage,
-                confirmLabel: t('timeReports.actions.close'),
-                variant: 'danger',
-            });
-            if (!confirmed) {
-                event.target.checked = false;
-                return;
-            }
+        const isClosing = !user.closed;
+        const userName = user.fullName || t('common.labels.user');
+        const confirmMessage = isClosing
+            ? t('timeReports.messages.confirmCloseReport', { userName })
+            : t('timeReports.messages.confirmOpenReport', { userName });
+        const confirmed = await confirm({
+            message: confirmMessage,
+            confirmLabel: isClosing ? t('timeReports.actions.close') : t('timeReports.actions.reopen'),
+            variant: isClosing ? 'danger' : 'primary',
+        });
+        if (!confirmed) {
+            event.target.checked = user.closed;
+            return;
         }
 
         const service = user.closed ?
@@ -49,15 +59,12 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 
         service
             .then(response => {
-                // Update the user's closed status
-                const updatedUsers = report.unclosedUsers.map(u =>
-                    u.userId === userId ? { ...u, closed: !u.closed } : u
-                );
+                const toggledClosed = !user.closed;
+                const updatedUsers = report.unclosedUsers
+                    .map(u => (u.userId === userId ? { ...u, closed: toggledClosed } : u))
+                    .filter(u => (showClosedOnly ? u.closed : !u.closed));
 
-                // Filter out users who are now closed (since this is unclosed users view)
-                const filteredUsers = updatedUsers.filter(u => !u.closed);
-
-                const updatedReport = { ...report, unclosedUsers: filteredUsers };
+                const updatedReport = { ...report, unclosedUsers: updatedUsers };
                 setReport(updatedReport);
 
                 if (onReportUpdate) {
@@ -72,7 +79,7 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 // Revert the checkbox on error
                 event.target.checked = user.closed;
             });
-    }, [report, onReportUpdate, showError, confirm, t]);
+    }, [report, showClosedOnly, onReportUpdate, showError, confirm, t]);
 
     if (report == null) {
         return (
@@ -170,7 +177,9 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
                 <td colSpan="6" className="text-center text-muted">
                     {report?.unclosedUsers === undefined ?
                         t('common.loading.users') :
-                        t('timeReports.messages.allUsersClosed')
+                        (showClosedOnly
+                            ? t('timeReports.messages.noClosedReports')
+                            : t('timeReports.messages.allUsersClosed'))
                     }
                 </td>
             </tr>
@@ -196,24 +205,16 @@ function UnclosedUsersTable({ report: initialReport, onReportUpdate, showError }
 }
 
 function UnclosedUsersPage(props) {
+    const params = useParams();
+    const navigate = useNavigate();
+    const period = parsePeriodFromParams(params);
     const [report, setReport] = useState(null);
+    const [loadError, setLoadError] = useState(null);
+    const [showClosedOnly, setShowClosedOnly] = useState(false);
     const [mailEnabled, setMailEnabled] = useState(false);
     const { showError, showSuccess, showWarning } = useToast();
     const confirm = useConfirm();
     const { t } = useTranslation();
-
-    const loadReport = useCallback((date) => {
-        TimeReportStatusService.getUnclosedUsers(date)
-            .then(response => {
-                console.log('Unclosed users response:', response);
-                setReport(response);
-            })
-            .catch(error => {
-                console.error('Error loading unclosed users report:', error);
-                const errorMessage = error.response?.data?.message || error.message || t('timeReports.messages.failedToLoad');
-                showError(errorMessage);
-            });
-    }, [showError, t]);
 
     const checkMailEnabled = useCallback(() => {
         const systemService = new SystemService();
@@ -229,33 +230,61 @@ function UnclosedUsersPage(props) {
     }, []);
 
     useEffect(() => {
-        loadReport();
         checkMailEnabled();
-    }, [loadReport, checkMailEnabled]);
+    }, [checkMailEnabled]);
+
+    useEffect(() => {
+        if (period?.mode !== 'month') {
+            return undefined;
+        }
+        let cancelled = false;
+        setLoadError(null);
+        setReport(null);
+        const request = showClosedOnly
+            ? TimeReportStatusService.getClosedUsersForMonth(period.year, period.month)
+            : TimeReportStatusService.getUnclosedUsersForMonth(period.year, period.month);
+        request
+            .then(response => {
+                if (!cancelled) {
+                    setReport(normalizeTimeReportStatusReport(response));
+                    setLoadError(null);
+                }
+            })
+            .catch(error => {
+                if (!cancelled) {
+                    setReport(null);
+                    setLoadError(getApiErrorMessage(error, 'timeReports.messages.failedToLoad'));
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [period?.year, period?.month, period?.mode, showClosedOnly]);
+
+    const handleStatusFilterChange = useCallback((event) => {
+        setShowClosedOnly(event.target.value === 'closed');
+    }, []);
 
     const handlePreviousReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, 'MONTH', -1);
-        loadReport(date);
-    }, [report, loadReport]);
+        navigate(buildPeriodUrl('/timereportstatus', shiftPeriodPath(period, -1)));
+    }, [period, navigate]);
 
     const handleNextReport = useCallback(() => {
-        if (!report?.fromDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(report.fromDate, 'MONTH', 1);
-        loadReport(date);
-    }, [report, loadReport]);
+        navigate(buildPeriodUrl('/timereportstatus', shiftPeriodPath(period, 1)));
+    }, [period, navigate]);
 
     const handleReportUpdate = useCallback((updatedReport) => {
         setReport(updatedReport);
     }, []);
 
     const handleSendEmailReminder = useCallback(async () => {
-        const unclosedUsers = report.unclosedUsers || [];
-        const unclosedCount = unclosedUsers.length;
+        const unclosedCount = (report?.unclosedUsers || []).length;
 
         if (unclosedCount === 0) {
             showWarning(t('timeReports.messages.noUnclosedUsers'));
@@ -284,6 +313,19 @@ function UnclosedUsersPage(props) {
             });
     }, [report, showWarning, showSuccess, showError, confirm, t]);
 
+    if (loadError) {
+        return (
+            <div className="container-fluid ml-2 mr-2">
+                <h2>{t('timeReports.title')}</h2>
+                <PeriodLoadError
+                    message={loadError}
+                    basePath="/timereportstatus"
+                    onGoToCurrent={(url) => navigate(url)}
+                />
+            </div>
+        );
+    }
+
     if (report == null)
         return (
             <div className="text-center">
@@ -302,7 +344,7 @@ function UnclosedUsersPage(props) {
             <div className="card shadow-sm mb-4">
                 <div className="card-body">
                     <div className="row align-items-center mb-3">
-                        <div className="col-sm-6">
+                        <div className="col-sm-4">
                             <div className="d-flex gap-2" role="group" aria-label={t('accessibility.navigation')}>
                                 <button className="btn btn-success btn-sm" name={fromDate} onClick={handlePreviousReport} title={t('timeReports.previousPeriod')}>
                                     &lt;&lt;
@@ -312,11 +354,22 @@ function UnclosedUsersPage(props) {
                                 </button>
                             </div>
                         </div>
-                        <div className="col-sm-6 text-end">
+                        <div className="col-sm-3">
+                            <label className="form-label fw-bold text-muted small mb-1">{t('timeReports.reportStatus')}</label>
+                            <select
+                                className="form-select form-select-sm"
+                                value={showClosedOnly ? 'closed' : 'open'}
+                                onChange={handleStatusFilterChange}
+                            >
+                                <option value="open">{t('timeReports.filters.unclosed')}</option>
+                                <option value="closed">{t('timeReports.filters.closed')}</option>
+                            </select>
+                        </div>
+                        <div className="col-sm-5 text-end">
                             <span className="badge bg-secondary fs-6 py-2 px-3 me-3">
                                 📅 {fromDate} - {toDate}
                             </span>
-                            {mailEnabled && (
+                            {mailEnabled && !showClosedOnly && (
                                 <button
                                     className="btn btn-primary btn-sm"
                                     onClick={handleSendEmailReminder}
@@ -331,7 +384,12 @@ function UnclosedUsersPage(props) {
             </div>
             <div className="row">
                 <div className="col-sm-12">
-                    <UnclosedUsersTable report={report} onReportUpdate={handleReportUpdate} showError={showError} />
+                    <UnclosedUsersTable
+                        report={report}
+                        showClosedOnly={showClosedOnly}
+                        onReportUpdate={handleReportUpdate}
+                        showError={showError}
+                    />
                 </div>
             </div>
         </div>

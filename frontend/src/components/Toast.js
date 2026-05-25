@@ -21,8 +21,13 @@ export const ToastProvider = ({ children }) => {
     const addToast = useCallback((message, type = 'info', duration = 5000) => {
         const id = Date.now() + Math.random();
         const toast = { id, message, type, duration };
-        
-        setToasts(prev => [...prev, toast]);
+
+        setToasts(prev => {
+            if (prev.some(t => t.message === message && t.type === type)) {
+                return prev;
+            }
+            return [...prev, toast].slice(-3);
+        });
         
         if (duration > 0) {
             setTimeout(() => {
@@ -62,7 +67,7 @@ const ToastContainer = () => {
     if (toasts.length === 0) return null;
 
     return (
-        <div className="toast-container position-fixed top-0 end-0 p-3" style={{ zIndex: 1055 }}>
+        <div className="toast-container position-fixed top-0 end-0 p-3 toast-stack" style={{ zIndex: 1055 }}>
             {toasts.map(toast => (
                 <Toast key={toast.id} toast={toast} onClose={() => removeToast(toast.id)} />
             ))}
@@ -115,7 +120,7 @@ const Toast = ({ toast, onClose }) => {
     };
 
     return (
-        <div className={getToastClasses()} role="alert" aria-live="assertive" aria-atomic="true">
+        <div className={`${getToastClasses()} toast-compact`} role="alert" aria-live="assertive" aria-atomic="true">
             <div className={getHeaderClasses()}>
                 <span className="me-2">{getIcon()}</span>
                 <strong className="me-auto">{getTitle()}</strong>

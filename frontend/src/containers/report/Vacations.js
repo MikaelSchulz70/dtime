@@ -1,9 +1,15 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from 'react-router';
 import { useTranslation } from 'react-i18next';
 import TimeService from '../../service/TimeService';
-import { shiftPeriodDate } from '../../util/periodNavigation';
+import {
+    parsePeriodFromParams,
+    shiftPeriodPath,
+    buildPeriodUrl,
+} from '../../util/periodNavigation';
 import * as Constants from '../../common/Constants';
-import { useToast } from '../../components/Toast';
+import PeriodLoadError from '../../components/PeriodLoadError';
+import { getApiErrorMessage } from '../../util/apiError';
 
 function VacationTableEntry({ vacationsDay }) {
     if (vacationsDay == null) return null;
@@ -166,39 +172,63 @@ if (typeof document !== 'undefined') {
 
 export default function Vacations(props) {
     const { t } = useTranslation();
+    const params = useParams();
+    const navigate = useNavigate();
+    const period = parsePeriodFromParams(params);
     const [vacations, setVacations] = useState(null);
-    const { showError } = useToast();
-
-    const loadVacations = useCallback((date) => {
-        const timeService = new TimeService();
-        timeService.getVacationReport(date)
-            .then(response => {
-                setVacations(response.data);
-            })
-            .catch(() => {
-                showError?.(t('vacations.messages.loadFailed')) || alert(t('vacations.messages.loadFailed'));
-            });
-    }, [showError, t]);
-
+    const [loadError, setLoadError] = useState(null);
     const loadPreviousVacations = useCallback(() => {
-        if (!vacations?.firstDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(vacations.firstDate, 'MONTH', -1);
-        loadVacations(date);
-    }, [vacations, loadVacations]);
+        navigate(buildPeriodUrl('/vacations', shiftPeriodPath(period, -1)));
+    }, [period, navigate]);
 
     const loadNextVacations = useCallback(() => {
-        if (!vacations?.firstDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(vacations.firstDate, 'MONTH', 1);
-        loadVacations(date);
-    }, [vacations, loadVacations]);
+        navigate(buildPeriodUrl('/vacations', shiftPeriodPath(period, 1)));
+    }, [period, navigate]);
 
     useEffect(() => {
-        loadVacations();
-    }, [loadVacations]);
+        if (period?.mode !== 'month') {
+            return undefined;
+        }
+        let cancelled = false;
+        setLoadError(null);
+        setVacations(null);
+        const timeService = new TimeService();
+        timeService.getVacationReportForMonth(period.year, period.month)
+            .then(response => {
+                if (!cancelled) {
+                    setVacations(response.data);
+                    setLoadError(null);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setVacations(null);
+                    setLoadError(getApiErrorMessage(error, 'vacations.messages.loadFailed'));
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [period?.year, period?.month, period?.mode]);
+
+    if (loadError) {
+        return (
+            <div className="container-fluid ml-2 mr-2">
+                <h2>{t('vacations.title')}</h2>
+                <PeriodLoadError
+                    message={loadError}
+                    basePath="/vacations"
+                    onGoToCurrent={(url) => navigate(url)}
+                />
+            </div>
+        );
+    }
 
     if (vacations == null) return null;
 

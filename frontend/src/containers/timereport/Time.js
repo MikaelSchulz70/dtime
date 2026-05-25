@@ -1,51 +1,90 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { useParams, useNavigate } from 'react-router';
 import TimeService from '../../service/TimeService';
 import * as Constants from '../../common/Constants';
-import { shiftPeriodDate } from '../../util/periodNavigation';
+import {
+    parsePeriodFromParams,
+    shiftPeriodPath,
+    buildPeriodUrl,
+    currentMonthPeriod,
+    currentWeekPeriod,
+} from '../../util/periodNavigation';
 import ReportService from '../../service/ReportService';
 import { useToast } from '../../components/Toast';
 import { useTranslation } from 'react-i18next';
 import { useConfirm } from '../../components/ConfirmProvider';
 import TimeReportTable from '../../components/TimeReportGrid';
+import PeriodLoadError from '../../components/PeriodLoadError';
+import { getApiErrorMessage } from '../../util/apiError';
 
-function Times(props) {
+function Times() {
+    const params = useParams();
+    const navigate = useNavigate();
+    const period = parsePeriodFromParams(params);
     const [timeReport, setTimeReport] = useState(null);
-    const [reportView, setReportView] = useState(Constants.MONTH_VIEW);
+    const [loadError, setLoadError] = useState(null);
+    const reportView = period?.mode === 'week' ? Constants.WEEK_VIEW : Constants.MONTH_VIEW;
     const { showError, showSuccess } = useToast();
     const { t } = useTranslation();
     const confirm = useConfirm();
 
-    const loadTimeReport = useCallback((view, date) => {
+    const loadTimeReport = useCallback((p) => {
         const timeService = new TimeService();
-        timeService.getTimeReport(view, date)
+        return (p.mode === 'week'
+            ? timeService.getTimeReportForWeek(p.year, p.week)
+            : timeService.getTimeReportForMonth(p.year, p.month))
             .then(response => {
                 setTimeReport(response.data);
-                setReportView(view);
+                setLoadError(null);
             })
-            .catch(() => {
-                showError(t('time.messages.loadFailed'));
+            .catch((error) => {
+                setTimeReport(null);
+                setLoadError(getApiErrorMessage(error, 'time.messages.loadFailed'));
             });
-    }, [showError, t]);
+    }, []);
 
     useEffect(() => {
-        loadTimeReport(Constants.MONTH_VIEW);
-    }, [loadTimeReport]);
+        if (!period) {
+            return undefined;
+        }
+        let cancelled = false;
+        setLoadError(null);
+        setTimeReport(null);
+        const timeService = new TimeService();
+        const request = period.mode === 'week'
+            ? timeService.getTimeReportForWeek(period.year, period.week)
+            : timeService.getTimeReportForMonth(period.year, period.month);
+        request
+            .then(response => {
+                if (!cancelled) {
+                    setTimeReport(response.data);
+                    setLoadError(null);
+                }
+            })
+            .catch((error) => {
+                if (!cancelled) {
+                    setTimeReport(null);
+                    setLoadError(getApiErrorMessage(error, 'time.messages.loadFailed'));
+                }
+            });
+        return () => {
+            cancelled = true;
+        };
+    }, [period?.year, period?.month, period?.week, period?.mode]);
 
     const loadPreviousTimes = useCallback(() => {
-        if (!timeReport?.firstDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(timeReport.firstDate, reportView, -1);
-        loadTimeReport(reportView, date);
-    }, [timeReport, reportView, loadTimeReport]);
+        navigate(buildPeriodUrl('/time', shiftPeriodPath(period, -1)));
+    }, [period, navigate]);
 
     const loadNextTimes = useCallback(() => {
-        if (!timeReport?.firstDate) {
+        if (!period) {
             return;
         }
-        const date = shiftPeriodDate(timeReport.firstDate, reportView, 1);
-        loadTimeReport(reportView, date);
-    }, [timeReport, reportView, loadTimeReport]);
+        navigate(buildPeriodUrl('/time', shiftPeriodPath(period, 1)));
+    }, [period, navigate]);
 
     const closeReport = useCallback(async (event) => {
         const confirmed = await confirm({
@@ -62,22 +101,43 @@ function Times(props) {
         var service = new ReportService();
         service.updateOpenCloseReport(payLoad, 'close')
             .then(() => {
-                loadTimeReport(Constants.MONTH_VIEW);
+                if (period) {
+                    loadTimeReport(period);
+                }
                 showSuccess(t('time.messages.reportClosed'));
             })
             .catch(() => {
                 showError(t('time.messages.closeFailed'));
             });
-    }, [timeReport, loadTimeReport, showSuccess, showError, confirm, t]);
+    }, [timeReport, period, loadTimeReport, showSuccess, showError, confirm, t]);
 
     const viewChange = useCallback((event) => {
         const view = event.target.value;
-        if (timeReport?.firstDate) {
-            loadTimeReport(view, timeReport.firstDate);
+        if (view === Constants.WEEK_VIEW) {
+            const weekPeriod = period?.mode === 'week'
+                ? period
+                : currentWeekPeriod();
+            navigate(buildPeriodUrl('/time', weekPeriod));
         } else {
-            loadTimeReport(view);
+            const monthPeriod = period?.mode === 'month'
+                ? period
+                : currentMonthPeriod();
+            navigate(buildPeriodUrl('/time', monthPeriod));
         }
-    }, [timeReport, loadTimeReport]);
+    }, [period, navigate]);
+
+    if (loadError) {
+        return (
+            <div className="container-fluid ml-2 mr-2">
+                <h2>{t('time.title')}</h2>
+                <PeriodLoadError
+                    message={loadError}
+                    basePath="/time"
+                    onGoToCurrent={(url) => navigate(url)}
+                />
+            </div>
+        );
+    }
 
     if (timeReport == null) return null;
 

@@ -4,7 +4,6 @@ import org.junit.jupiter.api.Test;
 import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
 import se.dtime.model.report.ReportType;
-import se.dtime.model.report.ReportView;
 import se.dtime.model.timereport.CloseDate;
 
 import java.time.LocalDate;
@@ -18,78 +17,55 @@ class ReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldGetCurrentReportsWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report")
-                        .param("view", ReportView.MONTH.name()))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldGetCurrentReportsWithBothParamsSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report")
-                        .param("view", ReportView.YEAR.name())
+    void shouldGetMonthlyReportSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/report/year/2025/month/1")
                         .param("type", ReportType.ACCOUNT.name()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
-    @WithMockUser(roles = "USER")
-    void shouldReturnForbiddenForCurrentReportsWithUserRole() throws Exception {
-        mockMvc.perform(get("/api/report"))
-                .andExpect(status().isForbidden());
-    }
-
-    @Test
-    void shouldReturnUnauthorizedForCurrentReportsWithNoAuthentication() throws Exception {
-        mockMvc.perform(get("/api/report"))
-                .andExpect(status().isUnauthorized());
-    }
-
-    @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldGetReportForSpecificDateSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report")
-                        .param("view", ReportView.MONTH.name())
-                        .param("type", ReportType.TASK.name())
-                        .param("date", "2024-01-15"))
+    void shouldGetYearlyReportSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/report/year/2025")
+                        .param("type", ReportType.USER.name()))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForReportWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/report")
-                        .param("date", "invalid-date"))
+    void shouldReturnBadRequestForInvalidMonth() throws Exception {
+        mockMvc.perform(get("/api/report/year/2025/month/13")
+                        .param("type", ReportType.TASK.name()))
                 .andExpect(status().isBadRequest());
     }
 
     @Test
+    @WithMockUser(roles = "USER")
+    void shouldReturnForbiddenForAdminReportWithUserRole() throws Exception {
+        mockMvc.perform(get("/api/report/year/2025/month/1"))
+                .andExpect(status().isForbidden());
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForReportWithNoAuthentication() throws Exception {
+        mockMvc.perform(get("/api/report/year/2025/month/1"))
+                .andExpect(status().isUnauthorized());
+    }
+
+    @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetUserReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/user")
-                        .param("view", ReportView.MONTH.name()))
+    void shouldGetUserReportForMonthSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/report/user/year/2025/month/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     void shouldReturnUnauthorizedForUserReportWithNoAuthentication() throws Exception {
-        mockMvc.perform(get("/api/report/user"))
+        mockMvc.perform(get("/api/report/user/year/2025/month/1"))
                 .andExpect(status().isUnauthorized());
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetUserReportForSpecificDateSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/report/user")
-                        .param("view", ReportView.MONTH.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
@@ -110,8 +86,8 @@ class ReportRestControllerIT extends BaseRestControllerIT {
     @WithMockUser(username = "user@example.com", roles = "USER")
     void shouldReturnBadRequestForInvalidCloseDate() throws Exception {
         CloseDate closeDate = CloseDate.builder()
-                .userId(0L) // Invalid: zero user ID
-                .closeDate(null) // Invalid: null closeDate
+                .userId(0L)
+                .closeDate(null)
                 .build();
 
         mockMvc.perform(post("/api/report/close")
@@ -151,8 +127,8 @@ class ReportRestControllerIT extends BaseRestControllerIT {
     @WithMockUser(roles = "ADMIN")
     void shouldReturnBadRequestForInvalidOpenDate() throws Exception {
         CloseDate closeDate = CloseDate.builder()
-                .userId(0L) // Invalid: zero user ID
-                .closeDate(null) // Invalid: null closeDate
+                .userId(0L)
+                .closeDate(null)
                 .build();
 
         mockMvc.perform(post("/api/report/open")

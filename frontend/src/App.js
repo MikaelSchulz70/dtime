@@ -31,6 +31,7 @@ import SystemConfig from './containers/system/SystemConfig';
 import UnclosedUsersPage from './containers/timereportstatus/UnclosedUsersPage';
 import SpecialDays from './containers/specialday/SpecialDays';
 import Chat from './containers/chat/Chat';
+import CurrentMonthRedirect from './components/CurrentMonthRedirect';
 
 // Placeholder imports for missing components - these may not be used in routes
 // TODO: Remove unused imports or create these components if needed
@@ -81,8 +82,10 @@ const Main = ({ session }) => {
         <ErrorBoundary>
           <Suspense fallback={<LoadingSpinner fullPage text={t('common.loading.loadingPage')} />}>
             <Routes>
-              <Route path='/' element={<Times />} />
-              <Route path='/time' element={<Times />} />
+              <Route path='/' element={<CurrentMonthRedirect basePath="/time" />} />
+              <Route path='/time' element={<CurrentMonthRedirect basePath="/time" />} />
+              <Route path='/time/year/:year/month/:month' element={<Times />} />
+              <Route path='/time/year/:year/week/:week' element={<Times />} />
               <Route path='/users' element={<UsersModal />} />
               <Route path='/account' element={<AccountsModal />} />
               <Route path='/account-old' element={<Account />} />
@@ -93,10 +96,16 @@ const Main = ({ session }) => {
               <Route path='/tasks/:taskId' element={<TaskDetails />} />
               <Route path='/taskcontributor' element={<TaskContributor />} />
               <Route path='/mytasks' element={<MyTaskAssignments />} />
-              <Route path='/reports' element={<AdminReports />} />
-              <Route path='/userreport' element={<UserTaskReportPage />} />
-              <Route path='/vacations' element={<Vacations />} />
-              <Route path='/timereportstatus' element={<UnclosedUsersPage />} />
+              <Route path='/reports' element={<CurrentMonthRedirect basePath="/reports" search="type=USER_TASK" />} />
+              <Route path='/reports/year/:year/month/:month' element={<AdminReports />} />
+              <Route path='/reports/year/:year' element={<AdminReports />} />
+              <Route path='/userreport' element={<CurrentMonthRedirect basePath="/userreport" />} />
+              <Route path='/userreport/year/:year/month/:month' element={<UserTaskReportPage />} />
+              <Route path='/userreport/year/:year' element={<UserTaskReportPage />} />
+              <Route path='/vacations' element={<CurrentMonthRedirect basePath="/vacations" />} />
+              <Route path='/vacations/year/:year/month/:month' element={<Vacations />} />
+              <Route path='/timereportstatus' element={<CurrentMonthRedirect basePath="/timereportstatus" />} />
+              <Route path='/timereportstatus/year/:year/month/:month' element={<UnclosedUsersPage />} />
               <Route path='/system/properties' element={<SystemConfig />} />
               <Route path='/specialdays' element={<SpecialDays />} />
               <Route path='/chat' element={<AdminRoute session={session}><Chat /></AdminRoute>} />

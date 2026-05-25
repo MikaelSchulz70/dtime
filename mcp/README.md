@@ -166,7 +166,7 @@ export OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI=http://localhost:9000/application
 | Client | MCP URL | Notes |
 |--------|---------|--------|
 | **Cursor** | `http://localhost:8081/mcp` | Streamable HTTP; no MCP endpoint auth in v1 |
-| **ollama-mcp-bridge** (admin Chat) | `http://dtime-mcp:8081/mcp` | **8 tools** via include filter in [`bridge-config.json`](../ollama/bridge-config.json) — omits `getUserTimeReport`. See [ollama/README.md](../ollama/README.md). |
+| **ollama-mcp-bridge** (admin Chat) | `http://dtime-mcp:8081/mcp` | **8 tools** via include filter in [`bridge-config.json`](../ollama/bridge-config.json) — omits user timesheet tools. See [ollama/README.md](../ollama/README.md). |
 
 The bridge exposes a **chat-optimized subset** of MCP tools (8 today) to keep Ollama prompts small; Cursor gets the full tool list (~22). Backend access is still the **machine** OAuth client (admin API scope), not the signed-in browser user. For report/time-period questions, see [Examples](#examples-mcp-tool-calls) below.
 
@@ -250,23 +250,22 @@ docker build -t dtime-mcp:latest mcp/
 
 All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. Implementations live under [`mcp/src/main/java/se/dtime/mcp/service/`](src/main/java/se/dtime/mcp/service/) (one `@Service` per API area). After a rebuild, the Ollama bridge health check reports **`tools`: 22** (`curl -s http://127.0.0.1:8082/health`).
 
-**Period-based reads:** for `GET /api/report`, `GET /api/timereport/user`, `GET /api/timereport/vacations`, and `GET /api/timereportstatus`, pass `date` as any ISO day inside the target month (or week for per-user time grids); omit `date` for the current period. The GUI prev/next buttons shift `date` client-side and call the same URL — there are no `/previous` or `/next` backend routes.
-
-**Removed tools** (replaced by period `date`): `getCurrentReports`, `getPreviousReport`, `getNextReport`, `getMonthlyUserReportSummary` → use **`getReport`** with `view`, `type`, and optional `date`.
+**Period-based reads:** reports, time sheets, vacations, and timereport status use explicit path segments (`year`, `month`, or ISO `week`). Omit `year`/`month` on MCP tools to use the current period.
 
 ### Examples (MCP tool calls)
 
 | Question | Tool | Arguments |
 |----------|------|-------------|
 | How many users in DTime? | `getUserCount` | no arguments → read `totalElements` |
-| Org-wide hours per user in May 2026 | `getReport` | `view=MONTH`, `type=USER`, `date=2026-05-15` |
-| Current month (default period) | `getReport` | `view=MONTH`, `type=USER` — omit `date` |
+| Org-wide hours per user in May 2026 | `getReport` | `year=2026`, `month=5`, `type=USER` |
+| Current month (default period) | `getReport` | `type=USER` — omit `year`/`month` |
+| Yearly org-wide report | `getYearlyReport` | `year=2026`, `type=USER` |
 | One user's total hours in May 2026 | `getReport` | `type=USER`, find user in `userReports` |
-| One user's day-by-day timesheet (Cursor / full MCP) | `getUserTimeReport` | `userId` from `getPagedUsers`, `view=MONTH`, `date=2026-05-01` — **not** in admin Chat bridge |
-| Vacation balances for March 2026 | `getVacationReport` | `date=2026-03-15` |
-| Unclosed reports for last month | `getUnclosedUsers` | `date` any day in that month |
+| One user's day-by-day timesheet (Cursor / full MCP) | `getUserTimeReportForMonth` | `userId` from `getPagedUsers`, `year=2026`, `month=5` — **not** in admin Chat bridge |
+| Vacation balances for March 2026 | `getVacationReport` | `year=2026`, `month=3` |
+| Unclosed reports for last month | `getUnclosedUsers` | `year` and `month` for target month |
 
-Admin Chat uses **`getReport` only** for hours (no `getUserTimeReport`) to avoid tool confusion. Use `getReport` with `type=USER` for org-wide or per-user **totals**, not day-by-day grids.
+Admin Chat uses **`getReport` only** for hours (no user timesheet tools) to avoid tool confusion. Use `getReport` with `type=USER` for org-wide or per-user **totals**, not day-by-day grids.
 
 ### Users (`/api/users`)
 
@@ -315,20 +314,22 @@ Only **`/user`** (admin, requires `userId`) and **`/vacations`** are exposed. Th
 
 | Tool | Backend |
 |------|---------|
-| `getUserTimeReport` | `GET /api/timereport/user` — one user; `view`: `WEEK` or `MONTH`; optional `date` in that week/month. **Full MCP / Cursor only** — omitted from admin Chat bridge |
-| `getVacationReport` | `GET /api/timereport/vacations` — optional `date` in month (omit = current month) |
+| `getUserTimeReportForMonth` | `GET /api/timereport/user/{userId}/year/{year}/month/{month}` — **Full MCP / Cursor only** |
+| `getUserTimeReportForWeek` | `GET /api/timereport/user/{userId}/year/{year}/week/{week}` — **Full MCP / Cursor only** |
+| `getVacationReport` | `GET /api/timereport/vacations/year/{year}/month/{month}` |
 
 ### Time report status (`/api/timereportstatus`)
 
 | Tool | Backend |
 |------|---------|
-| `getUnclosedUsers` | `GET /api/timereportstatus` — optional `date` in month |
+| `getUnclosedUsers` | `GET /api/timereportstatus/year/{year}/month/{month}` |
 
 ### Reports (`/api/report`) — admin aggregates
 
 | Tool | Backend |
 |------|---------|
-| `getReport` | `GET /api/report` — `view` (`MONTH` or `YEAR`), `type`, optional `date` in period (e.g. `type=USER` for monthly per-user hours) |
+| `getReport` | `GET /api/report/year/{year}/month/{month}?type=` — monthly; omit `year`/`month` for current month |
+| `getYearlyReport` | `GET /api/report/year/{year}?type=` |
 | `getBillableTaskTypeReport` | `GET /api/report/billable-task-type` — `fromDate`, `toDate` |
 
 ### System (`/api/system`)
@@ -346,8 +347,8 @@ Bulk list tools (`getAllUsers`, `getAllAccounts`, `getAllTasks`) may return larg
 |----------|--------|
 | `/api/auth/**` | OIDC redirect flows, not data APIs |
 | `/api/session` | Requires interactive browser user principal |
-| `GET /api/timereport` (no `userId`) | Logged-in user's sheet; machine JWT has no real end-user |
-| `GET /api/report/user` | Same — interactive user scope; use admin `getReport` with `type=USER` for org-wide data |
+| `GET /api/timereport/year/{year}/month/{month}` | Logged-in user's sheet; machine JWT has no real end-user |
+| `GET /api/report/user/year/{year}/month/{month}` | Interactive user scope; use admin `getReport` with `type=USER` for org-wide data |
 
 ## License
 

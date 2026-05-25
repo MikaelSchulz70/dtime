@@ -63,20 +63,6 @@ public class TimeReportServiceTest {
     }
 
     @Test
-    public void getReportDatesTest() {
-        LocalDate date = LocalDate.of(2018, 11, 28);
-
-        when(calendarService.getClosestMonday(date)).thenReturn(LocalDate.of(2018, 11, 26));
-        ReportDates reportDates = timeReportService.getReportDates(TimeReportView.WEEK, date);
-        assertEquals(LocalDate.of(2018, 11, 26), reportDates.getFromDate());
-        assertEquals(LocalDate.of(2018, 12, 2), reportDates.getToDate());
-
-        reportDates = timeReportService.getReportDates(TimeReportView.MONTH, date);
-        assertEquals(LocalDate.of(2018, 11, 1), reportDates.getFromDate());
-        assertEquals(LocalDate.of(2018, 11, 30), reportDates.getToDate());
-    }
-
-    @Test
     public void getClosedMonthsNoClosedTest() {
         Day[] days = createDays();
         UserPO userPO = new UserPO(1L);

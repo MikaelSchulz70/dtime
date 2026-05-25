@@ -47,7 +47,7 @@ function TaskReportTable({ report }) {
     const userReports = [{
         fullName: t('reports.allUsers'),
         totalTime: totalSum,
-        taskReports: report.taskReports.map(taskReport => ({
+        taskReports: (report.taskReports || []).map(taskReport => ({
             accountName: taskReport.accountName,
             taskName: taskReport.taskName,
             totalHours: parseFloat(taskReport.totalHours) || 0

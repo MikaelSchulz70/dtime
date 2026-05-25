@@ -1,18 +1,14 @@
 package se.dtime.restcontroller;
 
 import jakarta.validation.Valid;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 import se.dtime.model.timereport.TimeEntry;
 import se.dtime.model.timereport.TimeReport;
-import se.dtime.model.timereport.TimeReportView;
 import se.dtime.model.timereport.VacationReport;
 import se.dtime.service.timeentry.TimeEntryService;
-
-import java.time.LocalDate;
 
 @RestController
 @RequestMapping("/api/timereport")
@@ -30,31 +26,49 @@ public class TimeReportRestController {
     }
 
     @PreAuthorize("hasRole('USER')")
-    @GetMapping(path = "")
-    public ResponseEntity<TimeReport> getTimeReport(
-            @RequestParam(value = "view", required = false) TimeReportView timeReportView,
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        TimeReport timeReport = timeEntryService.getTimeReport(timeReportView, date);
+    @GetMapping(path = "/year/{year}/month/{month}")
+    public ResponseEntity<TimeReport> getTimeReportForMonth(
+            @PathVariable int year,
+            @PathVariable int month) {
+        TimeReport timeReport = timeEntryService.getTimeReportForMonth(year, month);
+        return new ResponseEntity<>(timeReport, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('USER')")
+    @GetMapping(path = "/year/{year}/week/{week}")
+    public ResponseEntity<TimeReport> getTimeReportForWeek(
+            @PathVariable int year,
+            @PathVariable int week) {
+        TimeReport timeReport = timeEntryService.getTimeReportForWeek(year, week);
         return new ResponseEntity<>(timeReport, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @GetMapping(path = "/user")
-    public ResponseEntity<TimeReport> getUserTimeReport(@RequestParam(value = "userId", required = true) long userId,
-                                                        @RequestParam(value = "view", required = true) TimeReportView timeReportView,
-                                                        @RequestParam(value = "date", required = true)
-                                                        @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        TimeReport timeReportDay = timeEntryService.getUserTimeReport(userId, timeReportView, date);
-        return new ResponseEntity<>(timeReportDay, HttpStatus.OK);
+    @GetMapping(path = "/user/{userId}/year/{year}/month/{month}")
+    public ResponseEntity<TimeReport> getUserTimeReportForMonth(
+            @PathVariable long userId,
+            @PathVariable int year,
+            @PathVariable int month) {
+        TimeReport timeReport = timeEntryService.getUserTimeReportForMonth(userId, year, month);
+        return new ResponseEntity<>(timeReport, HttpStatus.OK);
+    }
+
+    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
+    @GetMapping(path = "/user/{userId}/year/{year}/week/{week}")
+    public ResponseEntity<TimeReport> getUserTimeReportForWeek(
+            @PathVariable long userId,
+            @PathVariable int year,
+            @PathVariable int week) {
+        TimeReport timeReport = timeEntryService.getUserTimeReportForWeek(userId, year, week);
+        return new ResponseEntity<>(timeReport, HttpStatus.OK);
     }
 
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping(path = "/vacations")
-    public ResponseEntity<VacationReport> getVacations(
-            @RequestParam(value = "date", required = false)
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date) {
-        VacationReport vacationReport = timeEntryService.getVacationReport(date);
+    @GetMapping(path = "/vacations/year/{year}/month/{month}")
+    public ResponseEntity<VacationReport> getVacationsForMonth(
+            @PathVariable int year,
+            @PathVariable int month) {
+        VacationReport vacationReport = timeEntryService.getVacationReportForMonth(year, month);
         return new ResponseEntity<>(vacationReport, HttpStatus.OK);
     }
 }

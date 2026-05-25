@@ -100,7 +100,7 @@ public class CustomizedResponseEntityExceptionHandler {
                 .timestamp(java.time.Instant.now())
                 .status(HttpStatus.BAD_REQUEST.value())
                 .error("Invalid parameter type")
-                .message("Parameter '" + ex.getName() + "' has invalid type: " + ex.getMessage())
+                .message("Invalid value for '" + ex.getName() + "'")
                 .path(path)
                 .build();
         

@@ -27,44 +27,57 @@ class ReportMcpToolsTest {
     }
 
     @Test
-    void getReport_includesViewTypeAndDate() throws Exception {
-        when(backendApiClient.get("/api/report?view=MONTH&type=USER&date=2026-05-15", Object.class))
+    void getReport_usesPathBasedMonthlyEndpoint() throws Exception {
+        when(backendApiClient.get("/api/report/year/2026/month/5?type=USER", Object.class))
                 .thenReturn(Map.of());
 
-        tools.getReport("MONTH", "USER", "2026-05-15");
+        tools.getReport(2026, "5", "USER");
 
-        verify(backendApiClient).get("/api/report?view=MONTH&type=USER&date=2026-05-15", Object.class);
+        verify(backendApiClient).get("/api/report/year/2026/month/5?type=USER", Object.class);
     }
 
     @Test
-    void getReport_correctsAprilInViewSlot() throws Exception {
-        int year = java.time.LocalDate.now().getYear();
-        when(backendApiClient.get("/api/report?view=MONTH&type=USER&date=" + year + "-04-15", Object.class))
+    void getReport_acceptsMonthName() throws Exception {
+        when(backendApiClient.get("/api/report/year/2026/month/4?type=USER", Object.class))
                 .thenReturn(Map.of());
 
-        tools.getReport("APRIL", "USER", null);
+        tools.getReport(2026, "APRIL", "USER");
 
-        verify(backendApiClient).get("/api/report?view=MONTH&type=USER&date=" + year + "-04-15", Object.class);
+        verify(backendApiClient).get("/api/report/year/2026/month/4?type=USER", Object.class);
     }
 
     @Test
-    void getReport_correctsSwappedViewAndType() throws Exception {
-        when(backendApiClient.get("/api/report?view=MONTH&type=USER_TASK", Object.class))
+    void getYearlyReport_usesPathBasedYearEndpoint() throws Exception {
+        when(backendApiClient.get("/api/report/year/2026?type=ACCOUNT", Object.class))
                 .thenReturn(Map.of());
 
-        tools.getReport("USER_TASK", "MONTH", null);
+        tools.getYearlyReport(2026, "ACCOUNT");
 
-        verify(backendApiClient).get("/api/report?view=MONTH&type=USER_TASK", Object.class);
+        verify(backendApiClient).get("/api/report/year/2026?type=ACCOUNT", Object.class);
     }
 
     @Test
-    void getReport_omitsDateWhenBlank() throws Exception {
-        when(backendApiClient.get("/api/report?view=MONTH&type=ACCOUNT", Object.class))
+    void getReport_billableTaskType_usesBillableEndpointForMonth() throws Exception {
+        when(backendApiClient.get(
+                "/api/report/billable-task-type?fromDate=2026-04-01&toDate=2026-04-30", Object.class))
                 .thenReturn(Map.of());
 
-        tools.getReport("MONTH", "ACCOUNT", null);
+        tools.getReport(2026, "4", "BILLABLE_TASK_TYPE");
 
-        verify(backendApiClient).get("/api/report?view=MONTH&type=ACCOUNT", Object.class);
+        verify(backendApiClient).get(
+                "/api/report/billable-task-type?fromDate=2026-04-01&toDate=2026-04-30", Object.class);
+    }
+
+    @Test
+    void getYearlyReport_billableTaskType_usesBillableEndpointForYear() throws Exception {
+        when(backendApiClient.get(
+                "/api/report/billable-task-type?fromDate=2026-01-01&toDate=2026-12-31", Object.class))
+                .thenReturn(Map.of());
+
+        tools.getYearlyReport(2026, "BILLABLE_TASK_TYPE");
+
+        verify(backendApiClient).get(
+                "/api/report/billable-task-type?fromDate=2026-01-01&toDate=2026-12-31", Object.class);
     }
 
     @Test

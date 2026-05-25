@@ -1124,3 +1124,22 @@ label:has(input[type="checkbox"]):hover span {
   opacity: 1 !important;
   transform: scale(1.1);
 }
+
+.toast-stack {
+  max-width: min(420px, calc(100vw - 1.5rem));
+}
+
+.toast-stack .toast-compact {
+  max-width: 100%;
+  width: 100%;
+}
+
+.toast-stack .toast-body {
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.period-load-error {
+  max-width: 36rem;
+  margin: 2rem auto 0;
+}

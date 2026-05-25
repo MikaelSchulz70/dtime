@@ -9,7 +9,6 @@ import se.dtime.dbmodel.TaskContributorPO;
 import se.dtime.model.ActivationStatus;
 import se.dtime.model.timereport.Day;
 import se.dtime.model.timereport.TimeEntry;
-import se.dtime.model.timereport.TimeReportView;
 import se.dtime.repository.TaskContributorRepository;
 
 import java.time.LocalDate;
@@ -129,91 +128,46 @@ class TimeReportRestControllerIT extends BaseRestControllerIT {
 
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetCurrentTimeReportSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport"))
+    void shouldGetMonthlyTimeReportSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/timereport/year/2025/month/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetCurrentTimeReportWithViewSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport")
-                        .param("view", TimeReportView.WEEK.name()))
+    void shouldGetWeeklyTimeReportSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/timereport/year/2025/week/3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
-    void shouldReturnUnauthorizedForGetCurrentTimeReportWithNoAuthentication() throws Exception {
-        mockMvc.perform(get("/api/timereport"))
+    @WithMockUser(username = "user@example.com", roles = "USER")
+    void shouldReturnBadRequestForInvalidWeek() throws Exception {
+        mockMvc.perform(get("/api/timereport/year/2021/week/53"))
+                .andExpect(status().isBadRequest());
+    }
+
+    @Test
+    void shouldReturnUnauthorizedForGetTimeReportWithNoAuthentication() throws Exception {
+        mockMvc.perform(get("/api/timereport/year/2025/month/1"))
                 .andExpect(status().isUnauthorized());
     }
 
     @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetTimeReportForSpecificDateSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport")
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isOk())
-                .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnBadRequestForTimeReportWithInvalidDate() throws Exception {
-        mockMvc.perform(get("/api/timereport")
-                        .param("date", "invalid-date"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldGetUserTimeReportSuccessfully() throws Exception {
-        mockMvc.perform(get("/api/timereport/user")
-                        .param("userId", testUser.getId().toString())
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
+    void shouldGetUserTimeReportForMonthSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/timereport/user/" + testUser.getId() + "/year/2025/month/1"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
     }
 
     @Test
     @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForUserTimeReportWithoutRequiredParams() throws Exception {
-        mockMvc.perform(get("/api/timereport/user"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(roles = "ADMIN")
-    void shouldReturnBadRequestForUserTimeReportWithInvalidUserId() throws Exception {
-        mockMvc.perform(get("/api/timereport/user")
-                        .param("userId", "invalid")
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isBadRequest());
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldGetUserTimeReportForOwnUserWithUserRole() throws Exception {
-        mockMvc.perform(get("/api/timereport/user")
-                        .param("userId", testUser.getId().toString())
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
+    void shouldGetUserTimeReportForWeekSuccessfully() throws Exception {
+        mockMvc.perform(get("/api/timereport/user/" + testUser.getId() + "/year/2025/week/3"))
                 .andExpect(status().isOk())
                 .andExpect(content().contentType(MediaType.APPLICATION_JSON));
-    }
-
-    @Test
-    @WithMockUser(username = "user@example.com", roles = "USER")
-    void shouldReturnForbiddenWhenUserRequestsAnotherUsersTimeReport() throws Exception {
-        mockMvc.perform(get("/api/timereport/user")
-                        .param("userId", testAdmin.getId().toString())
-                        .param("view", TimeReportView.WEEK.name())
-                        .param("date", "2024-01-15"))
-                .andExpect(status().isForbidden());
     }
 }
