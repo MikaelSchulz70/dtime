@@ -1,0 +1,24 @@
+# DTime Ollama model manifest — source of truth for recommended/required models.
+# Sync to frontend: ./ollama/scripts/sync-manifest-json.sh
+# Pull models:     ./ollama/scripts/pull-models.sh
+
+ollama_min_version: "0.6.8"
+
+default_model: llama3.2
+
+models:
+  - name: llama3.2
+    required: true
+    description: "Default chat model"
+  - name: llama3.2:1b
+    required: false
+    description: "Fastest on CPU / limited RAM (weaker tool use)"
+  - name: llama3.2:3b
+    required: false
+    description: "Faster on CPU than full llama3.2"
+  - name: qwen3
+    required: false
+    description: "Better MCP tool calling (larger download)"
+  - name: llama3.1
+    required: false
+    description: "Alternative tool-calling model"

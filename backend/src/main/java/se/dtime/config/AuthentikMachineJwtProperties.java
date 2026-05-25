@@ -40,6 +40,15 @@ public class AuthentikMachineJwtProperties implements EnvironmentAware {
      */
     private List<String> authorizedClientIds = new ArrayList<>();
 
+    /** HTTP connect timeout when fetching JWKS from Authentik (ms). */
+    private int jwkConnectTimeoutMs = 15_000;
+
+    /** HTTP read timeout when fetching JWKS from Authentik (ms). */
+    private int jwkReadTimeoutMs = 60_000;
+
+    /** Prefetch JWKS on startup so the first MCP request does not block on a cold Authentik fetch. */
+    private boolean jwkWarmupOnStartup = true;
+
     @Override
     public void setEnvironment(Environment environment) {
         this.environment = environment;

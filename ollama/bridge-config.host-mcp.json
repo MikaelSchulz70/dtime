@@ -1,7 +1,20 @@
 {
   "mcpServers": {
     "dtime": {
-      "url": "http://host.docker.internal:8081/mcp"
+      "url": "http://host.docker.internal:8081/mcp",
+      "toolFilter": {
+        "mode": "include",
+        "tools": [
+          "getUserCount",
+          "getPagedUsers",
+          "getUser",
+          "getReport",
+          "getVacationReport",
+          "getUnclosedUsers",
+          "getPagedAccounts",
+          "getPagedTasks"
+        ]
+      }
     }
   }
 }

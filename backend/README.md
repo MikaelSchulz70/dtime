@@ -7,7 +7,7 @@ Spring Boot REST API for time tracking, users, projects, and reports.
 | Profile | Typical use | HTTPS | Notes |
 |---------|-------------|-------|--------|
 | `dev` | Local IDE / `mvn spring-boot:run` | **8443** | [application-dev.yml](src/main/resources/application-dev.yml), CSRF off |
-| `docker` | Root `docker-compose` backend service | **8443** | DB via `dtime-db` |
+| `docker` | Root `docker-compose` backend service | **8443** | DB via `host.docker.internal:5432` → infra `dtime-postgres` |
 | `prod` | Production | **8443** (+ optional HTTP 8080 internally) | See [application-prod.yml](src/main/resources/application-prod.yml) |
 
 ## Development (local)

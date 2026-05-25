@@ -37,6 +37,27 @@ class ReportMcpToolsTest {
     }
 
     @Test
+    void getReport_correctsAprilInViewSlot() throws Exception {
+        int year = java.time.LocalDate.now().getYear();
+        when(backendApiClient.get("/api/report?view=MONTH&type=USER&date=" + year + "-04-15", Object.class))
+                .thenReturn(Map.of());
+
+        tools.getReport("APRIL", "USER", null);
+
+        verify(backendApiClient).get("/api/report?view=MONTH&type=USER&date=" + year + "-04-15", Object.class);
+    }
+
+    @Test
+    void getReport_correctsSwappedViewAndType() throws Exception {
+        when(backendApiClient.get("/api/report?view=MONTH&type=USER_TASK", Object.class))
+                .thenReturn(Map.of());
+
+        tools.getReport("USER_TASK", "MONTH", null);
+
+        verify(backendApiClient).get("/api/report?view=MONTH&type=USER_TASK", Object.class);
+    }
+
+    @Test
     void getReport_omitsDateWhenBlank() throws Exception {
         when(backendApiClient.get("/api/report?view=MONTH&type=ACCOUNT", Object.class))
                 .thenReturn(Map.of());

@@ -2,6 +2,7 @@ package se.dtime.mcp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import se.dtime.mcp.client.BackendApiClient;
 
@@ -15,9 +16,13 @@ public class TimeReportStatusMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "Users with unclosed time reports for the month containing date (admin). "
-                    + "Omit date for current month. date: ISO YYYY-MM-DD inside target month.")
-    public String getUnclosedUsers(String date) throws Exception {
+            "When: users who have not closed/submitted time reports for a month "
+                    + "('unclosed reports', 'missing timesheets', 'who hasn't reported'). "
+                    + "Returns list of users with open reporting status.")
+    public String getUnclosedUsers(
+            @ToolParam(description =
+                    "Optional YYYY-MM-DD on any day in target month; omit for current month", required = false)
+            String date) throws Exception {
         Map<String, Object> params = queryMap();
         putIfPresent(params, "date", date);
         return getJson(buildPath("/api/timereportstatus", params));

@@ -1,4 +1,5 @@
 import { Headers, handleApiError, createApiConfig } from '../ServiceUtil';
+import { installMockWindowLocation } from '../../testUtils/mockWindowLocation';
 
 // Mock DOM methods
 const mockDocument = {
@@ -6,14 +7,17 @@ const mockDocument = {
   querySelector: jest.fn()
 };
 
-// Mock window.location.reload
-const mockReload = jest.fn();
-Object.defineProperty(window, 'location', {
-  value: { reload: mockReload },
-  writable: true
-});
+let locationMock;
 
 describe('ServiceUtil', () => {
+  beforeAll(() => {
+    locationMock = installMockWindowLocation();
+  });
+
+  afterAll(() => {
+    locationMock.restore();
+  });
+
   beforeEach(() => {
     // Reset mocks
     jest.clearAllMocks();
@@ -125,7 +129,7 @@ describe('ServiceUtil', () => {
       
       const result = handleApiError(error);
       
-      expect(mockReload).toHaveBeenCalled();
+      expect(locationMock.reload).toHaveBeenCalled();
       expect(result).toBeUndefined();
     });
 
@@ -140,7 +144,7 @@ describe('ServiceUtil', () => {
       const result = handleApiError(error);
       
       expect(result).toBe('You do not have permission to perform this action.');
-      expect(mockReload).not.toHaveBeenCalled();
+      expect(locationMock.reload).not.toHaveBeenCalled();
     });
 
     it('should return server error message for 500+ errors', () => {

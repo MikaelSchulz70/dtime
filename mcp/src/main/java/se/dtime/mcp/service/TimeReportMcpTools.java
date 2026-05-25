@@ -2,6 +2,7 @@ package se.dtime.mcp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import se.dtime.mcp.client.BackendApiClient;
 
@@ -15,10 +16,16 @@ public class TimeReportMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "Time entry grid for ONE user (admin). Requires numeric userId. "
-                    + "view: WEEK or MONTH. date: any ISO day inside that week/month (e.g. 2026-05-01 for May 2026). "
-                    + "Do NOT use for org-wide monthly totals — use getReport with type=USER instead.")
-    public String getUserTimeReport(long userId, String view, String date) throws Exception {
+            "When: one user's time-entry grid for a week or month ('Alice's hours in May'). "
+                    + "Requires userId from getPagedUsers. "
+                    + "Not for org-wide totals (getReport with type=USER). Returns user time grid JSON.")
+    public String getUserTimeReport(
+            @ToolParam(description = "Numeric DTime user id (required)") long userId,
+            @ToolParam(description = "Grid period: WEEK or MONTH") String view,
+            @ToolParam(description =
+                    "Optional YYYY-MM-DD on any day in target week/month; omit for current period",
+                    required = false)
+            String date) throws Exception {
         Map<String, Object> params = queryMap();
         params.put("userId", userId);
         params.put("view", view);
@@ -27,9 +34,12 @@ public class TimeReportMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "Vacation balances for the month containing date (admin). "
-                    + "Omit date for current month. date: ISO YYYY-MM-DD inside target month.")
-    public String getVacationReport(String date) throws Exception {
+            "When: vacation day balances for a month ('remaining vacation', 'vacation report'). "
+                    + "Not for worked hours (getReport). Returns vacation balance JSON.")
+    public String getVacationReport(
+            @ToolParam(description =
+                    "Optional YYYY-MM-DD on any day in target month; omit for current month", required = false)
+            String date) throws Exception {
         Map<String, Object> params = queryMap();
         putIfPresent(params, "date", date);
         return getJson(buildPath("/api/timereport/vacations", params));

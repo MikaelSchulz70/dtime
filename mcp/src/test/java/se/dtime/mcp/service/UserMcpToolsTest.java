@@ -34,7 +34,7 @@ class UserMcpToolsTest {
         when(backendApiClient.get("/api/users/42", Object.class))
                 .thenReturn(Map.of("id", 42, "email", "user@example.com"));
 
-        String result = tools.getUser(42);
+        String result = tools.getUser("42");
 
         assertThat(result).contains("\"id\" : 42");
         assertThat(result).contains("user@example.com");
@@ -46,9 +46,22 @@ class UserMcpToolsTest {
         when(backendApiClient.get("/api/users/42", Object.class))
                 .thenThrow(new DtimeApiException("API request failed: forbidden"));
 
-        assertThatThrownBy(() -> tools.getUser(42))
+        assertThatThrownBy(() -> tools.getUser("42"))
                 .isInstanceOf(DtimeApiException.class)
                 .hasMessageContaining("forbidden");
+    }
+
+    @Test
+    void getUserCount_returnsTotalElementsOnly() throws Exception {
+        when(backendApiClient.get(
+                "/api/users/paged?page=0&size=1&sort=id&direction=asc", Object.class))
+                .thenReturn(Map.of("totalElements", 7, "content", java.util.List.of(Map.of("id", 1))));
+
+        String result = tools.getUserCount();
+
+        assertThat(result).isEqualTo("{\"totalElements\":7}");
+        verify(backendApiClient).get(
+                "/api/users/paged?page=0&size=1&sort=id&direction=asc", Object.class);
     }
 
     @Test
@@ -57,7 +70,7 @@ class UserMcpToolsTest {
                 "/api/users/paged?page=0&size=10&sort=firstName&direction=asc", Object.class))
                 .thenReturn(Map.of("content", java.util.List.of()));
 
-        tools.getPagedUsers(0, 10, "firstName", "asc");
+        tools.getPagedUsers("0", "10", "firstName", "asc");
 
         verify(backendApiClient).get(
                 "/api/users/paged?page=0&size=10&sort=firstName&direction=asc", Object.class);
@@ -69,7 +82,7 @@ class UserMcpToolsTest {
                 "/api/users/paged?page=0&size=100&sort=id&direction=asc", Object.class))
                 .thenReturn(Map.of("content", java.util.List.of(), "totalElements", 5));
 
-        tools.getPagedUsers(0, 100, "userId", "asc");
+        tools.getPagedUsers("0", "100", "userId", "asc");
 
         verify(backendApiClient).get(
                 "/api/users/paged?page=0&size=100&sort=id&direction=asc", Object.class);

@@ -65,6 +65,9 @@ oauth:
     machine-jwt:
       enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:true}
       jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:http://localhost:9000/application/o/dtmcp/jwks/}
+      jwk-connect-timeout-ms: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_CONNECT_TIMEOUT_MS:15000}
+      jwk-read-timeout-ms: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_READ_TIMEOUT_MS:60000}
+      jwk-warmup-on-startup: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_WARMUP:true}
       # Allowlist: OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS, YAML list below, or (if both empty) MCP_OAUTH_CLIENT_ID.
       authorized-client-ids: []
 

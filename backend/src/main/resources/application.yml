@@ -83,6 +83,9 @@ oauth:
       enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:false}
       # Optional: JWKS for MCP tokens when signed by a different Authentik provider than the browser app.
       jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:}
+      jwk-connect-timeout-ms: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_CONNECT_TIMEOUT_MS:15000}
+      jwk-read-timeout-ms: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_READ_TIMEOUT_MS:60000}
+      jwk-warmup-on-startup: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_WARMUP:true}
 
 # Email Configuration
 mail:

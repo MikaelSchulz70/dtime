@@ -18,13 +18,14 @@
     "react-bootstrap-modal": "^4.2.0",
     "react-chartjs-2": "^5.3.1",
     "react-datepicker": "^9.1.0",
-    "react-dom": "^19.2.3",
+    "react-dom": "^19.2.4",
     "react-i18next": "^16.5.4",
+    "react-markdown": "^10.1.0",
     "react-modal": "^3.16.1",
     "react-router": "^7.13.0",
     "react-router-bootstrap": "^0.26.3",
-    "react-scripts": "^5.0.1",
-    "recharts": "^3.7.0"
+    "recharts": "^3.7.0",
+    "remark-gfm": "^4.0.1"
   },
   "scripts": {
     "dev": "webpack --mode development",
@@ -47,6 +48,7 @@
   "devDependencies": {
     "@babel/plugin-transform-runtime": "^7.28.5",
     "@eslint/js": "^9.38.0",
+    "@happy-dom/jest-environment": "^20.9.0",
     "@testing-library/dom": "^10.4.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
@@ -63,6 +65,8 @@
     "imagemin-mozjpeg": "^10.0.0",
     "imagemin-pngquant": "^10.0.0",
     "imagemin-webpack-plugin": "^2.4.2",
+    "jest": "^30.4.2",
+    "jest-environment-jsdom": "^30.4.1",
     "style-loader": "^4.0.0",
     "web-streams-polyfill": "^4.2.0",
     "webpack": "^5.104.1",

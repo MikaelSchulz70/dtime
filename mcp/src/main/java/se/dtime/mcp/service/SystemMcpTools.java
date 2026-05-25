@@ -12,12 +12,14 @@ public class SystemMcpTools extends McpToolsSupport {
         super(backendApiClient, objectMapper);
     }
 
-    @Tool(description = "Public system configuration (admin)")
+    @Tool(description =
+            "When: DTime system configuration settings. Not for user, task, or time data.")
     public String getSystemConfig() throws Exception {
         return getJson("/api/system/config");
     }
 
-    @Tool(description = "Whether outbound mail is enabled (admin)")
+    @Tool(description =
+            "When: whether outbound email is enabled. Not for user or report questions.")
     public String getMailEnabled() throws Exception {
         return getJson("/api/system/mail/enabled");
     }

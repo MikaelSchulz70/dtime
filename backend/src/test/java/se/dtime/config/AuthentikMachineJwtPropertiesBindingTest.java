@@ -61,4 +61,14 @@ class AuthentikMachineJwtPropertiesBindingTest {
                     assertThat(p.getJwkSetUri()).isEqualTo("http://localhost:9000/application/o/dtmcp/jwks/");
                 });
     }
+
+    @Test
+    void jwkTimeoutPropertiesBindWithDefaults() {
+        runner.run(ctx -> {
+            AuthentikMachineJwtProperties p = ctx.getBean(AuthentikMachineJwtProperties.class);
+            assertThat(p.getJwkConnectTimeoutMs()).isEqualTo(15_000);
+            assertThat(p.getJwkReadTimeoutMs()).isEqualTo(60_000);
+            assertThat(p.isJwkWarmupOnStartup()).isTrue();
+        });
+    }
 }

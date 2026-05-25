@@ -27,7 +27,11 @@ public class AuthentikMachineJwtConfiguration {
                     "oauth.authentik.machine-jwt.enabled is true but no JWKS URI is set "
                             + "(configure oauth.authentik.machine-jwt.jwk-set-uri or oauth.authentik.jwk-set-uri)");
         }
-        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri).build();
+        return NimbusJwtDecoder.withJwkSetUri(jwkSetUri)
+                .restOperations(OAuthJwkRestTemplateFactory.create(
+                        machineJwtProperties.getJwkConnectTimeoutMs(),
+                        machineJwtProperties.getJwkReadTimeoutMs()))
+                .build();
     }
 
     @Bean(name = "authentikMachineJwtAuthenticationConverter")

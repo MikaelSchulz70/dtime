@@ -1,146 +1,215 @@
 # Ollama + MCP bridge (DTime)
 
-Local LLM (**Ollama**) plus **[ollama-mcp-bridge](https://github.com/jonigl/ollama-mcp-bridge)** so the admin Chat UI can call an Ollama-compatible API with **DTime MCP tools** attached.
+**Native Ollama** on the host; **MCP** (`dtime-mcp`) and **ollama-mcp-bridge** (`dtime-ollama-bridge`) run in **Docker**. Chat uses MCP tools against the DTime backend.
 
-## Compose layout
-
-| File | Services |
-|------|----------|
-| [`docker-compose.yml`](docker-compose.yml) | `dtime-ollama` — run from **this directory** or via root `include` |
-| [`docker-compose.bridge.yml`](docker-compose.bridge.yml) | `dtime-ollama-bridge` — merged from **repo root** only (needs `dtime-mcp`) |
-
-The root [`docker-compose.yml`](../docker-compose.yml) includes both files so one command still starts the full stack.
+Ollama is not in Docker — use the native install for Metal/GPU performance on Mac.
 
 ## Architecture
 
-| Service | Container | Host port | Purpose |
-|---------|-----------|-----------|---------|
-| Ollama | `dtime-ollama` | **11434** | Model runtime (`ollama pull …`) |
-| MCP bridge | `dtime-ollama-bridge` | **8082** → container **8000** | `/api/chat` + MCP; other `/api/*` proxied to Ollama |
-| MCP server | `dtime-mcp` | **8081** | Streamable HTTP at `/mcp` (defined in root compose) |
+| Component | Where | Host port | Purpose |
+|-----------|--------|-----------|---------|
+| Ollama | **Native on host** | **11434** | Model runtime (`ollama pull …`) |
+| MCP | **`dtime-mcp` (Docker)** | **8081** | Streamable HTTP at `/mcp` |
+| MCP bridge | **`dtime-ollama-bridge` (Docker)** | **8082** → **8000** | `/api/chat` + MCP; proxies other `/api/*` to Ollama |
 
-The frontend uses **`/api/ollama/...`** (webpack dev proxy or nginx) → bridge.
+```text
+Browser → bridge (Docker :8082) → native Ollama (:11434)
+              └→ dtime-mcp (Docker :8081) → dtime-backend → DTime API
+```
 
-Bridge MCP config: [`bridge-config.json`](bridge-config.json) → `http://dtime-mcp:8081/mcp`.
+Default bridge config: [`bridge-config.json`](bridge-config.json) → `http://dtime-mcp:8081/mcp` (Docker MCP on the compose network).
+
+Optional [`bridge-config.host-mcp.json`](bridge-config.host-mcp.json) only if MCP runs via `mvn` on the host instead of `dtime-mcp`.
+
+## Install Ollama (host)
+
+**Mac (Homebrew):**
+
+```bash
+brew install ollama
+brew services start ollama
+```
+
+**Linux / other:** [https://ollama.com/download](https://ollama.com/download) — enable the systemd service on servers.
+
+Verify:
+
+```bash
+curl -s http://127.0.0.1:11434/api/tags
+ollama pull llama3.2
+```
+
+## Chat dev (recommended)
+
+From repo root (native Ollama + MCP + bridge in Docker; **detects backend on host or in Docker**):
+
+```bash
+./start-ollama-chat.sh
+```
+
+**Typical IntelliJ flow:** run backend with **dev** profile in IntelliJ, then `./start-ollama-chat.sh`. MCP in Docker calls `https://host.docker.internal:8443`. Set `CHAT_BACKEND=host` to refuse starting `dtime-backend` in Docker.
+
+**All-Docker flow:** stop host backend, run `./start-ollama-chat.sh` (or `CHAT_BACKEND=docker`) — starts `dtime-backend` + `dtime-mcp` + bridge.
+
+Then: `cd frontend && npm start` → admin **Chat** at `/chat`.
+
+```bash
+curl -s http://127.0.0.1:8082/health   # expect tools: 8
+```
+
+## Bridge + MCP in Docker (manual)
+
+```bash
+./start-ollama-bridge.sh
+# auto: host backend if :8443 healthy, else Docker backend + MCP
+```
+
+Start **bridge only** when `dtime-mcp` is already up:
+
+```bash
+export BRIDGE_MCP_CONFIG=bridge-config.json
+docker compose --profile ollama up -d dtime-ollama-bridge
+```
+
+## Optional: MCP on host (IntelliJ / mvn)
+
+Not the default. Use only when `dtime-mcp` container is **not** running:
+
+```bash
+BRIDGE_MCP_CONFIG=bridge-config.host-mcp.json ./start-ollama-bridge.sh
+```
+
+PostgreSQL is **`dtime-postgres`** from **infra/** only (`cd infra && docker compose up -d postgres`).
 
 ## Memory and model choice
 
-Ollama loads the whole model into RAM. If Chat returns an error like *“model requires more system memory (2.3 GiB) than is available (1.8 GiB)”*, the limit is almost always **Docker’s VM or free host RAM** — the `dtime-ollama` service in compose does **not** set a memory cap.
-
-### Increase memory (recommended on a Mac with spare RAM)
-
-Giving Docker more memory lets you run larger models (e.g. `llama3.2`) with better answers.
-
-**Colima** (common on macOS):
-
-```bash
-colima stop
-colima start --memory 8
-```
-
-Use `6` instead of `8` on machines with less physical RAM.
-
-**Docker Desktop:** Settings → **Resources** → **Memory** (e.g. 8 GB) → Apply & Restart.
-
-Then restart Ollama and pull the model you want:
-
-```bash
-docker restart dtime-ollama
-docker exec dtime-ollama ollama pull llama3.2
-```
-
-Set `OLLAMA_DEFAULT_MODEL=llama3.2` in the repo `.env` and restart `npm start`, or type the model name in the Chat UI.
-
-### Use a smaller model (when RAM stays ~2 GiB)
-
-If you cannot grow Docker’s memory, use a smaller tag instead of the default `llama3.2`:
-
-```bash
-docker exec dtime-ollama ollama pull llama3.2
-```
-
-Other low-footprint options: `phi3:mini`, `qwen2.5:0.5b`, etc. (after `ollama pull <name>`).
-
-### What to choose
+Native Ollama uses **host RAM** directly (no Docker VM cap). On Apple Silicon, Ollama uses **Metal** for much faster inference than CPU-only Docker.
 
 | Situation | Suggestion |
 |-----------|------------|
-| Mac with 16+ GiB RAM, LLM used often | Increase Docker to **6–8 GiB**, use **`llama3.2`** |
-| Docker VM ~2 GiB, or many containers running | Keep Docker size as-is, use **`llama3.2:1b`** or similar |
-| Error in Chat UI | Ollama errors are shown in the red alert; fix RAM or switch model |
+| Mac with 16+ GiB RAM | **`llama3.2`** or **`qwen3`** for better tool calling |
+| Limited RAM | **`llama3.2:1b`** or **`llama3.2:3b`** |
+| Chat errors about memory | Use a smaller model or free host RAM |
 
-You can also free memory by stopping unused containers (`docker ps`, stop what you do not need) before starting Chat.
+Set `OLLAMA_DEFAULT_MODEL` in `.env` or pick a model in the Chat UI.
 
-## Start Ollama only (this directory)
+## Model manifest and updates
+
+Recommended models: [`models.manifest.yaml`](models.manifest.yaml). Sync to the Chat UI:
 
 ```bash
-cd ollama
-docker compose --profile ollama up -d
-docker exec dtime-ollama ollama pull llama3.2
+./ollama/scripts/sync-manifest-json.sh
 ```
 
-## Chat dev (frontend on host, Ollama + bridge in Docker)
+| Task | Command |
+|------|---------|
+| Install required models (if missing) | `./ollama/scripts/pull-models.sh` |
+| Install all manifest models | `./ollama/scripts/pull-models.sh --all` |
+| Update models from registry | `./ollama/scripts/pull-models.sh --upgrade` |
+| CI check | `./ollama/scripts/pull-models.sh --check` |
+| One model | `./ollama/scripts/pull-models.sh --model qwen3` |
 
-When the backend/MCP run **locally** (`mvn spring-boot:run` on :8081) and Postgres is already on host :5432:
+Admin **Chat → Models** tab can install/update/remove manifest models without the CLI.
+
+**Ollama upgrades:** `brew upgrade ollama` (Mac) or update the Linux package. Manifest field `ollama_min_version` documents the tested minimum.
+
+**Production with Chat:** install Ollama on the server, then `./deploy.sh --with-chat` or `DEPLOY_OLLAMA=true` in `.env`.
+
+### Migrating from Docker Ollama
+
+If models lived only in the old `dtime-ollama` container volume, re-pull on native Ollama:
 
 ```bash
-# From repo root
-docker compose --profile ollama up -d dtime-ollama
-BRIDGE_MCP_CONFIG=bridge-config.host-mcp.json docker compose --profile ollama up -d dtime-ollama-bridge
+ollama pull llama3.2
 ```
 
-Then restart frontend: `cd frontend && npm start` → admin **Chat** at `/chat`.
+## Tool calling
 
-Bridge health: `curl http://127.0.0.1:8082/health`
+The bridge registers DTime MCP tools on every `POST /api/chat`. Ollama decides whether to invoke them; the bridge executes tool calls and streams results back.
 
-## Full stack (repo root)
-
-Backend, MCP, frontend, Ollama, and bridge:
+### Verify tools are connected
 
 ```bash
-cd /path/to/dtime
-docker compose --profile full-stack --profile mcp --profile ollama up -d
-docker exec dtime-ollama ollama pull llama3.2
+curl -s http://127.0.0.1:8082/health
 ```
 
-If compose `dtime-db` fails on port **5432**, another Postgres is already running. Either stop it or set `DATABASE_HOST_PORT=5433` in `.env` (see root `.env.example`). For chat-only dev you can skip `dtime-db` and use the **host MCP** flow above.
+| `tools` value | Meaning |
+|---------------|---------|
+| **8** | MCP connected — chat-optimized tool set |
+| **0** | No MCP tools — the model will **hallucinate**. Fix MCP/bridge config before using Chat |
 
-If `dtime-ollama` is missing, the stack did not finish starting. Check:
+If MCP runs on the **host** (not `dtime-mcp`), set `BRIDGE_MCP_CONFIG=bridge-config.host-mcp.json`. Default Docker setup uses [`bridge-config.json`](bridge-config.json).
+
+During a chat turn you should see:
+
+1. Chat UI — **Calling: dtime.getUserCount** (or similar)
+2. MCP logs — `MCP tool getUserCount -> GET /api/...`
+
+### Model choice for tool use
+
+`llama3.2` (default) often **skips tool calls**. For admin Chat with MCP, prefer:
 
 ```bash
-docker ps -a --filter name=dtime-ollama
-docker compose --profile full-stack --profile mcp --profile ollama ps -a
+ollama pull qwen3
 ```
 
-Services use profiles **`ollama`**, **`full-stack`**, and **`mcp`**.
+Set `OLLAMA_DEFAULT_MODEL=qwen3` in `.env` or use the Chat UI.
 
-## Smoke tests
+See [Ollama tool calling](https://docs.ollama.com/capabilities/tool-calling).
+
+### Performance
+
+First chat turn is dominated by **Ollama prompt eval** (system prompt + tool schemas). Tuning in this repo:
+
+| Setting | Where | Effect |
+|---------|--------|--------|
+| **8 chat tools** (include filter) | `bridge-config*.json` | Smaller prompt vs full MCP |
+| Short system prompt | `docker-compose.bridge.yml` | Fewer input tokens |
+| `MAX_TOOL_ROUNDS=3` | bridge env | Stops endless tool retries |
+| Chat `options` | frontend `ChatService.js` | Caps reply length, keeps model warm |
+| Native Ollama + Metal | host install | Much faster than Docker CPU-only |
+
+After changing bridge config, recreate the bridge:
 
 ```bash
-curl -s http://localhost:11434/api/tags | head
-curl -s http://localhost:8082/health
+docker compose --profile ollama up -d --force-recreate dtime-ollama-bridge
+curl -s http://127.0.0.1:8082/health   # expect tools: 8
 ```
 
 ## MCP tools and period-based `date`
 
 The bridge calls **dtime-mcp** read-only tools on each chat turn. Factual answers must come from tool JSON, not invented numbers.
 
-**Period rule:** pass `date` as any ISO day inside the target week/month (e.g. `2026-05-15` for May 2026). Omit `date` for the current period. There are no `/previous` or `/next` API paths.
+**Period rule:** pass `date` as any ISO day inside the target week/month (e.g. `2026-05-15` for May 2026). Omit `date` for the current period.
 
 | Use case | MCP tool | Typical args |
 |----------|----------|--------------|
+| How many users | `getUserCount` | no args → read `totalElements` |
 | Org-wide monthly per-user hours | `getReport` | `view=MONTH`, `type=USER`, `date` in that month |
-| One user's time grid | `getUserTimeReport` | numeric `userId` from `getPagedUsers`, `view=WEEK` or `MONTH`, `date` in period |
+| One user's total hours in a month | `getReport` | `type=USER`, find user in `userReports` |
 | Vacations / unclosed users | `getVacationReport`, `getUnclosedUsers` | optional `date` in target month |
 
-Default bridge `SYSTEM_PROMPT` in [`docker-compose.bridge.yml`](docker-compose.bridge.yml) encodes this. Full tool list and examples: [mcp/README.md](../mcp/README.md#tools).
+Admin Chat omits **`getUserTimeReport`** (day-by-day grid) to reduce tool confusion — full MCP / Cursor only. See [mcp/README.md](../mcp/README.md).
 
 ## Environment variables
 
-See root [`.env.example`](../.env.example) (`OLLAMA_*`, `OLLAMA_BRIDGE_*`). Bridge image: `ghcr.io/jonigl/ollama-mcp-bridge:v0.11.2`.
+See root [`.env.example`](../.env.example) (`OLLAMA_URL`, `OLLAMA_*`, `OLLAMA_BRIDGE_*`). Bridge image: `ghcr.io/jonigl/ollama-mcp-bridge:v0.11.2`.
+
+| Variable | Default | Meaning |
+|----------|---------|---------|
+| `OLLAMA_URL` | `http://host.docker.internal:11434` | Bridge → native Ollama |
+| `OLLAMA_PORT` | `11434` | Host listen port (health checks, scripts) |
+| `BRIDGE_MCP_CONFIG` | `bridge-config.json` | MCP in Docker vs host |
 
 ## Security
 
-- Keep **11434** (Ollama) and **8081** (MCP) on localhost / Docker network only.
+- Keep **11434** (Ollama) and **8081** (MCP) on localhost / private network only.
 - Only the **bridge** (8082) should be reached via the frontend proxy path.
 - Chat is **admin-only** in the UI; MCP uses the **machine service account** (admin API scope).
+
+## Smoke tests
+
+```bash
+curl -s http://127.0.0.1:11434/api/tags | head
+curl -s http://127.0.0.1:8082/health
+```

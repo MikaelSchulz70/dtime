@@ -1,7 +1,7 @@
 # Ollama MCP bridge — included from repo root together with docker-compose.yml.
 #
-# Default: MCP at http://dtime-mcp:8081/mcp (container, profile mcp).
-# Dev on host: set BRIDGE_MCP_CONFIG=bridge-config.host-mcp.json and run MCP via mvn / local :8081.
+# Ollama: native on host (host.docker.internal:11434). MCP + bridge: Docker (dtime-mcp, dtime-ollama-bridge).
+# Default BRIDGE_MCP_CONFIG=bridge-config.json → http://dtime-mcp:8081/mcp
 
 services:
   dtime-ollama-bridge:
@@ -9,10 +9,11 @@ services:
     container_name: dtime-ollama-bridge
     restart: unless-stopped
     environment:
-      OLLAMA_URL: http://dtime-ollama:11434
+      OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
       CORS_ORIGINS: ${OLLAMA_BRIDGE_CORS_ORIGINS:-http://localhost:3000,https://localhost:3000}
-      SYSTEM_PROMPT: "${OLLAMA_BRIDGE_SYSTEM_PROMPT:-You are a helpful assistant for DTime time tracking and project management. Always call MCP tools for factual data; never invent numbers. Period-based APIs — pass date as any ISO day inside the target week/month (e.g. 2026-05-15 for May 2026); omit date for the current period. Org-wide monthly totals — getReport with view=MONTH, type=USER, date in that month; read userReports and sum totalTime. Single-user time grid — getUserTimeReport with a real userId from getPagedUsers. Never pass null for userId.}"
+      SYSTEM_PROMPT: "${OLLAMA_BRIDGE_SYSTEM_PROMPT:-DTime admin assistant. Use dtime MCP tools only; never invent data. User count: getUserCount. Hours and org reports: getReport only (view MONTH|YEAR, type USER|USER_TASK|TASK|ACCOUNT; date=any ISO day in period, omit for current). Per-user totals: getReport type=USER. Lists: getPagedUsers, getPagedAccounts, getPagedTasks. Answer in 1-2 short markdown sentences from tool JSON only.}"
       OLLAMA_PROXY_TIMEOUT: ${OLLAMA_PROXY_TIMEOUT:-600000}
+      MAX_TOOL_ROUNDS: ${OLLAMA_BRIDGE_MAX_TOOL_ROUNDS:-3}
     ports:
       - "${OLLAMA_BRIDGE_PORT:-8082}:8000"
     volumes:
@@ -21,17 +22,19 @@ services:
     extra_hosts:
       - "host.docker.internal:host-gateway"
     depends_on:
-      dtime-ollama:
-        condition: service_healthy
       dtime-mcp:
         condition: service_healthy
-        required: false
     healthcheck:
-      test: ["CMD-SHELL", "python -c \"import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health')\""]
+      # Unhealthy while MCP tools are not registered (tools: 0 → model hallucinates without DTime data).
+      test:
+        [
+          "CMD-SHELL",
+          "python -c \"import urllib.request,json; d=json.load(urllib.request.urlopen('http://127.0.0.1:8000/health')); exit(0 if d.get('tools',0)>0 else 1)\"",
+        ]
       interval: 30s
       timeout: 10s
-      retries: 5
-      start_period: 45s
+      retries: 8
+      start_period: 120s
     profiles:
       - ollama
       - full-stack

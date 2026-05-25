@@ -63,10 +63,9 @@ public class BackendApiClient {
         }
     }
 
-    /** Obtains an Authentik access token (does not call dtime-backend). */
+    /** Obtains an Authentik access token (does not call dtime-backend). Uses cached token when still valid. */
     public boolean canObtainAccessToken() {
         try {
-            accessTokenSupplier.invalidate();
             accessTokenSupplier.getAccessTokenValue();
             return true;
         } catch (DtimeApiException e) {

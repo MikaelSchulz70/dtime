@@ -1,26 +1,17 @@
 # Typical host port binding (defaults below). Keep MCP off 8443 / 3000 / 8080 to avoid clashes:
+#   PostgreSQL: localhost:5432 — container dtime-postgres from infra/ only (cd infra && docker compose up -d postgres)
 #   Backend (HTTPS): https://localhost:8443 — application-dev.yml + application-docker.yml (server.port: 8443)
 #   Backend prod profile may also bind HTTP on 8080 internally (application-prod.yml); compose only publishes 8443.
 #   Frontend dev: https://localhost:3000 — webpack FRONTEND_PORT (default 3000)
 #   Frontend prod compose: localhost:3000 → nginx:80 inside container (no MCP overlap)
 #   MCP: http://localhost:8081 (default SERVER_PORT/MCP_PORT; distinct from backend 8443 and frontend 3000)
-#   Ollama: http://localhost:11434 — see ollama/docker-compose.yml (profile ollama / full-stack / mcp)
-#   Ollama MCP bridge: http://localhost:8082 — included from ollama/docker-compose.yml
+#   Ollama: http://localhost:11434 — native on host (brew install ollama); not a Docker service
+#   Ollama MCP bridge: http://localhost:8082 — ollama/docker-compose.bridge.yml (profile ollama)
 
 include:
-  - path: ./ollama/docker-compose.yml
   - path: ./ollama/docker-compose.bridge.yml
 
 services:
-  # PostgreSQL Database
-  dtime-db:
-    extends:
-      file: ./infra/postgres/docker-compose.yml
-      service: postgres
-    # Avoid clashing with another Postgres on host :5432 (e.g. dtime-postgres / infra)
-    ports: !override
-      - "${DATABASE_HOST_PORT:-5433}:5432"
-
   # Spring Boot Backend (optional - for full stack development)
   dtime-backend:
     build:
@@ -29,8 +20,9 @@ services:
     container_name: dtime-backend
     restart: unless-stopped
     environment:
-      SPRING_PROFILES_ACTIVE: ${SPRING_PROFILES_ACTIVE:-dev}
-      DATABASE_URL: jdbc:postgresql://dtime-db:5432/${DATABASE_NAME:-dtime}
+      # Docker profile — do not inherit SPRING_PROFILES_ACTIVE=dev from host IntelliJ runs.
+      SPRING_PROFILES_ACTIVE: ${BACKEND_DOCKER_SPRING_PROFILES_ACTIVE:-docker}
+      DATABASE_URL: jdbc:postgresql://host.docker.internal:5432/${DATABASE_NAME:-dtime}
       DATABASE_USERNAME: ${DATABASE_USERNAME:-postgres}
       DATABASE_PASSWORD: ${DATABASE_PASSWORD:-change_me}
       MAIL_USERNAME: ${MAIL_USERNAME}
@@ -39,25 +31,27 @@ services:
       OAUTH_AUTHENTIK_ENABLED: ${OAUTH_AUTHENTIK_ENABLED:-false}
       OAUTH_AUTHENTIK_CLIENT_ID: ${OAUTH_AUTHENTIK_CLIENT_ID}
       OAUTH_AUTHENTIK_CLIENT_SECRET: ${OAUTH_AUTHENTIK_CLIENT_SECRET}
+      # Browser redirects — keep localhost from .env (reachable from the host browser).
       OAUTH_AUTHENTIK_AUTHORIZATION_URI: ${OAUTH_AUTHENTIK_AUTHORIZATION_URI}
       OAUTH_AUTHENTIK_END_SESSION_URI: ${OAUTH_AUTHENTIK_END_SESSION_URI:-}
       OAUTH_AUTHENTIK_FULL_LOGOUT_FLOW_URI: ${OAUTH_AUTHENTIK_FULL_LOGOUT_FLOW_URI:-}
       OAUTH_AUTHENTIK_REQUIRE_APP_ROLE: ${OAUTH_AUTHENTIK_REQUIRE_APP_ROLE:-true}
       OAUTH_AUTHENTIK_SWITCH_USER_RETURN_BASE_URL: ${OAUTH_AUTHENTIK_SWITCH_USER_RETURN_BASE_URL:-}
-      OAUTH_AUTHENTIK_TOKEN_URI: ${OAUTH_AUTHENTIK_TOKEN_URI}
-      OAUTH_AUTHENTIK_USER_INFO_URI: ${OAUTH_AUTHENTIK_USER_INFO_URI}
-      OAUTH_AUTHENTIK_JWK_SET_URI: ${OAUTH_AUTHENTIK_JWK_SET_URI}
+      # Server-side Authentik fetches — localhost from .env breaks inside the container.
+      OAUTH_AUTHENTIK_TOKEN_URI: ${BACKEND_DOCKER_OAUTH_TOKEN_URI:-http://host.docker.internal:9000/application/o/token/}
+      OAUTH_AUTHENTIK_USER_INFO_URI: ${BACKEND_DOCKER_OAUTH_USER_INFO_URI:-http://host.docker.internal:9000/application/o/userinfo/}
+      OAUTH_AUTHENTIK_JWK_SET_URI: ${BACKEND_DOCKER_OAUTH_JWK_SET_URI:-http://host.docker.internal:9000/application/o/dtime/jwks/}
       OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:-false}
-      OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:-}
+      OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI: ${BACKEND_DOCKER_MACHINE_JWT_JWK_SET_URI:-http://host.docker.internal:9000/application/o/dtmcp/jwks/}
       OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS: ${OAUTH_AUTHENTIK_MACHINE_JWT_AUTHORIZED_CLIENT_IDS:-}
       # Fallback allowlist when AUTHORIZED_CLIENT_IDS empty (see AuthentikMachineJwtProperties)
       MCP_OAUTH_CLIENT_ID: ${MCP_OAUTH_CLIENT_ID:-}
-      SSL_KEYSTORE_PASSWORD: ${SSL_KEYSTORE_PASSWORD:-dt2020}
+      # Dev keystore password — do not pass SSL_KEYSTORE_PASSWORD from .env (often the .env.example placeholder).
+      SSL_KEYSTORE_PASSWORD: ${BACKEND_DOCKER_SSL_KEYSTORE_PASSWORD:-dt2020}
     ports:
       - "8443:8443"
-    depends_on:
-      dtime-db:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: [ "CMD-SHELL", "curl -f -k https://localhost:8443/actuator/health || exit 1" ]
       interval: 30s
@@ -66,7 +60,7 @@ services:
       start_period: 90s
     profiles:
       - full-stack
-      - mcp
+      - ollama
 
   # Frontend Development Server (optional)
   dtime-frontend:
@@ -105,7 +99,8 @@ services:
     profiles:
       - production
 
-  # MCP Server (Model Context Protocol)
+  # MCP Server (Model Context Protocol). Starts independently of dtime-backend — set MCP_BACKEND_URL
+  # (e.g. https://host.docker.internal:8443 when backend runs on the host).
   dtime-mcp:
     build:
       context: ./mcp
@@ -116,10 +111,10 @@ services:
       # docker profile: defaults in mcp/src/main/resources/application.yml (dtime-backend + host.docker.internal Authentik)
       SPRING_PROFILES_ACTIVE: ${MCP_SPRING_PROFILES_ACTIVE:-docker,prod}
       SERVER_PORT: ${MCP_PORT:-8081}
-      MCP_BACKEND_URL: ${MCP_BACKEND_URL:-https://dtime-backend:8443}
-      # Do not inherit OAUTH_AUTHENTIK_TOKEN_URI here: host .env often uses localhost:9000 (OK for backend on host);
-      # inside this container localhost is wrong for Authentik on the host—override explicitly if needed.
-      MCP_OAUTH_TOKEN_URI: ${MCP_OAUTH_TOKEN_URI:-http://host.docker.internal:9000/application/o/token/}
+      # Do not use MCP_BACKEND_URL from .env here — it is often localhost (host mvn/IntelliJ) and breaks inside the container.
+      MCP_BACKEND_URL: ${MCP_DOCKER_BACKEND_URL:-https://host.docker.internal:8443}
+      # Do not use MCP_OAUTH_TOKEN_URI from .env here — it is often localhost (host mvn) and breaks inside the container.
+      MCP_OAUTH_TOKEN_URI: ${MCP_DOCKER_OAUTH_TOKEN_URI:-http://host.docker.internal:9000/application/o/token/}
       MCP_OAUTH_CLIENT_ID: ${MCP_OAUTH_CLIENT_ID:-}
       MCP_OAUTH_CLIENT_SECRET: ${MCP_OAUTH_CLIENT_SECRET:-}
       MCP_OAUTH_SCOPE: ${MCP_OAUTH_SCOPE:-}
@@ -127,9 +122,8 @@ services:
       JAVA_OPTS: ${MCP_JAVA_OPTS:--Xmx512m -Xms256m}
     ports:
       - "${MCP_PORT:-8081}:${MCP_PORT:-8081}"
-    depends_on:
-      dtime-backend:
-        condition: service_healthy
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
     healthcheck:
       test: [ "CMD-SHELL", "curl -sf \"http://127.0.0.1:$${SERVER_PORT}/actuator/health\" >/dev/null || exit 1" ]
       interval: 30s
@@ -139,7 +133,4 @@ services:
     profiles:
       - full-stack
       - mcp
-
-volumes:
-  postgres_data:
-    driver: local
+      - ollama

@@ -23,8 +23,11 @@ spring:
           completion: false
         annotation-scanner:
           enabled: false
+        # Long Ollama CPU inference (2+ min) can idle the MCP SSE session; keep-alive + longer timeout avoid "session terminated" tool errors.
+        request-timeout: ${MCP_SERVER_REQUEST_TIMEOUT:10m}
         streamable-http:
           mcp-endpoint: /mcp
+          keep-alive-interval: ${MCP_SERVER_KEEP_ALIVE_INTERVAL:30s}
 
 server:
   port: ${SERVER_PORT:8081}
@@ -76,7 +79,8 @@ mcp:
     trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:true}
 
 ---
-# docker-compose MCP service uses profile "docker"; backend listens on https://dtime-backend:8443 (see backend application-docker.yml).
+# docker-compose MCP service uses profile "docker"; default backend is host IntelliJ/dev on :8443.
+# start-ollama-bridge.sh sets MCP_BACKEND_URL=https://dtime-backend:8443 when backend runs in Docker.
 spring:
   config:
     activate:
@@ -84,7 +88,7 @@ spring:
 
 mcp:
   backend:
-    url: ${MCP_BACKEND_URL:https://dtime-backend:8443}
+    url: ${MCP_BACKEND_URL:https://host.docker.internal:8443}
     token-uri: ${MCP_OAUTH_TOKEN_URI:http://host.docker.internal:9000/application/o/token/}
     trust-insecure-ssl: ${MCP_BACKEND_TRUST_INSECURE_SSL:true}
 

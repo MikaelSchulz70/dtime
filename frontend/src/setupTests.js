@@ -2,6 +2,15 @@ import React from 'react';
 import '@testing-library/jest-dom';
 import './i18n';
 
+jest.mock('react-markdown', () => {
+  const React = require('react');
+  return function ReactMarkdown({ children }) {
+    return React.createElement('div', { 'data-testid': 'markdown' }, children);
+  };
+});
+
+jest.mock('remark-gfm', () => () => {});
+
 // Polyfill Web APIs required by React Router 7
 import { TextEncoder, TextDecoder } from 'util';
 
@@ -51,21 +60,6 @@ beforeEach(() => {
     document.body.appendChild(root);
   }
 });
-
-// Mock window.location
-delete window.location;
-window.location = {
-  href: 'http://localhost',
-  origin: 'http://localhost',
-  protocol: 'http:',
-  hostname: 'localhost',
-  port: '',
-  pathname: '/',
-  search: '',
-  hash: '',
-  reload: jest.fn(),
-  assign: jest.fn()
-};
 
 // Mock console methods to reduce noise in tests
 global.console = {

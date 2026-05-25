@@ -46,7 +46,9 @@ On first startup, Postgres runs `infra/postgres/scripts/01-init-database.sql` an
 
 ## Notes
 
-- Postgres data is persisted in Docker volume `infra_postgres_data`.
+- Postgres container name: **`dtime-postgres`** (host port **5432**).
+- Postgres data is persisted in Docker volume **`dtime-postgres-data`**.
+- Root [`docker-compose.yml`](../docker-compose.yml) does **not** start Postgres; run this stack (or at least `postgres`) before `docker compose --profile full-stack` for the app.
 - Authentik media/certs/templates are persisted in Docker volumes (`infra_authentik_media`, `infra_authentik_templates`, `infra_authentik_certs`).
 - To reset everything, stop containers and run `docker compose down -v`.
 
@@ -58,7 +60,7 @@ Infrastructure alone does not run the DTime UI or API. After Postgres and Authen
 |-----------|----------------|---------------|
 | **Backend** | `cd backend && SPRING_PROFILES_ACTIVE=dev mvn spring-boot:run` or root `docker compose --profile full-stack` | [backend/README.md](../backend/README.md) |
 | **Frontend** | `cd frontend && npm start` or same compose profile | [frontend/README.md](../frontend/README.md) |
-| **MCP** (optional) | `cd mcp && mvn spring-boot:run` or `docker compose --profile mcp` | [mcp/README.md](../mcp/README.md) |
+| **MCP** (optional) | `docker compose --profile mcp up -d dtime-mcp` or `cd mcp && mvn spring-boot:run` | [mcp/README.md](../mcp/README.md) |
 
 **Full checklist (dev and production):** [root README — Running the stack](../README.md#running-the-stack).
 

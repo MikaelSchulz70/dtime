@@ -5,6 +5,7 @@ import UnclosedUsersPage from '../UnclosedUsersPage';
 import TimeReportStatusService from '../../../service/TimeReportStatusService';
 import SystemService from '../../../service/SystemService';
 import { useToast } from '../../../components/Toast';
+import { installMockWindowLocation } from '../../../testUtils/mockWindowLocation';
 
 // Mock the services
 jest.mock('../../../service/TimeReportStatusService');
@@ -12,18 +13,20 @@ jest.mock('../../../service/SystemService');
 jest.mock('../../../components/Toast');
 
 const mockConfirm = jest.fn(() => Promise.resolve(true));
-const mockReload = jest.fn();
+let locationMock;
 
 jest.mock('../../../components/ConfirmProvider', () => ({
   useConfirm: () => mockConfirm,
 }));
 
-Object.defineProperty(window, 'location', {
-  value: { reload: mockReload },
-  writable: true,
-});
-
 describe('UnclosedUsersPage', () => {
+  beforeAll(() => {
+    locationMock = installMockWindowLocation();
+  });
+
+  afterAll(() => {
+    locationMock.restore();
+  });
   const mockToast = {
     showError: jest.fn(),
     showSuccess: jest.fn(),

@@ -1,14 +1,13 @@
 package se.dtime.mcp.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.ai.tool.annotation.Tool;
+import org.springframework.ai.tool.annotation.ToolParam;
 import org.springframework.stereotype.Service;
 import se.dtime.mcp.client.BackendApiClient;
 
 import java.util.Map;
 
-@Slf4j
 @Service
 public class AccountMcpTools extends McpToolsSupport {
 
@@ -17,20 +16,26 @@ public class AccountMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "List all accounts (admin). Optional active=true|false filters by activation. "
-                    + "Prefer getPagedAccounts for large datasets.")
-    public String getAllAccounts(Boolean active) throws Exception {
+            "When: full account list in one response. Optional active filter. "
+                    + "Not for paginated browse (getPagedAccounts) or hour reports (getReport type=ACCOUNT).")
+    public String getAllAccounts(
+            @ToolParam(description = "Optional: true=active only, false=inactive only; omit for all", required = false)
+            Boolean active) throws Exception {
         Map<String, Object> params = queryMap();
         putIfPresent(params, "active", active);
         return getJson(buildPath("/api/account", params));
     }
 
     @Tool(description =
-            "List accounts with pagination. page is 0-based. sort: id, name, activationStatus "
-                    + "(not accountId — use id). direction: asc or desc.")
-    public String getPagedAccounts(int page, int size, String sort, String direction) throws Exception {
+            "When: list or browse customer/account organizations. "
+                    + "Not for aggregated hours by account (getReport with type=ACCOUNT). Returns paged accounts.")
+    public String getPagedAccounts(
+            @ToolParam(description = "0-based page index, e.g. 0") int page,
+            @ToolParam(description = "Page size, e.g. 10 or 20") int size,
+            @ToolParam(description = "Sort field: id, name, or activationStatus (not accountId — use id)")
+            String sort,
+            @ToolParam(description = "Sort direction: asc or desc") String direction) throws Exception {
         String mappedSort = PagedApiSort.accounts(sort);
-        log.debug("MCP getPagedAccounts page={} sort={}", page, mappedSort);
         Map<String, Object> params = queryMap();
         params.put("page", page);
         params.put("size", size);
@@ -39,8 +44,11 @@ public class AccountMcpTools extends McpToolsSupport {
         return getJson(buildPath("/api/account/paged", params));
     }
 
-    @Tool(description = "Get account by id")
-    public String getAccount(long accountId) throws Exception {
+    @Tool(description =
+            "When: one account's full record by numeric id. "
+                    + "Get id from getPagedAccounts first. Not for lists or hour reports.")
+    public String getAccount(@ToolParam(description = "Numeric DTime account id") long accountId)
+            throws Exception {
         return getJson("/api/account/" + accountId);
     }
 }

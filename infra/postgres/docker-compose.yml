@@ -1,6 +1,7 @@
 services:
   postgres:
     image: docker.io/library/postgres:16-alpine
+    container_name: dtime-postgres
     restart: unless-stopped
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-postgres}

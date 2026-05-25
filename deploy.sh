@@ -44,6 +44,7 @@ STOP_EXISTING=true
 REGISTRY=""
 TAG="latest"
 BACKUP_DATABASE=false
+WITH_CHAT=false
 
 # Parse command line arguments
 while [[ $# -gt 0 ]]; do
@@ -76,6 +77,10 @@ while [[ $# -gt 0 ]]; do
             TAG="$2"
             shift 2
             ;;
+        --with-chat)
+            WITH_CHAT=true
+            shift
+            ;;
         --help|-h)
             echo "Usage: $0 [OPTIONS]"
             echo ""
@@ -89,6 +94,7 @@ while [[ $# -gt 0 ]]; do
             echo "  --backup-db         Backup database before deployment"
             echo "  --registry, -r REG  Registry prefix for images"
             echo "  --tag, -t TAG       Image tag to deploy [default: latest]"
+            echo "  --with-chat         Start Ollama, MCP bridge, MCP server, and pull required models"
             echo "  --help, -h          Show this help message"
             echo ""
             echo "Examples:"
@@ -135,6 +141,7 @@ print_status "Build images: $BUILD_IMAGES"
 print_status "Start services: $START_SERVICES"
 print_status "Registry: ${REGISTRY:-<local>}"
 print_status "Tag: $TAG"
+print_status "With chat (Ollama): $WITH_CHAT"
 echo ""
 
 # Check for .env file
@@ -151,6 +158,17 @@ if [ ! -f ".env" ]; then
     fi
 fi
 
+# Load .env (DEPLOY_OLLAMA enables --with-chat when not passed on CLI)
+if [ -f ".env" ]; then
+    set -a
+    # shellcheck disable=SC1091
+    source .env
+    set +a
+    if [ "${DEPLOY_OLLAMA:-false}" = "true" ]; then
+        WITH_CHAT=true
+    fi
+fi
+
 # Database backup
 if [ "$BACKUP_DATABASE" = true ]; then
     print_header "💾 Database Backup"
@@ -162,7 +180,7 @@ if [ "$BACKUP_DATABASE" = true ]; then
         mkdir -p "$BACKUP_DIR"
         BACKUP_FILE="$BACKUP_DIR/backup_$(date +%Y%m%d_%H%M%S).sql"
         
-        docker-compose exec -T dtime-db pg_dump -U dtime dtime > "$BACKUP_FILE"
+        docker exec dtime-postgres pg_dump -U "${DATABASE_USERNAME:-postgres}" "${DATABASE_NAME:-dtime}" > "$BACKUP_FILE"
         print_success "Database backup created: $BACKUP_FILE"
     else
         print_warning "Database container not running, skipping backup"
@@ -177,7 +195,11 @@ if [ "$STOP_EXISTING" = true ]; then
     if [ "$ENVIRONMENT" = "development" ]; then
         docker-compose --profile full-stack down
     else
-        docker-compose --profile production down
+        if [ "$WITH_CHAT" = true ]; then
+            docker-compose --profile production --profile ollama --profile mcp down
+        else
+            docker-compose --profile production down
+        fi
     fi
     
     print_success "Existing services stopped"
@@ -224,10 +246,33 @@ if [ "$START_SERVICES" = true ]; then
         docker-compose --profile full-stack up -d
     else
         print_status "Starting production environment..."
-        docker-compose --profile production up -d
+        PROFILES="--profile production"
+        if [ "$WITH_CHAT" = true ]; then
+            PROFILES="$PROFILES --profile ollama --profile mcp"
+        fi
+        docker-compose $PROFILES up -d
     fi
     
     print_success "Services started successfully"
+
+    if [ "$WITH_CHAT" = true ]; then
+        print_header "🤖 Ollama (native on host)"
+        OLLAMA_HOST="${OLLAMA_HOST:-http://127.0.0.1:${OLLAMA_PORT:-11434}}"
+        if ! curl -sf "${OLLAMA_HOST}/api/tags" >/dev/null 2>&1; then
+            print_error "Ollama is not running on the host at ${OLLAMA_HOST}."
+            print_status "Install: https://ollama.com/download (Mac: brew install ollama)"
+            print_status "Start:  brew services start ollama  OR  systemctl start ollama  OR  ollama serve"
+            exit 1
+        fi
+        print_success "Ollama is reachable at ${OLLAMA_HOST}"
+        print_status "Pulling required models from ollama/models.manifest.yaml..."
+        if ./ollama/scripts/pull-models.sh; then
+            print_success "Required Ollama models are present"
+        else
+            print_warning "Some required models are missing — install via Chat → Models tab or pull-models.sh"
+        fi
+        print_status "Bridge health: curl -s http://127.0.0.1:8082/health"
+    fi
     
     # Wait for services to be healthy
     print_status "Waiting for services to be ready..."
@@ -250,6 +295,10 @@ if [ "$START_SERVICES" = true ]; then
         echo "  • Frontend:       http://localhost:3000"
         echo "  • Backend API:    http://localhost:8080"
         echo "  • Database:       localhost:5432"
+        if [ "$WITH_CHAT" = true ]; then
+            echo "  • Admin Chat:     http://localhost:3000/chat"
+            echo "  • Ollama bridge:  http://localhost:8082/health"
+        fi
     fi
     
     echo ""

@@ -1,7 +1,7 @@
 spring:
   # Database Configuration for Docker
   datasource:
-    url: ${DATABASE_URL:jdbc:postgresql://dtime-db:5432/dtime}
+    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/dtime}
     username: ${DATABASE_USERNAME:dtime}
     password: ${DATABASE_PASSWORD:dtime_dev_password}
     driver-class-name: org.postgresql.Driver
@@ -21,7 +21,7 @@ spring:
   # Liquibase Configuration
   liquibase:
     change-log: classpath:db/changelog/db.changelog.xml
-    url: ${DATABASE_URL:jdbc:postgresql://dtime-db:5432/dtime}
+    url: ${DATABASE_URL:jdbc:postgresql://host.docker.internal:5432/dtime}
     user: ${DATABASE_USERNAME:dtime}
     password: ${DATABASE_PASSWORD:dtime_dev_password}
 
@@ -61,11 +61,18 @@ server:
 security:
   enable-csrf: ${SECURITY_CSRF_ENABLED:false}
 
-# Authentik OIDC (values from .env / compose)
+# Authentik OIDC (values from .env / compose). Server-side URLs default to host.docker.internal
+# so machine JWT JWKS fetch works from inside the container (localhost in .env is for IntelliJ on the host).
 oauth:
   authentik:
     enabled: ${OAUTH_AUTHENTIK_ENABLED:false}
     end-session-uri: ${OAUTH_AUTHENTIK_END_SESSION_URI:}
+    token-uri: ${OAUTH_AUTHENTIK_TOKEN_URI:http://host.docker.internal:9000/application/o/token/}
+    user-info-uri: ${OAUTH_AUTHENTIK_USER_INFO_URI:http://host.docker.internal:9000/application/o/userinfo/}
+    jwk-set-uri: ${OAUTH_AUTHENTIK_JWK_SET_URI:http://host.docker.internal:9000/application/o/dtime/jwks/}
+    machine-jwt:
+      enabled: ${OAUTH_AUTHENTIK_MACHINE_JWT_ENABLED:false}
+      jwk-set-uri: ${OAUTH_AUTHENTIK_MACHINE_JWT_JWK_SET_URI:http://host.docker.internal:9000/application/o/dtmcp/jwks/}
 
 # Email Configuration
 mail:

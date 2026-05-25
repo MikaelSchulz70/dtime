@@ -23,9 +23,61 @@ abstract class McpToolsSupport {
     }
 
     String getJson(String path) throws Exception {
-        log.info("MCP tool backend GET {}", path);
         return objectMapper.writerWithDefaultPrettyPrinter()
-                .writeValueAsString(backendApiClient.get(path, Object.class));
+                .writeValueAsString(backendGet(path));
+    }
+
+    Object backendGet(String path) {
+        String toolName = callerToolName();
+        long startNanos = System.nanoTime();
+        log.info("MCP tool {} -> GET {}", toolName, path);
+        try {
+            Object body = backendApiClient.get(path, Object.class);
+            log.info("MCP tool {} completed ({}ms)", toolName, elapsedMs(startNanos));
+            return body;
+        } catch (RuntimeException e) {
+            log.warn("MCP tool {} failed after {}ms: {}", toolName, elapsedMs(startNanos), e.getMessage());
+            throw e;
+        }
+    }
+
+    /** Name of the @Tool method that invoked {@link #backendGet} or {@link #getJson}. */
+    static String callerToolName() {
+        return StackWalker.getInstance(StackWalker.Option.RETAIN_CLASS_REFERENCE)
+                .walk(stream -> stream
+                        .skip(1)
+                        .filter(frame -> !isSupportFrame(frame))
+                        .findFirst()
+                        .map(StackWalker.StackFrame::getMethodName)
+                        .orElse("unknown"));
+    }
+
+    private static boolean isSupportFrame(StackWalker.StackFrame frame) {
+        if (!McpToolsSupport.class.isAssignableFrom(frame.getDeclaringClass())) {
+            return false;
+        }
+        return switch (frame.getMethodName()) {
+            case "backendGet", "getJson", "callerToolName" -> true;
+            default -> false;
+        };
+    }
+
+    private static long elapsedMs(long startNanos) {
+        return (System.nanoTime() - startNanos) / 1_000_000L;
+    }
+
+    String toCompactJson(Object value) throws Exception {
+        return objectMapper.writeValueAsString(value);
+    }
+
+    static long totalElementsFromPagedResponse(Object body) {
+        if (body instanceof Map<?, ?> map) {
+            Object total = map.get("totalElements");
+            if (total instanceof Number number) {
+                return number.longValue();
+            }
+        }
+        throw new IllegalStateException("Paged response missing totalElements");
     }
 
     static String buildPath(String path, Map<String, ?> queryParams) {

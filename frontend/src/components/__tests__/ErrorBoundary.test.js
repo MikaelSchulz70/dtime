@@ -2,6 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import ErrorBoundary from '../ErrorBoundary';
+import { installMockWindowLocation } from '../../testUtils/mockWindowLocation';
 
 // Mock console.error to avoid noise in test output
 const originalError = console.error;
@@ -93,11 +94,7 @@ describe('ErrorBoundary', () => {
 
   it('should call window.location.reload when Reload Page is clicked', async () => {
     const user = userEvent.setup();
-    const reloadMock = jest.fn();
-    Object.defineProperty(window, 'location', {
-      value: { reload: reloadMock },
-      writable: true
-    });
+    const locationMock = installMockWindowLocation();
 
     render(
       <ErrorBoundary>
@@ -108,7 +105,8 @@ describe('ErrorBoundary', () => {
     const reloadButton = screen.getByRole('button', { name: /reload page/i });
     await user.click(reloadButton);
 
-    expect(reloadMock).toHaveBeenCalled();
+    expect(locationMock.reload).toHaveBeenCalled();
+    locationMock.restore();
   });
 
   it('should show error details in development mode', () => {

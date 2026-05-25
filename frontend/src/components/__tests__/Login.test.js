@@ -4,6 +4,7 @@ import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router';
 import axios from 'axios';
 import Login from '../Login';
+import { installMockWindowLocation } from '../../testUtils/mockWindowLocation';
 
 jest.mock('axios');
 const mockedAxios = axios;
@@ -41,15 +42,17 @@ const renderLoginAt = (search = '') => {
 };
 
 describe('Login (OIDC / Authentik)', () => {
+  let locationMock;
+
   beforeEach(() => {
     jest.clearAllMocks();
     window.localStorage.clear();
-    Object.defineProperty(window, 'location', {
-      value: { href: '' },
-      writable: true,
-      configurable: true,
-    });
+    locationMock = installMockWindowLocation({ href: 'http://localhost/' });
     mockedAxios.get.mockResolvedValue({ data: { enabled: false } });
+  });
+
+  afterEach(() => {
+    locationMock.restore();
   });
 
   it('loads OIDC status from backend', async () => {
@@ -99,7 +102,7 @@ describe('Login (OIDC / Authentik)', () => {
       expect(screen.getByRole('button', { name: /Sign in with Authentik/i })).not.toBeDisabled();
     });
     await user.click(screen.getByRole('button', { name: /Sign in with Authentik/i }));
-    expect(window.location.href).toBe('/oauth2/authorization/authentik');
+    expect(locationMock.getHref()).toBe('http://localhost/oauth2/authorization/authentik');
   });
 
   it('clears cached user and redirects to switch-user endpoint', async () => {
@@ -114,7 +117,7 @@ describe('Login (OIDC / Authentik)', () => {
     await user.click(screen.getByRole('button', { name: /Sign out and sign in as another user/i }));
     expect(window.localStorage.getItem('dtime.lastOidcUser')).toBeNull();
     expect(sessionStorage.getItem('dtime.switchUserPending')).toBe('1');
-    expect(window.location.href).toBe('https://localhost:8443/api/auth/oidc/switch-user');
+    expect(locationMock.getHref()).toBe('https://localhost:8443/api/auth/oidc/switch-user');
   });
 
   it('shows OIDC failure message when error=oauth', async () => {

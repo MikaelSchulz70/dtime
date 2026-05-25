@@ -25,12 +25,39 @@ The DTime application automatically configures the frontend to connect to the ba
 ./deploy.sh --env production
 ```
 
+### Admin Chat with Ollama (optional)
+
+**Ollama runs natively on the host** (not in Docker). Install and start it before deploying Chat.
+
+**Prerequisites on the server:**
+
+```bash
+# Install: https://ollama.com/download
+# Mac: brew install ollama && brew services start ollama
+# Linux: enable systemd service, then verify:
+curl -s http://127.0.0.1:11434/api/tags
+```
+
+**Command:**
+
+```bash
+./deploy.sh --env production --with-chat
+```
+
+Or set `DEPLOY_OLLAMA=true` in `.env`.
+
+**What starts:** backend, MCP, MCP bridge, and production frontend (nginx proxies `/api/ollama/` to the bridge).
+
+**Models:** required models from [`ollama/models.manifest.yaml`](ollama/models.manifest.yaml) are pulled automatically via native `ollama pull`. Install optional models (e.g. `qwen3`) via **Chat → Models** or `./ollama/scripts/pull-models.sh --model qwen3`.
+
+See [ollama/README.md](ollama/README.md#model-manifest-and-updates).
+
 **For production on a server with domain:**
 ```bash
 # In your .env file
 FRONTEND_BACKEND_URL=https://your-domain.com
 
-# Then deploy
+# Then deploy (add --with-chat if using admin Chat)
 ./deploy.sh --env production
 ```
 
@@ -45,7 +72,7 @@ FRONTEND_BACKEND_URL=https://your-domain.com
 **For frontend outside Docker:**
 ```bash
 # Start only database in Docker
-docker-compose up -d dtime-db
+cd infra && docker-compose up -d postgres
 
 # Start backend in IntelliJ or:
 cd backend && mvn spring-boot:run

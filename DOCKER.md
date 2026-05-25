@@ -32,8 +32,8 @@ This guide explains how to run the D-Time application using Docker Compose.
    # Start all services (database + backend + frontend)
    docker-compose --profile full-stack up -d
    
-   # Or start just the database for local development
-   docker-compose up -d dtime-db
+   # Start PostgreSQL first (infra only — not in root compose)
+   cd infra && docker-compose up -d postgres && cd ..
    ```
 
 4. **Access the application:**
@@ -66,11 +66,12 @@ FRONTEND_BACKEND_URL=http://dtime-backend:8080  # For Docker networking
 
 ## Docker Services
 
-### 1. Database (dtime-db)
-- **Image:** postgres:15
+### 1. Database (dtime-postgres)
+- **Defined in:** `infra/postgres/docker-compose.yml` (container name `dtime-postgres`)
+- **Image:** postgres:16-alpine
 - **Port:** 5432
-- **Volume:** `postgres_data` for persistence
-- **Init Scripts:** `./database/scripts/` for initial setup
+- **Volume:** `dtime-postgres-data` for persistence
+- **Init Scripts:** `infra/postgres/scripts/` for initial setup
 
 ### 2. Backend (dtime-backend)
 - **Build:** `./backend/Dockerfile`
@@ -89,7 +90,7 @@ FRONTEND_BACKEND_URL=http://dtime-backend:8080  # For Docker networking
 ### Development Setup
 ```bash
 # Start only database
-docker-compose up -d dtime-db
+cd infra && docker-compose up -d postgres
 
 # Run backend and frontend locally
 cd backend && ./mvnw spring-boot:run
@@ -149,18 +150,23 @@ NODE_ENV=development
 
 ## Networking
 
-All services are connected via the `dtime-network` bridge network:
-- `dtime-db`: PostgreSQL database
-- `dtime-backend`: Spring Boot backend (depends on database)
+Root compose services (profiles `full-stack`, `mcp`, `ollama`, `production`):
+- `dtime-backend`: Spring Boot backend (connects to `host.docker.internal:5432` → `dtime-postgres`)
 - `dtime-frontend`: React frontend (depends on backend)
+- `dtime-mcp`: MCP server (profile `mcp` / `ollama` / `full-stack`) — starts **without** `dtime-backend`; set `MCP_BACKEND_URL` if backend runs on the host
+- `dtime-ollama-bridge`: Chat API + MCP tools (profile `ollama`); starts **independently** — MCP must already be running
 
-Internal communication uses service names:
-- Backend connects to database via `dtime-db:5432`
+**Ollama is not a Docker service** — install on the host (`brew install ollama` or [ollama.com/download](https://ollama.com/download)). See [ollama/README.md](ollama/README.md).
+
+PostgreSQL runs separately from **infra/** (`dtime-postgres` on host port 5432).
+
+Internal communication:
+- Backend in Docker connects to database via `host.docker.internal:5432`
 - Frontend connects to backend via `dtime-backend:8080`
 
 ## Data Persistence
 
-- Database data: `postgres_data` volume
+- Database data: `dtime-postgres-data` volume (infra compose)
 - Backend logs: `./backend/logs` bind mount
 - Frontend source: `./frontend/src` bind mount (dev mode only)
 
@@ -213,7 +219,7 @@ docker-compose restart dtime-frontend-prod
    ```
 
 3. **Database connection fails:**
-   - Check if database is ready: `docker-compose logs dtime-db`
+   - Check if database is ready: `docker logs dtime-postgres` (start with `cd infra && docker compose up -d postgres`)
    - Verify credentials in `.env` file
    - Wait for database health check to pass
 
