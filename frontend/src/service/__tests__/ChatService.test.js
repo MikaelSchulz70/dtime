@@ -140,6 +140,7 @@ describe('looksLikeDataQuestion', () => {
   it('detects factual DTime questions', () => {
     expect(looksLikeDataQuestion('How many users are in DTime?')).toBe(true);
     expect(looksLikeDataQuestion('List all tasks')).toBe(true);
+    expect(looksLikeDataQuestion('Have all users closed their time reports?')).toBe(true);
   });
 
   it('ignores general chat', () => {

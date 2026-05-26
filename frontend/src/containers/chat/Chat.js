@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef, useState } from 'react';
+import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Alert, Button, Card, Form, Spinner, Tab, Tabs } from 'react-bootstrap';
 import { useTranslation } from 'react-i18next';
 import ChatModels from './ChatModels';
@@ -87,6 +87,10 @@ const Chat = () => {
     }
   }, []);
 
+  useLayoutEffect(() => {
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
+
   const handleInputKeyDown = (event) => {
     if (event.key === 'Enter' && !event.shiftKey) {
       event.preventDefault();
@@ -148,7 +152,6 @@ const Chat = () => {
             }
             return updated;
           });
-          scrollToBottom();
         },
       });
 
@@ -176,7 +179,6 @@ const Chat = () => {
     } finally {
       abortControllerRef.current = null;
       setLoading(false);
-      scrollToBottom();
     }
   };
 

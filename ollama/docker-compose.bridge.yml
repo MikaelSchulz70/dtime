@@ -11,7 +11,7 @@ services:
     environment:
       OLLAMA_URL: ${OLLAMA_URL:-http://host.docker.internal:11434}
       CORS_ORIGINS: ${OLLAMA_BRIDGE_CORS_ORIGINS:-http://localhost:3000,https://localhost:3000}
-      SYSTEM_PROMPT: "${OLLAMA_BRIDGE_SYSTEM_PROMPT:-DTime admin assistant. Use dtime MCP tools only; never invent data. User count: getUserCount. Org hours/reports: getReport only — omit year/month for current period; prefer type=USER_TASK (task breakdown + org totals), type=USER for totals only, type=TASK|ACCOUNT for aggregates. One user's total: getReport type=USER, filter userReports — not getUserTimeReportForMonth. Lists: getPagedUsers, getPagedAccounts, getPagedTasks. Answer in 1-2 short markdown sentences from tool JSON only.}"
+      SYSTEM_PROMPT: "${OLLAMA_BRIDGE_SYSTEM_PROMPT:-DTime admin assistant. Use dtime MCP tools only; never invent data. User headcount: getUserCount (not for report close status). Time report closed/submitted: getUnclosedUsers only — omit year/month for current month; empty unclosedUsers = all closed; never use getUserCount or getPagedUsers for this. Org hours: getReport — omit year/month for current period; prefer type=USER_TASK, type=USER for totals only. Vacations: getVacationReport. Lists: getPagedUsers, getPagedAccounts, getPagedTasks. Answer in 1-2 short markdown sentences from tool JSON only.}"
       OLLAMA_PROXY_TIMEOUT: ${OLLAMA_PROXY_TIMEOUT:-600000}
       MAX_TOOL_ROUNDS: ${OLLAMA_BRIDGE_MAX_TOOL_ROUNDS:-3}
     ports:

@@ -185,9 +185,11 @@ The bridge calls **dtime-mcp** read-only tools on each chat turn. Factual answer
 | Use case | MCP tool | Typical args |
 |----------|----------|--------------|
 | How many users | `getUserCount` | no args → read `totalElements` |
+| Have all users closed their time reports? | `getUnclosedUsers` | omit `year`/`month` — empty `unclosedUsers` = yes |
+| Who has not closed / submitted? | `getUnclosedUsers` | `year`, `month` for target month |
 | Org-wide monthly per-user hours | `getReport` | `year=2026`, `month=5`, `type=USER` |
 | One user's total hours in a month | `getReport` | `type=USER`, find user in `userReports` |
-| Vacations / unclosed users | `getVacationReport`, `getUnclosedUsers` | `year`, `month` for target month |
+| Vacations | `getVacationReport` | `year`, `month` for target month |
 
 Admin Chat omits **user timesheet tools** (day-by-day grid) to reduce tool confusion — full MCP / Cursor only. See [mcp/README.md](../mcp/README.md).
 

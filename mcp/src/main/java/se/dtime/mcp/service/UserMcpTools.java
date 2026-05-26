@@ -28,7 +28,8 @@ public class UserMcpTools extends McpToolsSupport {
 
     @Tool(description =
             "When: 'how many users', total headcount. "
-                    + "Not for names or lists (getPagedUsers). Returns JSON {totalElements: N} only.")
+                    + "Not for time report close/submit status (getUnclosedUsers), names, or lists (getPagedUsers). "
+                    + "Returns JSON {totalElements: N} only.")
     public String getUserCount() throws Exception {
         long total = totalElementsFromPagedResponse(
                 backendGet("/api/users/paged?page=0&size=1&sort=id&direction=asc"));
@@ -37,7 +38,8 @@ public class UserMcpTools extends McpToolsSupport {
 
     @Tool(description =
             "When: list or browse users (names, emails, roles). "
-                    + "Not for total count (getUserCount). Returns paged user records.")
+                    + "Not for total count (getUserCount) or time report close status (getUnclosedUsers). "
+                    + "Returns paged user records.")
     public String getPagedUsers(
             @ToolParam(description = "0-based page index as string, e.g. \"0\"") String page,
             @ToolParam(description = "Page size as string, e.g. \"10\" or \"20\"") String size,

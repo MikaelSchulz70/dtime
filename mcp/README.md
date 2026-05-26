@@ -263,7 +263,9 @@ All tools delegate to **`BackendApiClient`**, which only performs **HTTP GET**. 
 | One user's total hours in May 2026 | `getReport` | `type=USER`, find user in `userReports` |
 | One user's day-by-day timesheet (Cursor / full MCP) | `getUserTimeReportForMonth` | `userId` from `getPagedUsers`, `year=2026`, `month=5` — **not** in admin Chat bridge |
 | Vacation balances for March 2026 | `getVacationReport` | `year=2026`, `month=3` |
-| Unclosed reports for last month | `getUnclosedUsers` | `year` and `month` for target month |
+| Have all users closed their time reports? | `getUnclosedUsers` | omit `year`/`month` for current month — empty `unclosedUsers` = yes |
+| Who has not submitted / unclosed reports? | `getUnclosedUsers` | `year`, `month` for target month |
+| Who has closed reports (reopen admin view)? | `getUnclosedUsers` | `closed=true` |
 
 Admin Chat uses **`getReport` only** for hours (no user timesheet tools) to avoid tool confusion. Use `getReport` with `type=USER` for org-wide or per-user **totals**, not day-by-day grids.
 
@@ -322,7 +324,7 @@ Only **`/user`** (admin, requires `userId`) and **`/vacations`** are exposed. Th
 
 | Tool | Backend |
 |------|---------|
-| `getUnclosedUsers` | `GET /api/timereportstatus/year/{year}/month/{month}` |
+| `getUnclosedUsers` | `GET /api/timereportstatus/year/{year}/month/{month}` — optional `?closed=true` |
 
 ### Reports (`/api/report`) — admin aggregates
 

@@ -14,14 +14,21 @@ public class TimeReportStatusMcpTools extends McpToolsSupport {
     }
 
     @Tool(description =
-            "When: time report status for a month. By default returns users with unclosed/open reports; "
-                    + "set closed=true for users who have closed their report ('reopen report', 'who has submitted').")
+            "When: who has or has not closed/submitted their monthly time report. "
+                    + "Use for 'have all users closed their reports?', 'who hasn't submitted?', "
+                    + "'missing time reports', 'unclosed reports'. "
+                    + "Default (closed omitted/false): users with open/unclosed reports — "
+                    + "empty unclosedUsers means everyone has closed. "
+                    + "closed=true: users who have closed (for reopen/admin review). "
+                    + "Not for headcount (getUserCount) or hours (getReport). "
+                    + "Do not page through getPagedUsers to infer close status.")
     public String getUnclosedUsers(
             @ToolParam(description = "Calendar year, e.g. 2026. Omit for current year.", required = false)
             Integer year,
             @ToolParam(description = "Month 1-12 or month name. Omit for current month.", required = false)
             String month,
-            @ToolParam(description = "If true, return closed reports only. Default false (unclosed only).", required = false)
+            @ToolParam(description =
+                    "false/omit: users who have NOT closed (default). true: users who HAVE closed.", required = false)
             Boolean closed) throws Exception {
         ReportPeriodParams.MonthPeriod period = ReportPeriodParams.resolveMonthPeriod(year, month);
         String path = "/api/timereportstatus/year/" + period.year() + "/month/" + period.month();

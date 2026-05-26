@@ -16,7 +16,10 @@ spring:
         type: SYNC
         name: dtime-mcp
         version: 1.0.0
-        instructions: "Read-only access to dtime REST API (users, accounts, tasks, time reports)."
+        instructions: >-
+          Read-only DTime admin API. Time report close/submit status: getUnclosedUsers
+          (empty unclosedUsers = all closed). User headcount: getUserCount. Org hours: getReport.
+          Do not use getUserCount or getPagedUsers to infer report close status.
         capabilities:
           resource: false
           prompt: false

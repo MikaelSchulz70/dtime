@@ -436,7 +436,7 @@ export function formatToolCallStatus(toolCalls) {
 }
 
 const DATA_QUESTION_PATTERN =
-  /\b(how many|how much|count|total|number of|list|show|get|who are|which users|users|accounts|tasks|report|time report|hours|vacation|unclosed)\b/i;
+  /\b(how many|how much|count|total|number of|list|show|get|who are|which users|users|accounts|tasks|report|time report|hours|vacation|unclosed|closed|submitted|missing)\b/i;
 
 /**
  * Heuristic: user message likely needs MCP tool data (not general chat).
